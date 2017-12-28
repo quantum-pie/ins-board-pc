@@ -1,0 +1,7 @@
+# Build files
+debug/*
+release/*
+ins_board_pc/*.qm
+
+# User settings
+ins_board_pc/*.user
