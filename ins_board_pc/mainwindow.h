@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QtNetwork>
+#include <QVector3D>
+class QCustomPlot;
 
 namespace Ui {
 class MainWindow;
@@ -18,6 +20,8 @@ public:
 
 private slots:
     void read_datagrams();
+    void init_graphs();
+    void update_plot(QCustomPlot * plot, QVector3D vec);
 
 private:
     void process_data(const QByteArray & data);
