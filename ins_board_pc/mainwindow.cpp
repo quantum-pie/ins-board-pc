@@ -13,9 +13,9 @@ MainWindow::MainWindow(QWidget *parent) :
     udp_socket = new QUdpSocket(this);
     udp_socket->bind(QHostAddress("192.168.4.1"), 65000);
 
-    connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
-
     init_graphs();
+
+    connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 }
 
 void MainWindow::read_datagrams()
@@ -44,9 +44,16 @@ void MainWindow::process_data(const QByteArray & data)
               in.m_x >> in.m_y >> in.m_z;
     }
 
-    update_plot(ui->plot1, QVector3D(in.a_x, in.a_y, in.a_z));
-    update_plot(ui->plot2, QVector3D(in.w_x * 1e-3, in.w_y  * 1e-3, in.w_z  * 1e-3));
-    update_plot(ui->plot3, QVector3D(in.m_x, in.m_y, in.m_z));
+    if(ui->tabWidget->currentIndex() == 0)
+    {
+        update_plot(ui->plot1, QVector3D(in.a_x, in.a_y, in.a_z));
+        update_plot(ui->plot2, QVector3D(in.w_x * 1e-3, in.w_y  * 1e-3, in.w_z  * 1e-3));
+        update_plot(ui->plot3, QVector3D(in.m_x, in.m_y, in.m_z));
+    }
+    else if(ui->tabWidget->currentIndex() == 1)
+    {
+
+    }
 }
 
 void MainWindow::init_graphs()
