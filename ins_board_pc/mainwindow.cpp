@@ -3,6 +3,9 @@
 
 #include <QDataStream>
 #include <QDebug>
+#include <QtNetwork>
+
+using namespace QtDataVisualization;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -15,7 +18,24 @@ MainWindow::MainWindow(QWidget *parent) :
 
     init_graphs();
 
+    magnet_plot = new Q3DScatter;
+    magnet_data = new QScatterDataArray;
+
+    magnet_plot_cb = new Q3DScatter;
+    magnet_data_cb = new QScatterDataArray;
+
+    init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
+    init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
+
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
+
+    resize(1300, 800);
+}
+
+MainWindow::~MainWindow()
+{
+    delete udp_socket;
+    delete ui;
 }
 
 void MainWindow::read_datagrams()
@@ -52,7 +72,21 @@ void MainWindow::process_data(const QByteArray & data)
     }
     else if(ui->tabWidget->currentIndex() == 1)
     {
+        if(ui->pushButton->isChecked())
+        {
+            magnet_data->append(QVector3D(in.m_x, in.m_z, in.m_y));
+            magnet_plot->seriesList().at(0)->dataProxy()->resetArray(magnet_data);
 
+            magn_cal.update(QVector3D(in.m_x, in.m_y, in.m_z));
+
+            ui->xbias_le->setText(QString::number(magn_cal.get_x_bias()));
+            ui->ybias_le->setText(QString::number(magn_cal.get_y_bias()));
+            ui->zbias_le->setText(QString::number(magn_cal.get_z_bias()));
+
+            ui->xspan_le->setText(QString::number(magn_cal.get_x_scale()));
+            ui->yspan_le->setText(QString::number(magn_cal.get_y_scale()));
+            ui->zspan_le->setText(QString::number(magn_cal.get_z_scale()));
+        }
     }
 }
 
@@ -73,13 +107,17 @@ void MainWindow::init_graphs()
 
     ui->plot1->graph(0)->setPen(QPen(Qt::blue));
     ui->plot1->graph(1)->setPen(QPen(Qt::red));
-    ui->plot1->graph(2)->setPen(QPen(Qt::black));
+    ui->plot1->graph(2)->setPen(QPen(Qt::cyan));
 
     ui->plot1->xAxis->setRange(0, 200);
     ui->plot1->xAxis->setLabel("packet");
 
     ui->plot1->yAxis->setRange(-2000, 2000);
     ui->plot1->yAxis->setLabel("Acceleration, mg");
+
+    ui->plot1->setBackground(Qt::lightGray);
+    ui->plot1->axisRect()->setBackground(Qt::black);
+    ui->plot1->legend->setBrush(Qt::lightGray);
 
     //
     ui->plot2->plotLayout()->insertRow(0);
@@ -97,13 +135,17 @@ void MainWindow::init_graphs()
 
     ui->plot2->graph(0)->setPen(QPen(Qt::blue));
     ui->plot2->graph(1)->setPen(QPen(Qt::red));
-    ui->plot2->graph(2)->setPen(QPen(Qt::black));
+    ui->plot2->graph(2)->setPen(QPen(Qt::cyan));
 
     ui->plot2->xAxis->setRange(0, 200);
     ui->plot2->xAxis->setLabel("packet");
 
     ui->plot2->yAxis->setRange(-250, 250);
     ui->plot2->yAxis->setLabel("Angular rate, dps");
+
+    ui->plot2->setBackground(Qt::lightGray);
+    ui->plot2->axisRect()->setBackground(Qt::black);
+    ui->plot2->legend->setBrush(Qt::lightGray);
 
     //
     ui->plot3->plotLayout()->insertRow(0);
@@ -121,13 +163,17 @@ void MainWindow::init_graphs()
 
     ui->plot3->graph(0)->setPen(QPen(Qt::blue));
     ui->plot3->graph(1)->setPen(QPen(Qt::red));
-    ui->plot3->graph(2)->setPen(QPen(Qt::black));
+    ui->plot3->graph(2)->setPen(QPen(Qt::cyan));
 
     ui->plot3->xAxis->setRange(0, 200);
     ui->plot3->xAxis->setLabel("packet");
 
     ui->plot3->yAxis->setRange(-500, 500);
     ui->plot3->yAxis->setLabel("Magnetic field, uT");
+
+    ui->plot3->setBackground(Qt::lightGray);
+    ui->plot3->axisRect()->setBackground(Qt::black);
+    ui->plot3->legend->setBrush(Qt::lightGray);
 }
 
 void MainWindow::update_plot(QCustomPlot * plot, QVector3D vec)
@@ -148,7 +194,51 @@ void MainWindow::update_plot(QCustomPlot * plot, QVector3D vec)
     }
 }
 
-MainWindow::~MainWindow()
+void MainWindow::init_magnet_plot(QWidget * dummy_container, QScatterDataArray * data, Q3DScatter * plot, QString title)
 {
-    delete ui;
+    QWidget *magnet_plot_container = QWidget::createWindowContainer(plot);
+    magnet_plot_container->setWindowTitle(title);
+    ui->gridLayout->replaceWidget(dummy_container, magnet_plot_container);
+
+    QScatterDataProxy *proxy = new QScatterDataProxy;
+    QScatter3DSeries *series = new QScatter3DSeries(proxy);
+    series->setItemLabelFormat(QStringLiteral("@xTitle: @xLabel @zTitle: @zLabel @yTitle: @yLabel"));
+    series->setMeshSmooth(true);
+    series->setItemSize(0.05);
+    plot->addSeries(series);
+
+    plot->activeTheme()->setType(Q3DTheme::ThemeEbony);
+    plot->setShadowQuality(QAbstract3DGraph::ShadowQualitySoftHigh);
+    QFont font = plot->activeTheme()->font();
+    font.setPointSize(30);
+    plot->activeTheme()->setFont(font);
+    plot->scene()->activeCamera()->setCameraPreset(Q3DCamera::CameraPresetIsometricLeft);
+
+    plot->axisX()->setTitle("X");
+    plot->axisY()->setTitle("Z");
+    plot->axisZ()->setTitle("Y");
+
+    plot->setAspectRatio(1);
+
+    data->reserve(1000);
+}
+
+void MainWindow::on_pushButton_toggled(bool checked)
+{
+    if(checked)
+    {
+        /* start acquisition */
+        magn_cal.reset();
+        magnet_data->resize(0);
+        magnet_data_cb->resize(0);
+    }
+    else
+    {
+        magnet_data_cb->resize(magnet_data->size());
+        for(int i = 0; i < magnet_data->size(); ++i)
+        {
+            (*magnet_data_cb)[i].setPosition(magn_cal.calibrate((*magnet_data)[i].position()));
+        }
+        magnet_plot_cb->seriesList().at(0)->dataProxy()->resetArray(magnet_data_cb);
+    }
 }
