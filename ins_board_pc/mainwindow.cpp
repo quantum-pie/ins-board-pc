@@ -1,9 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <boost/numeric/ublas/assignment.hpp>
+
 #include <QDataStream>
 #include <QDebug>
 #include <QtNetwork>
+#include <QtMath>
 
 using namespace QtDataVisualization;
 
@@ -27,6 +30,14 @@ MainWindow::MainWindow(QWidget *parent) :
     init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
     init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
 
+    NumVector x0(7);
+    x0 <<= 1, 0, 0, 0, 0, 0, 0;
+    NumMatrix P0 = ublas::zero_matrix<double>(7, 7);
+    NumMatrix Q = ublas::identity_matrix<double>(7) * 0.0000000001;
+    NumMatrix R = ublas::identity_matrix<double>(2) * 0.0005;
+
+    marg_filt = new QuaternionKalman(x0, P0, Q, R);
+
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 
     resize(1300, 800);
@@ -35,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete udp_socket;
+    delete marg_filt;
     delete ui;
 }
 
@@ -62,6 +74,18 @@ void MainWindow::process_data(const QByteArray & data)
         ds >> in.et >> in.w_x >> in.w_y >> in.w_z >>
               in.a_x >> in.a_y >> in.a_z >>
               in.m_x >> in.m_y >> in.m_z;
+
+        if(ui->pushButton_2->isChecked())
+        {
+            NumVector w(3), a(3), m(3);
+            w <<= qDegreesToRadians(in.w_x * 1e-3), qDegreesToRadians(in.w_y * 1e-3), qDegreesToRadians(in.w_z * 1e-3);
+            a <<= in.a_x * 1e-3, in.a_y * 1e-3, in.a_z * 1e-3;
+            m <<= in.m_x, in.m_y, in.m_z;
+
+            magn_cal.calibrate(m[0], m[1], m[2]);
+
+            marg_filt->update(w, a, m, in.et * 1e-6);
+        }
     }
 
     if(ui->tabWidget->currentIndex() == 0)
@@ -70,14 +94,15 @@ void MainWindow::process_data(const QByteArray & data)
         update_plot(ui->plot2, QVector3D(in.w_x * 1e-3, in.w_y  * 1e-3, in.w_z  * 1e-3));
         update_plot(ui->plot3, QVector3D(in.m_x, in.m_y, in.m_z));
     }
-    else if(ui->tabWidget->currentIndex() == 1)
+
+    if(ui->tabWidget->currentIndex() == 1)
     {
         if(ui->pushButton->isChecked())
         {
             magnet_data->append(QVector3D(in.m_x, in.m_z, in.m_y));
             magnet_plot->seriesList().at(0)->dataProxy()->resetArray(magnet_data);
 
-            magn_cal.update(QVector3D(in.m_x, in.m_y, in.m_z));
+            magn_cal.update(in.m_x, in.m_y, in.m_z);
 
             ui->xbias_le->setText(QString::number(magn_cal.get_x_bias()));
             ui->ybias_le->setText(QString::number(magn_cal.get_y_bias()));
@@ -240,5 +265,17 @@ void MainWindow::on_pushButton_toggled(bool checked)
             (*magnet_data_cb)[i].setPosition(magn_cal.calibrate((*magnet_data)[i].position()));
         }
         magnet_plot_cb->seriesList().at(0)->dataProxy()->resetArray(magnet_data_cb);
+    }
+}
+
+void MainWindow::on_pushButton_2_toggled(bool checked)
+{
+    if(checked)
+    {
+        marg_filt->reset();
+    }
+    else
+    {
+
     }
 }

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "calibrator.h"
+#include "quatkalman.h"
 
 #include <QMainWindow>
 #include <QVector3D>
@@ -32,6 +33,8 @@ private slots:
 
     void on_pushButton_toggled(bool checked);
 
+    void on_pushButton_2_toggled(bool checked);
+
 private:
     void process_data(const QByteArray & data);
 
@@ -45,6 +48,8 @@ private:
     QScatterDataArray *magnet_data_cb;
 
     Calibrator magn_cal;
+
+    QuaternionKalman *marg_filt;
 
     const size_t pkt_header_size = 4;
     const size_t sample_size = 76;
