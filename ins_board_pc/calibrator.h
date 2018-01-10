@@ -8,7 +8,8 @@ class Calibrator
 public:
     Calibrator();
     void reset();
-    void update(const QVector3D & vec);
+    void update(double x, double y, double z);
+    void calibrate(double & x, double & y, double & z);
     QVector3D calibrate(const QVector3D & vec);
 
     double get_x_bias();

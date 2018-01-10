@@ -23,11 +23,11 @@ void Calibrator::reset()
     z_scale = 1;
 }
 
-void Calibrator::update(const QVector3D & vec)
+void Calibrator::update(double x, double y, double z)
 {
-    update_borders(x_min, x_max, vec.x());
-    update_borders(y_min, y_max, vec.y());
-    update_borders(z_min, z_max, vec.z());
+    update_borders(x_min, x_max, x);
+    update_borders(y_min, y_max, y);
+    update_borders(z_min, z_max, z);
 
     x_bias = (x_min + x_max) / 2;
     y_bias = (y_min + y_max) / 2;
@@ -44,11 +44,18 @@ void Calibrator::update(const QVector3D & vec)
     z_scale = scaler / z_diff;
 }
 
+void Calibrator::calibrate(double & x, double & y, double & z)
+{
+    x = (x - x_bias) * x_scale;
+    y = (y - y_bias) * y_scale;
+    z = (z - z_bias) * z_scale;
+}
+
 QVector3D Calibrator::calibrate(const QVector3D & vec)
 {
-    return QVector3D( (vec.x() - x_bias) * x_scale,
-                      (vec.y() - y_bias) * y_scale,
-                      (vec.z() - z_bias) * z_scale);
+    return QVector3D((vec.x() - x_bias) * x_scale,
+                     (vec.y() - y_bias) * y_scale,
+                     (vec.z() - z_bias) * z_scale);
 }
 
 void Calibrator::update_borders(double & lower, double & upper, double val)
