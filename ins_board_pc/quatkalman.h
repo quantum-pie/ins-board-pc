@@ -51,6 +51,19 @@ private:
     NumMatrix create_meas_noise_cov_mtx(const KalmanInput & z);
     NumMatrix create_meas_proj_mtx(const KalmanInput & z, const NumVector & predicted_z);
 
+    NumMatrix quaternion_to_dcm(NumVector & quaternion);
+    NumMatrix geodetic_to_dcm(double lat, double lon);
+
+    NumMatrix ddcm_dqs(NumVector & quaternion);
+    NumMatrix ddcm_dqx(NumVector & quaternion);
+    NumMatrix ddcm_dqy(NumVector & quaternion);
+    NumMatrix ddcm_dqz(NumVector & quaternion);
+
+    NumMatrix dcm_lat_partial(double lat, double lon);
+    NumMatrix dcm_lon_partial(double lat, double lon);
+
+    NumMatrix dgeo_dpos(double lat, double lon, double alt);
+
     void calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
                                  double lat, double lon,
                                  double & ax, double & ay, double & az);
@@ -80,6 +93,9 @@ private:
     double meas_vel_std;
 
     const double earth_rad = 6371e3;
+    const double a = 6378137;
+    const double b = 6356752.3142;
+    const double e_2 = (a * a - b * b) / (a * a);
 };
 
 #endif // QUATKALMAN_H

@@ -199,6 +199,186 @@ void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & v
 
 }
 
+NumMatrix QuaternionKalman::quaternion_to_dcm(NumVector & quaternion)
+{
+    double qs = quaternion[0];
+    double qx = quaternion[1];
+    double qy = quaternion[2];
+    double qz = quaternion[3];
+
+    NumMatrix DCM(3, 3);
+
+    double qss = qs * qs;
+    double qxx = qx * qx;
+    double qyy = qy * qy;
+    double qzz = qz * qz;
+    double qsx = qs * qx;
+    double qsy = qs * qy;
+    double qsz = qs * qz;
+    double qxy = qx * qy;
+    double qxz = qx * qz;
+    double qyz = qy * qz;
+
+    DCM(0, 0) = qss + qxx - qyy - qzz;
+    DCM(0, 1) = 2 * (qxy - qsz);
+    DCM(0, 2) = 2 * (qxz + qsy);
+    DCM(1, 0) = 2 * (qxy + qsz);
+    DCM(1, 1) = qss - qxx + qyy - qzz;
+    DCM(1, 2) = 2 * (qyz - qsx);
+    DCM(2, 0) = 2 * (qxz - qsy);
+    DCM(2, 1) = 2 * (qyz + qsx);
+    DCM(2, 2) = qss - qxx - qyy + qzz;
+
+    return DCM;
+}
+
+NumMatrix QuaternionKalman::geodetic_to_dcm(double lat, double lon)
+{
+    double clat = qCos(lat);
+    double slat = qSin(lat);
+    double clon = qCos(lon);
+    double slon = qSin(lon);
+
+    NumMatrix DCM(3, 3);
+
+    DCM <<= -slon, clon, 0,
+            -clon * slat, -slon * slat, clat,
+            clon * clat, slon * clat, slat;
+
+    return DCM;
+}
+
+NumMatrix QuaternionKalman::ddcm_dqs(NumVector & quaternion)
+{
+    double qs = quaternion[0];
+    double qx = quaternion[1];
+    double qy = quaternion[2];
+    double qz = quaternion[3];
+
+    NumMatrix RES(3, 3);
+
+    RES <<= qs, -qz, qy,
+            qz, qs, -qx,
+            -qy, qx, qs;
+
+    RES *= 2;
+
+    return RES;
+}
+
+NumMatrix QuaternionKalman::ddcm_dqx(NumVector & quaternion)
+{
+    double qs = quaternion[0];
+    double qx = quaternion[1];
+    double qy = quaternion[2];
+    double qz = quaternion[3];
+
+    NumMatrix RES(3, 3);
+
+    RES <<= qx, qy, qz,
+            qy, -qx, -qs,
+            qz, qs, -qx;
+
+    RES *= 2;
+
+    return RES;
+}
+
+NumMatrix QuaternionKalman::ddcm_dqy(NumVector & quaternion)
+{
+    double qs = quaternion[0];
+    double qx = quaternion[1];
+    double qy = quaternion[2];
+    double qz = quaternion[3];
+
+    NumMatrix RES(3, 3);
+
+    RES <<= -qy, qx, qs,
+            qx, qy, qz,
+            -qs, qz, -qy;
+
+    RES *= 2;
+
+    return RES;
+}
+
+NumMatrix QuaternionKalman::ddcm_dqz(NumVector & quaternion)
+{
+    double qs = quaternion[0];
+    double qx = quaternion[1];
+    double qy = quaternion[2];
+    double qz = quaternion[3];
+
+    NumMatrix RES(3, 3);
+
+    RES <<= -qz, -qs, qx,
+            qs, -qz, qy,
+            qx, qy, qz;
+
+    RES *= 2;
+
+    return RES;
+}
+
+NumMatrix QuaternionKalman::dcm_lat_partial(double lat, double lon)
+{
+    double clat = qCos(lat);
+    double slat = qSin(lat);
+    double clon = qCos(lon);
+    double slon = qSin(lon);
+
+    NumMatrix RES(3, 3);
+
+    RES <<= 0, 0, 0,
+            -clon * clat, -slon * clat, -slat,
+            -clon * slat, -slon * slat, clat;
+
+    return RES;
+}
+
+NumMatrix QuaternionKalman::dcm_lon_partial(double lat, double lon)
+{
+    double clat = qCos(lat);
+    double slat = qSin(lat);
+    double clon = qCos(lon);
+    double slon = qSin(lon);
+
+    NumMatrix RES(3, 3);
+
+    RES <<= -clon, -slon, 0,
+            slon * slat, -clon * slat, 0,
+            -slon * clat, clon * clat, 0;
+
+    return RES;
+}
+
+NumMatrix QuaternionKalman::dgeo_dpos(double lat, double lon, double alt)
+{
+    double clat = qCos(lat);
+    double slat = qSin(lat);
+    double clon = qCos(lon);
+    double slon = qSin(lon);
+
+    double bracket = qPow(1 - e_2 * slat * slat, 1.5);
+    double norm_rad = a / qSqrt(1 - e_2 * slat * slat);
+    double common_mult = bracket / (a * (e_2 - 1) - alt * bracket);
+    double common_mult_2 = 1 / (norm_rad + alt);
+
+    NumMatrix RES(3, 3);
+
+    RES(0, 0) = common_mult / (slat * clon);
+    RES(0, 1) = common_mult / (slat * slon);
+    RES(0, 2) = -common_mult / clat;
+
+    RES(1, 0) = -common_mult_2 / (clat * slon);
+    RES(1, 1) = common_mult_2 / (clat * clon);
+    RES(1, 2) = 0;
+
+    RES(2, 0) = 1 / (clat * clon);
+    RES(2, 1) = 1 / (clat * slon);
+    RES(2, 2) = 1 / slat;
+}
+
 NumVector QuaternionKalman::get_state()
 {
     return x;
