@@ -30,13 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
     init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
 
-    NumVector x0(7);
-    x0 <<= 1, 0, 0, 0, 0, 0, 0;
-    NumMatrix P0 = ublas::zero_matrix<double>(7, 7);
-    NumMatrix Q = ublas::identity_matrix<double>(7) * 0.0000000001;
-    NumMatrix R = ublas::identity_matrix<double>(2) * 0.0005;
-
-    marg_filt = new QuaternionKalman(x0, P0, Q, R);
+    marg_filt = new QuaternionKalman(0.2, 0.01, 0.1, 0.002, 1.5, 2.5, 0.1);
 
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 
@@ -84,7 +78,9 @@ void MainWindow::process_data(const QByteArray & data)
 
             magn_cal.calibrate(m[0], m[1], m[2]);
 
-            marg_filt->update(w, a, m, in.et * 1e-6);
+            QuaternionKalman::KalmanInput z{w, a, m, 0, 0, 0, 0, in.et * 1e-6};
+
+            marg_filt->step(z);
         }
     }
 

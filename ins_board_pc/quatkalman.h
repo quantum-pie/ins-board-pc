@@ -5,36 +5,81 @@
 #include <boost/numeric/ublas/matrix.hpp>
 
 namespace ublas = boost::numeric::ublas;
-typedef ublas::matrix<double> NumMatrix;
-typedef ublas::vector<double> NumVector;
+using NumMatrix = ublas::matrix<double>;
+using NumVector = ublas::vector<double>;
+using ZeroMatrix = ublas::zero_matrix<double>;
+using IdentityMatrix = ublas::identity_matrix<double>;
 
 class QuaternionKalman
 {
 public:
-    QuaternionKalman(const NumVector & initial_state,
-                     const NumMatrix & initial_errcov_matrix,
-                     const NumMatrix & process_noise_covar,
-                     const NumMatrix & observation_noise_covar);
+    struct KalmanInput
+    {
+        NumVector w;
+        NumVector a;
+        NumVector m;
+        double lat;
+        double lon;
+        double alt;
+        double vel;
+        double dt;
+    };
 
-    void update(const NumVector & w,
-                const NumVector & a,
-                const NumVector & m,
-                double elapsed_sec);
+    QuaternionKalman(double proc_gyro_std, double proc_gyro_bias_std,
+                     double proc_accel_std, double meas_accel_std,
+                     double meas_magn_std, double meas_cep,
+                     double meas_vel_std);
 
-    NumVector get_state();
+    void step(const KalmanInput & z);
+
     void reset();
 
-private:
-    NumVector state;
-    NumMatrix err_covar;
+    NumVector get_state();
+    NumVector get_orinetation_quaternion();
+    NumVector get_gyro_bias();
+    NumVector get_position();
+    NumVector get_velocity();
+    NumVector get_acceleration();
 
-    const NumVector init_state;
-    const NumMatrix init_err_covar;
-    const NumMatrix proc_noise;
-    const NumMatrix obs_noise;
+private:    
+    void update(const KalmanInput & z);
+    void initialize(const KalmanInput & z1);
 
-    NumVector reference_acceleration;
-    NumVector reference_magnetic_field;
+    NumMatrix create_quat_bias_mtx(double dt_2);
+    NumMatrix create_transition_mtx(const KalmanInput & z);
+    NumMatrix create_proc_noise_cov_mtx(const KalmanInput & z);
+    NumMatrix create_meas_noise_cov_mtx(const KalmanInput & z);
+    NumMatrix create_meas_proj_mtx(const KalmanInput & z, const NumVector & predicted_z);
+
+    void calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
+                                 double lat, double lon,
+                                 double & ax, double & ay, double & az);
+
+    void calculate_magnetometer(const NumVector & orientation_quat,
+                                double & mx, double & my, double & mz);
+
+    void calculate_geodetic(const NumVector & position,
+                            double & lat, double & lon, double & alt);
+
+    void calculate_velocity(const NumVector & velocity, double & vel);
+
+    KalmanInput z0;
+
+    NumVector x;
+    NumMatrix P;
+
+    bool initialized;
+    bool first_sample_received;
+
+    double proc_gyro_std;
+    double proc_gyro_bias_std;
+    double proc_accel_std;
+    double meas_accel_std;
+    double meas_magn_std;
+    double meas_cep;
+    double meas_vel_std;
+
+    const double earth_rad = 6371e3;
 };
 
 #endif // QUATKALMAN_H
