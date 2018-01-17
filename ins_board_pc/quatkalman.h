@@ -4,6 +4,11 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
+extern "C"
+{
+    #include "wmm/GeomagnetismHeader.h"
+}
+
 namespace ublas = boost::numeric::ublas;
 using NumMatrix = ublas::matrix<double>;
 using NumVector = ublas::vector<double>;
@@ -42,33 +47,42 @@ public:
     NumVector get_acceleration();
 
 private:    
+    void initialize_wmm();
+
     void update(const KalmanInput & z);
     void initialize(const KalmanInput & z1);
 
+    /* create Kalman matrices */
     NumMatrix create_quat_bias_mtx(double dt_2);
     NumMatrix create_transition_mtx(const KalmanInput & z);
     NumMatrix create_proc_noise_cov_mtx(const KalmanInput & z);
     NumMatrix create_meas_noise_cov_mtx(const KalmanInput & z);
     NumMatrix create_meas_proj_mtx(const KalmanInput & z, const NumVector & predicted_z);
 
-    NumMatrix quaternion_to_dcm(NumVector & quaternion);
+    /* auxiliary transformations */
+    NumMatrix quaternion_to_dcm(const NumVector & quaternion);
     NumMatrix geodetic_to_dcm(double lat, double lon);
+    NumVector expected_mag(double lat, double lon, double alt);
 
-    NumMatrix ddcm_dqs(NumVector & quaternion);
-    NumMatrix ddcm_dqx(NumVector & quaternion);
-    NumMatrix ddcm_dqy(NumVector & quaternion);
-    NumMatrix ddcm_dqz(NumVector & quaternion);
+    /* auxiliary derivatives */
+    NumMatrix ddcm_dqs(const NumVector & quaternion);
+    NumMatrix ddcm_dqx(const NumVector & quaternion);
+    NumMatrix ddcm_dqy(const NumVector & quaternion);
+    NumMatrix ddcm_dqz(const NumVector & quaternion);
 
     NumMatrix dcm_lat_partial(double lat, double lon);
     NumMatrix dcm_lon_partial(double lat, double lon);
 
+    /* main derivatives */
     NumMatrix dgeo_dpos(double lat, double lon, double alt);
 
+
+    /* from state to measurements */
     void calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
                                  double lat, double lon,
                                  double & ax, double & ay, double & az);
 
-    void calculate_magnetometer(const NumVector & orientation_quat,
+    void calculate_magnetometer(const NumVector & orientation_quat, double magnitude,
                                 double & mx, double & my, double & mz);
 
     void calculate_geodetic(const NumVector & position,
@@ -92,10 +106,10 @@ private:
     double meas_cep;
     double meas_vel_std;
 
-    const double earth_rad = 6371e3;
-    const double a = 6378137;
-    const double b = 6356752.3142;
-    const double e_2 = (a * a - b * b) / (a * a);
+    MAGtype_Ellipsoid ellip;
+    MAGtype_Geoid geoid;
+    MAGtype_MagneticModel ** magnetic_models;
+    MAGtype_MagneticModel *  timed_magnetic_model;
 };
 
 #endif // QUATKALMAN_H

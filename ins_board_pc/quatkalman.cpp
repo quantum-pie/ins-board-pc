@@ -18,6 +18,27 @@ QuaternionKalman::QuaternionKalman(double proc_gyro_std, double proc_gyro_bias_s
       meas_magn_std(meas_magn_std), meas_cep(meas_cep), meas_vel_std(meas_vel_std)
 {
     reset();
+    initialize_wmm();
+
+    NumVector magn = expected_mag(qDegreesToRadians(59.9013625), qDegreesToRadians(30.2825023), 0e-3);
+}
+
+void QuaternionKalman::initialize_wmm()
+{
+    magnetic_models = new MAGtype_MagneticModel*[1];
+
+    MAG_robustReadMagModels(const_cast<char*>("res/WMM.COF"),
+                            &magnetic_models, 1);
+
+    int n_max = 0;
+    if(n_max < magnetic_models[0]->nMax)
+        n_max = magnetic_models[0]->nMax;
+
+    int terms = ((n_max + 1) * (n_max + 2) / 2);
+
+    timed_magnetic_model = MAG_AllocateModelMemory(terms);
+
+    MAG_SetDefaults(&ellip, &geoid);
 }
 
 void QuaternionKalman::initialize(const KalmanInput & z1)
@@ -61,7 +82,7 @@ void QuaternionKalman::update(const KalmanInput & z)
 
     calculate_geodetic(get_position(), z_pr(6), z_pr(7), z_pr(8));
     calculate_accelerometer(get_orinetation_quaternion(), get_acceleration(), z_pr(6), z_pr(7), z_pr(0), z_pr(1), z_pr(2));
-    calculate_magnetometer(get_orinetation_quaternion(), z_pr(3), z_pr(4), z_pr(5));
+    calculate_magnetometer(get_orinetation_quaternion(), norm_2(z.m), z_pr(3), z_pr(4), z_pr(5));
     calculate_velocity(get_velocity(), z_pr(9));
 
     NumMatrix H = create_meas_proj_mtx(z, z_pr);
@@ -153,7 +174,7 @@ NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(const KalmanInput & z)
     double horizontal_linear_std = meas_cep * 1.2;
     double altitude_std = horizontal_linear_std / 0.53;
 
-    double latitude_std = horizontal_linear_std / earth_rad;
+    double latitude_std = horizontal_linear_std / (ellip.re * 1e3);
     double longitude_std = qAcos(qCos(latitude_std) / qPow(qCos(z.lat), 2) - qPow(qTan(z.lat), 2));
 
     NumMatrix R = IdentityMatrix(10);
@@ -182,10 +203,15 @@ void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_qua
 
 }
 
-void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat,
+void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat, double magnitude,
                             double & mx, double & my, double & mz)
 {
+    NumVector rot_magn = magnitude * prod(quaternion_to_dcm(orientation_quat),
+                                          expected_mag(qDegreesToRadians(59.9013625), qDegreesToRadians(30.2825023), 0e-3));
 
+    mx = rot_magn(0);
+    my = rot_magn(1);
+    mx = rot_magn(2);
 }
 
 void QuaternionKalman::calculate_geodetic(const NumVector & position,
@@ -199,7 +225,7 @@ void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & v
 
 }
 
-NumMatrix QuaternionKalman::quaternion_to_dcm(NumVector & quaternion)
+NumMatrix QuaternionKalman::quaternion_to_dcm(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -248,7 +274,43 @@ NumMatrix QuaternionKalman::geodetic_to_dcm(double lat, double lon)
     return DCM;
 }
 
-NumMatrix QuaternionKalman::ddcm_dqs(NumVector & quaternion)
+NumVector QuaternionKalman::expected_mag(double lat, double lon, double alt)
+{
+    MAGtype_CoordGeodetic geodetic_coord;
+    geodetic_coord.UseGeoid = 0;
+    geodetic_coord.phi = qRadiansToDegrees(lat);
+    geodetic_coord.lambda = qRadiansToDegrees(lon);
+    geodetic_coord.HeightAboveEllipsoid = alt * 1e-3;
+
+    MAGtype_CoordSpherical spherical_coord;
+    MAGtype_GeoMagneticElements result;
+
+    MAG_GeodeticToSpherical(ellip, geodetic_coord, &spherical_coord);
+
+    MAGtype_Date date;
+    date.Year = 2018;
+    date.Month = 1;
+    date.Day = 17;
+
+    char err_msg[255];
+    MAG_DateToYear(&date, err_msg);
+    MAG_TimelyModifyMagneticModel(date, magnetic_models[0], timed_magnetic_model);
+    MAG_Geomag(ellip, spherical_coord, geodetic_coord, timed_magnetic_model, &result);
+
+    double declination = qDegreesToRadians(result.Decl);
+    double inclination = qDegreesToRadians(result.Incl);
+
+    double sdecl = qSin(declination);
+    double cdecl = qCos(declination);
+    double sincl = qSin(inclination);
+    double cincl = qCos(inclination);
+
+    NumVector RES(3);
+    RES <<= sdecl * cincl, cdecl * cincl, -sincl;
+    return RES;
+}
+
+NumMatrix QuaternionKalman::ddcm_dqs(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -266,7 +328,7 @@ NumMatrix QuaternionKalman::ddcm_dqs(NumVector & quaternion)
     return RES;
 }
 
-NumMatrix QuaternionKalman::ddcm_dqx(NumVector & quaternion)
+NumMatrix QuaternionKalman::ddcm_dqx(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -284,7 +346,7 @@ NumMatrix QuaternionKalman::ddcm_dqx(NumVector & quaternion)
     return RES;
 }
 
-NumMatrix QuaternionKalman::ddcm_dqy(NumVector & quaternion)
+NumMatrix QuaternionKalman::ddcm_dqy(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -302,7 +364,7 @@ NumMatrix QuaternionKalman::ddcm_dqy(NumVector & quaternion)
     return RES;
 }
 
-NumMatrix QuaternionKalman::ddcm_dqz(NumVector & quaternion)
+NumMatrix QuaternionKalman::ddcm_dqz(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -359,9 +421,9 @@ NumMatrix QuaternionKalman::dgeo_dpos(double lat, double lon, double alt)
     double clon = qCos(lon);
     double slon = qSin(lon);
 
-    double bracket = qPow(1 - e_2 * slat * slat, 1.5);
-    double norm_rad = a / qSqrt(1 - e_2 * slat * slat);
-    double common_mult = bracket / (a * (e_2 - 1) - alt * bracket);
+    double bracket = qPow(1 - ellip.epssq * slat * slat, 1.5);
+    double norm_rad = ellip.a * 1e3 / qSqrt(1 - ellip.epssq * slat * slat);
+    double common_mult = bracket / (ellip.a * 1e3 * (ellip.epssq - 1) - alt * bracket);
     double common_mult_2 = 1 / (norm_rad + alt);
 
     NumMatrix RES(3, 3);
@@ -377,6 +439,8 @@ NumMatrix QuaternionKalman::dgeo_dpos(double lat, double lon, double alt)
     RES(2, 0) = 1 / (clat * clon);
     RES(2, 1) = 1 / (clat * slon);
     RES(2, 2) = 1 / slat;
+
+    return RES;
 }
 
 NumVector QuaternionKalman::get_state()

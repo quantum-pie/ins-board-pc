@@ -30,11 +30,13 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     qcustomplot.cpp \
     calibrator.cpp \
-    quatkalman.cpp
+    quatkalman.cpp \
+    wmm/GeomagnetismLibrary.c
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
     calibrator.h \
-    quatkalman.h
+    quatkalman.h \
+    wmm/GeomagnetismHeader.h
 
 FORMS    += mainwindow.ui
