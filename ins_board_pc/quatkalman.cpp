@@ -18,27 +18,8 @@ QuaternionKalman::QuaternionKalman(double proc_gyro_std, double proc_gyro_bias_s
       meas_magn_std(meas_magn_std), meas_cep(meas_cep), meas_vel_std(meas_vel_std)
 {
     reset();
-    initialize_wmm();
 
     NumVector magn = expected_mag(qDegreesToRadians(59.9013625), qDegreesToRadians(30.2825023), 0e-3);
-}
-
-void QuaternionKalman::initialize_wmm()
-{
-    magnetic_models = new MAGtype_MagneticModel*[1];
-
-    MAG_robustReadMagModels(const_cast<char*>("res/WMM.COF"),
-                            &magnetic_models, 1);
-
-    int n_max = 0;
-    if(n_max < magnetic_models[0]->nMax)
-        n_max = magnetic_models[0]->nMax;
-
-    int terms = ((n_max + 1) * (n_max + 2) / 2);
-
-    timed_magnetic_model = MAG_AllocateModelMemory(terms);
-
-    MAG_SetDefaults(&ellip, &geoid);
 }
 
 void QuaternionKalman::initialize(const KalmanInput & z1)
@@ -174,7 +155,7 @@ NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(const KalmanInput & z)
     double horizontal_linear_std = meas_cep * 1.2;
     double altitude_std = horizontal_linear_std / 0.53;
 
-    double latitude_std = horizontal_linear_std / (ellip.re * 1e3);
+    double latitude_std = horizontal_linear_std / wmm.earth_rad();
     double longitude_std = qAcos(qCos(latitude_std) / qPow(qCos(z.lat), 2) - qPow(qTan(z.lat), 2));
 
     NumMatrix R = IdentityMatrix(10);
@@ -276,29 +257,8 @@ NumMatrix QuaternionKalman::geodetic_to_dcm(double lat, double lon)
 
 NumVector QuaternionKalman::expected_mag(double lat, double lon, double alt)
 {
-    MAGtype_CoordGeodetic geodetic_coord;
-    geodetic_coord.UseGeoid = 0;
-    geodetic_coord.phi = qRadiansToDegrees(lat);
-    geodetic_coord.lambda = qRadiansToDegrees(lon);
-    geodetic_coord.HeightAboveEllipsoid = alt * 1e-3;
-
-    MAGtype_CoordSpherical spherical_coord;
-    MAGtype_GeoMagneticElements result;
-
-    MAG_GeodeticToSpherical(ellip, geodetic_coord, &spherical_coord);
-
-    MAGtype_Date date;
-    date.Year = 2018;
-    date.Month = 1;
-    date.Day = 17;
-
-    char err_msg[255];
-    MAG_DateToYear(&date, err_msg);
-    MAG_TimelyModifyMagneticModel(date, magnetic_models[0], timed_magnetic_model);
-    MAG_Geomag(ellip, spherical_coord, geodetic_coord, timed_magnetic_model, &result);
-
-    double declination = qDegreesToRadians(result.Decl);
-    double inclination = qDegreesToRadians(result.Incl);
+    double declination, inclination;
+    wmm.measure(lat, lon, alt, 0, declination, inclination);
 
     double sdecl = qSin(declination);
     double cdecl = qCos(declination);
@@ -421,9 +381,9 @@ NumMatrix QuaternionKalman::dgeo_dpos(double lat, double lon, double alt)
     double clon = qCos(lon);
     double slon = qSin(lon);
 
-    double bracket = qPow(1 - ellip.epssq * slat * slat, 1.5);
-    double norm_rad = ellip.a * 1e3 / qSqrt(1 - ellip.epssq * slat * slat);
-    double common_mult = bracket / (ellip.a * 1e3 * (ellip.epssq - 1) - alt * bracket);
+    double bracket = qPow(1 - wmm.ellip_epssq() * slat * slat, 1.5);
+    double norm_rad = wmm.ellip_a() / qSqrt(1 - wmm.ellip_epssq() * slat * slat);
+    double common_mult = bracket / (wmm.ellip_a() * (wmm.ellip_epssq() - 1) - alt * bracket);
     double common_mult_2 = 1 / (norm_rad + alt);
 
     NumMatrix RES(3, 3);

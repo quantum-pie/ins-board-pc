@@ -4,10 +4,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
-extern "C"
-{
-    #include "wmm/GeomagnetismHeader.h"
-}
+#include "wmmwrapper.h"
 
 namespace ublas = boost::numeric::ublas;
 using NumMatrix = ublas::matrix<double>;
@@ -47,8 +44,6 @@ public:
     NumVector get_acceleration();
 
 private:    
-    void initialize_wmm();
-
     void update(const KalmanInput & z);
     void initialize(const KalmanInput & z1);
 
@@ -76,7 +71,6 @@ private:
     /* main derivatives */
     NumMatrix dgeo_dpos(double lat, double lon, double alt);
 
-
     /* from state to measurements */
     void calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
                                  double lat, double lon,
@@ -89,6 +83,8 @@ private:
                             double & lat, double & lon, double & alt);
 
     void calculate_velocity(const NumVector & velocity, double & vel);
+
+    WrapperWMM wmm;
 
     KalmanInput z0;
 
@@ -105,11 +101,6 @@ private:
     double meas_magn_std;
     double meas_cep;
     double meas_vel_std;
-
-    MAGtype_Ellipsoid ellip;
-    MAGtype_Geoid geoid;
-    MAGtype_MagneticModel ** magnetic_models;
-    MAGtype_MagneticModel *  timed_magnetic_model;
 };
 
 #endif // QUATKALMAN_H
