@@ -52,11 +52,39 @@ private:
     QuaternionKalman *marg_filt;
 
     const size_t pkt_header_size = 4;
-    const size_t sample_size = 76;
+    const size_t sample_size = 169;
+
+
+    struct gps_time_t
+    {
+        unsigned short year;
+        unsigned char month;
+        unsigned char day;
+        unsigned char hour;
+        unsigned char minute;
+        unsigned char second;
+        unsigned char msecond;
+    };
+
+    struct gps_input_t
+    {
+        unsigned char fix;
+        gps_time_t time;
+        double lat;
+        double lon;
+        double alt;
+        double msl_alt;
+        double x;
+        double y;
+        double z;
+        double vx;
+        double vy;
+        double vz;
+    };
 
     struct input_t
     {
-        int et;
+        double et;
         double w_x;
         double w_y;
         double w_z;
@@ -66,6 +94,7 @@ private:
         double m_x;
         double m_y;
         double m_z;
+        gps_input_t gps;
     };
 };
 

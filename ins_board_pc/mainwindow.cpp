@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QtNetwork>
 #include <QtMath>
+#include <QDateTime>
 
 using namespace QtDataVisualization;
 
@@ -65,20 +66,27 @@ void MainWindow::process_data(const QByteArray & data)
     input_t in;
     for(size_t i = 0; i < samples; ++i)
     {
-        ds >> in.et >> in.w_x >> in.w_y >> in.w_z >>
-              in.a_x >> in.a_y >> in.a_z >>
-              in.m_x >> in.m_y >> in.m_z;
+        ds >>   in.et >> in.w_x >> in.w_y >> in.w_z >>
+                in.a_x >> in.a_y >> in.a_z >>
+                in.m_x >> in.m_y >> in.m_z >>
+                in.gps.fix >>
+                in.gps.time.year >> in.gps.time.month >> in.gps.time.day >>
+                in.gps.time.hour >> in.gps.time.minute >> in.gps.time.second >> in.gps.time.msecond >>
+                in.gps.lat >> in.gps.lon >>
+                in.gps.alt >> in.gps.msl_alt >>
+                in.gps.x >> in.gps.y >> in.gps.z >>
+                in.gps.vx >> in.gps.vy >> in.gps.vz;
 
         if(ui->pushButton_2->isChecked())
         {
             NumVector w(3), a(3), m(3);
-            w <<= qDegreesToRadians(in.w_x * 1e-3), qDegreesToRadians(in.w_y * 1e-3), qDegreesToRadians(in.w_z * 1e-3);
-            a <<= in.a_x * 1e-3, in.a_y * 1e-3, in.a_z * 1e-3;
+            w <<= qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
+            a <<= in.a_x, in.a_y, in.a_z;
             m <<= in.m_x, in.m_y, in.m_z;
 
             magn_cal.calibrate(m[0], m[1], m[2]);
 
-            QuaternionKalman::KalmanInput z{w, a, m, 0, 0, 0, 0, in.et * 1e-6};
+            QuaternionKalman::KalmanInput z{w, a, m, 0, 0, 0, 0, in.et};
 
             marg_filt->step(z);
         }
@@ -86,8 +94,8 @@ void MainWindow::process_data(const QByteArray & data)
 
     if(ui->tabWidget->currentIndex() == 0)
     {
-        update_plot(ui->plot1, QVector3D(in.a_x, in.a_y, in.a_z));
-        update_plot(ui->plot2, QVector3D(in.w_x * 1e-3, in.w_y  * 1e-3, in.w_z  * 1e-3));
+        update_plot(ui->plot1, QVector3D(in.a_x * 1e3, in.a_y * 1e3, in.a_z * 1e3));
+        update_plot(ui->plot2, QVector3D(in.w_x, in.w_y, in.w_z));
         update_plot(ui->plot3, QVector3D(in.m_x, in.m_y, in.m_z));
     }
 
@@ -107,6 +115,29 @@ void MainWindow::process_data(const QByteArray & data)
             ui->xspan_le->setText(QString::number(magn_cal.get_x_scale()));
             ui->yspan_le->setText(QString::number(magn_cal.get_y_scale()));
             ui->zspan_le->setText(QString::number(magn_cal.get_z_scale()));
+        }
+    }
+
+    if(ui->tabWidget->currentIndex() == 2)
+    {
+        if(in.gps.fix > 1)
+        {
+            ui->x_le->setText(QString::number(in.gps.x, 'f', 2));
+            ui->y_le->setText(QString::number(in.gps.y, 'f', 2));
+            ui->z_le->setText(QString::number(in.gps.z, 'f', 2));
+            ui->vx_le->setText(QString::number(in.gps.vx, 'f', 2));
+            ui->vy_le->setText(QString::number(in.gps.vy, 'f', 2));
+            ui->vz_le->setText(QString::number(in.gps.vz, 'f', 2));
+            ui->lat_le->setText(QString::number(in.gps.lat, 'f', 7));
+            ui->lon_le->setText(QString::number(in.gps.lon, 'f', 7));
+            ui->alt_le->setText(QString::number(in.gps.alt, 'f', 2));
+            ui->msl_alt_le->setText(QString::number(in.gps.msl_alt, 'f', 2));
+
+            QDateTime dt;
+            dt.setDate(QDate(in.gps.time.year, in.gps.time.month, in.gps.time.day));
+            dt.setTime(QTime(in.gps.time.hour, in.gps.time.minute, in.gps.time.second, in.gps.time.msecond));
+
+            ui->time_le->setText(dt.toString());
         }
     }
 }
