@@ -54,7 +54,6 @@ private:
     const size_t pkt_header_size = 4;
     const size_t sample_size = 169;
 
-
     struct gps_time_t
     {
         unsigned short year;
