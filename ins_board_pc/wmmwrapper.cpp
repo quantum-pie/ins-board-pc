@@ -20,7 +20,7 @@ WrapperWMM::WrapperWMM()
     MAG_SetDefaults(&ellip, &geoid);
 }
 
-void WrapperWMM::measure(double lat, double lon, double alt, double timestamp, double & declination, double & inclination)
+void WrapperWMM::measure(double lat, double lon, double alt, QDate day, double & declination, double & inclination)
 {
     MAGtype_CoordGeodetic geodetic_coord;
     geodetic_coord.UseGeoid = 0;
@@ -34,9 +34,9 @@ void WrapperWMM::measure(double lat, double lon, double alt, double timestamp, d
     MAG_GeodeticToSpherical(ellip, geodetic_coord, &spherical_coord);
 
     MAGtype_Date date;
-    date.Year = 2018;
-    date.Month = 1;
-    date.Day = 17;
+    date.Year = day.year();
+    date.Month = day.month();
+    date.Day = day.day();
 
     MAG_DateToYear(&date, err_msg);
     MAG_TimelyModifyMagneticModel(date, magnetic_models[0], timed_magnetic_model);
@@ -44,6 +44,15 @@ void WrapperWMM::measure(double lat, double lon, double alt, double timestamp, d
 
     declination = qDegreesToRadians(result.Decl);
     inclination = qDegreesToRadians(result.Incl);
+}
+
+void WrapperWMM::cartesian_to_geodetic(double x, double y, double z, double & lat, double & lon, double & alt)
+{
+    MAGtype_CoordGeodetic geodetic_coord;
+    MAG_CartesianToGeodetic(ellip, x * 1e-3, y * 1e-3, z * 1e-3, &geodetic_coord);
+    lat = qDegreesToRadians(geodetic_coord.phi);
+    lon = qDegreesToRadians(geodetic_coord.lambda);
+    alt = geodetic_coord.HeightAboveEllipsoid * 1e3;
 }
 
 double WrapperWMM::ellip_a()
