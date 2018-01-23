@@ -18,13 +18,54 @@ QuaternionKalman::QuaternionKalman(double proc_gyro_std, double proc_gyro_bias_s
       meas_magn_std(meas_magn_std), meas_cep(meas_cep), meas_vel_std(meas_vel_std)
 {
     reset();
-
-    NumVector magn = expected_mag(qDegreesToRadians(59.9013625), qDegreesToRadians(30.2825023), 0e-3);
+    x = NumVector(16);
+    P = NumMatrix(16, 16);
 }
 
 void QuaternionKalman::initialize(const KalmanInput & z1)
 {
+    double ax = z1.a[0];
+    double ay = z1.a[1];
+    double az = z1.a[2];
 
+    double mx = z1.m[0];
+    double my = z1.m[1];
+    double mz = z1.m[2];
+
+    NumVector qacc(4);
+    if(az >= 0)
+    {
+        qacc[0] = qSqrt( (az + 1) / 2);
+        qacc[1] = - ay / qSqrt(2 * (az + 1));
+        qacc[2] = ax / qSqrt(2 * (az + 1));
+        qacc[3] = 0;
+    }
+    else
+    {
+        qacc[0] = - ay / qSqrt(2 * (1 - az));
+        qacc[1] = qSqrt( (1 - az) / 2);
+        qacc[2] = 0;
+        qacc[3] = ax / qSqrt(2 * (1 - az));
+    }
+
+    NumVector qmag(4);
+    //double G =
+
+    /*
+    double lat, lon, alt;
+    NumVector pos(3);
+    pos <<= z1.pos[0], z1.pos[1], z1.pos[2];
+    calculate_geodetic(pos, lat, lon, alt);
+    NumVector orientation(4);
+    orientation <<= 1, 0, 0, 0;
+    double mx, my, mz;
+    calculate_magnetometer(orientation, norm_2(z1.m), lat, lon, alt, z1.day, mx, my, mz);
+    double ax, ay, az;
+    NumVector acceleration(3);
+    acceleration <<= 0, 0, 0;
+    calculate_accelerometer(orientation, acceleration, lat, lon, ax, ay, az);
+    int g = 0;
+    */
 }
 
 void QuaternionKalman::reset()
@@ -54,18 +95,28 @@ void QuaternionKalman::step(const KalmanInput & z)
 void QuaternionKalman::update(const KalmanInput & z)
 {
     NumMatrix F = create_transition_mtx(z);
-    NumMatrix Q = create_proc_noise_cov_mtx(z);
-    NumMatrix R = create_meas_noise_cov_mtx(z);
+    NumMatrix Q = create_proc_noise_cov_mtx(z.dt);
 
     x = prod(F, x);
 
     NumVector z_pr(10);
 
-    calculate_geodetic(get_position(), z_pr(6), z_pr(7), z_pr(8));
-    calculate_accelerometer(get_orinetation_quaternion(), get_acceleration(), z_pr(6), z_pr(7), z_pr(0), z_pr(1), z_pr(2));
-    calculate_magnetometer(get_orinetation_quaternion(), norm_2(z.m), z_pr(3), z_pr(4), z_pr(5));
+    double lat, lon, alt;
+    NumVector predicted_pos = get_position();
+    NumVector predicted_orientation = get_orinetation_quaternion();
+
+    calculate_geodetic(predicted_pos, lat, lon, alt);
+
+    calculate_accelerometer(predicted_orientation, get_acceleration(), lat, lon, z_pr(0), z_pr(1), z_pr(2));
+    calculate_magnetometer(predicted_orientation, norm_2(z.m), lat, lon, alt, z.day, z_pr(3), z_pr(4), z_pr(5));
+
+    z_pr(6) = predicted_pos(0);
+    z_pr(7) = predicted_pos(1);
+    z_pr(8) = predicted_pos(2);
+
     calculate_velocity(get_velocity(), z_pr(9));
 
+    NumMatrix R = create_meas_noise_cov_mtx(lat, lon);
     NumMatrix H = create_meas_proj_mtx(z, z_pr);
 }
 
@@ -118,12 +169,11 @@ NumMatrix QuaternionKalman::create_transition_mtx(const KalmanInput & z)
     return F;
 }
 
-NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(const KalmanInput & z)
+NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt)
 {
     /* useful constants */
-    double dt = z.dt;
-    double dt_sq = z.dt * z.dt;
-    double dt_2 = z.dt / 2;
+    double dt_sq = dt * dt;
+    double dt_2 = dt / 2;
     double dt_sq_2 = dt_sq / 2;
 
     NumMatrix K = create_quat_bias_mtx(dt_2);
@@ -147,7 +197,7 @@ NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(const KalmanInput & z)
     return Q;
 }
 
-NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(const KalmanInput & z)
+NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon)
 {
     NumMatrix Ra = meas_accel_std * meas_accel_std * IdentityMatrix(3);
     NumMatrix Rm = meas_magn_std * meas_magn_std * IdentityMatrix(3);
@@ -155,19 +205,21 @@ NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(const KalmanInput & z)
     double horizontal_linear_std = meas_cep * 1.2;
     double altitude_std = horizontal_linear_std / 0.53;
 
-    double latitude_std = horizontal_linear_std / wmm.earth_rad();
-    double longitude_std = qAcos(qCos(latitude_std) / qPow(qCos(z.lat), 2) - qPow(qTan(z.lat), 2));
+    NumMatrix Cel = geodetic_to_dcm(lat, lon);
+    NumMatrix local_cov = IdentityMatrix(3);
+    local_cov(0, 0) = horizontal_linear_std * horizontal_linear_std;
+    local_cov(1, 1) = horizontal_linear_std * horizontal_linear_std;
+    local_cov(2, 2) = altitude_std * altitude_std;
+
+    NumMatrix tmp = prod(trans(Cel), local_cov);
+    NumMatrix Rp = prod(tmp, Cel);
 
     NumMatrix R = IdentityMatrix(10);
 
     R <<= Ra, ZeroMatrix(3, 7),
             ZeroMatrix(3, 3), Rm, ZeroMatrix(3, 4),
-            ZeroMatrix(4, 10);
-
-    R(6, 6) = latitude_std * latitude_std;
-    R(7, 7) = longitude_std * longitude_std;
-    R(8, 8) = altitude_std * altitude_std;
-    R(9, 9) = meas_vel_std * meas_vel_std;
+            ZeroMatrix(3, 6), Rp, ZeroMatrix(3, 1),
+            ZeroMatrix(1, 9), meas_vel_std * meas_vel_std;
 
     return R;
 }
@@ -177,33 +229,46 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(const KalmanInput & z, const Nu
 
 }
 
+void QuaternionKalman::calculate_geodetic(const NumVector & position,
+                                          double & lat, double & lon, double & alt)
+{
+    wmm.cartesian_to_geodetic(position[0], position[1], position[2], lat, lon, alt);
+}
+
 void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
                              double lat, double lon,
                              double & ax, double & ay, double & az)
 {
+    NumMatrix Clb = quaternion_to_dcm(orientation_quat);
+    NumMatrix Cel = geodetic_to_dcm(lat, lon);
+    NumMatrix tmp = prod(Clb, Cel);
+    NumVector movement_component = prod(tmp, acceleration);
+    NumVector g(3);
+    g <<= 0, 0, 1;
+    NumVector gravity_component = prod(Clb, g);
 
+    NumVector rot_accel = gravity_component + movement_component;
+
+    ax = rot_accel(0);
+    ay = rot_accel(1);
+    az = rot_accel(2);
 }
 
 void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat, double magnitude,
-                            double & mx, double & my, double & mz)
+                                              double lat, double lon, double alt, QDate day,
+                                              double & mx, double & my, double & mz)
 {
     NumVector rot_magn = magnitude * prod(quaternion_to_dcm(orientation_quat),
-                                          expected_mag(qDegreesToRadians(59.9013625), qDegreesToRadians(30.2825023), 0e-3));
+                                          expected_mag(lat, lon, alt, day));
 
     mx = rot_magn(0);
     my = rot_magn(1);
-    mx = rot_magn(2);
-}
-
-void QuaternionKalman::calculate_geodetic(const NumVector & position,
-                        double & lat, double & lon, double & alt)
-{
-
+    mz = rot_magn(2);
 }
 
 void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & vel)
 {
-
+    vel = norm_2(velocity);
 }
 
 NumMatrix QuaternionKalman::quaternion_to_dcm(const NumVector & quaternion)
@@ -255,10 +320,10 @@ NumMatrix QuaternionKalman::geodetic_to_dcm(double lat, double lon)
     return DCM;
 }
 
-NumVector QuaternionKalman::expected_mag(double lat, double lon, double alt)
+NumVector QuaternionKalman::expected_mag(double lat, double lon, double alt, QDate day)
 {
     double declination, inclination;
-    wmm.measure(lat, lon, alt, 0, declination, inclination);
+    wmm.measure(lat, lon, alt, day, declination, inclination);
 
     double sdecl = qSin(declination);
     double cdecl = qCos(declination);

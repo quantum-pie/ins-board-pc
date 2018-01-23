@@ -1,6 +1,8 @@
 #ifndef QUATKALMAN_H
 #define QUATKALMAN_H
 
+#include <QDate>
+
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -20,9 +22,11 @@ public:
         NumVector w;
         NumVector a;
         NumVector m;
-        double lat;
-        double lon;
-        double alt;
+        QDate day;
+        NumVector pos;
+        //double lat;
+        //double lon;
+        //double alt;
         double vel;
         double dt;
     };
@@ -50,14 +54,14 @@ private:
     /* create Kalman matrices */
     NumMatrix create_quat_bias_mtx(double dt_2);
     NumMatrix create_transition_mtx(const KalmanInput & z);
-    NumMatrix create_proc_noise_cov_mtx(const KalmanInput & z);
-    NumMatrix create_meas_noise_cov_mtx(const KalmanInput & z);
+    NumMatrix create_proc_noise_cov_mtx(double dt);
+    NumMatrix create_meas_noise_cov_mtx(double lat, double lon);
     NumMatrix create_meas_proj_mtx(const KalmanInput & z, const NumVector & predicted_z);
 
     /* auxiliary transformations */
     NumMatrix quaternion_to_dcm(const NumVector & quaternion);
     NumMatrix geodetic_to_dcm(double lat, double lon);
-    NumVector expected_mag(double lat, double lon, double alt);
+    NumVector expected_mag(double lat, double lon, double alt, QDate day);
 
     /* auxiliary derivatives */
     NumMatrix ddcm_dqs(const NumVector & quaternion);
@@ -77,6 +81,7 @@ private:
                                  double & ax, double & ay, double & az);
 
     void calculate_magnetometer(const NumVector & orientation_quat, double magnitude,
+                                double lat, double lon, double alt, QDate day,
                                 double & mx, double & my, double & mz);
 
     void calculate_geodetic(const NumVector & position,
