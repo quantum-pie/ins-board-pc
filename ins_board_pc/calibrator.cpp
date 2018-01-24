@@ -1,10 +1,13 @@
 #include "calibrator.h"
 
 #include <QtGlobal>
+#include <QFile>
+#include <QDataStream>
 
 Calibrator::Calibrator()
 {
     reset();
+    load();
 }
 
 void Calibrator::reset()
@@ -56,6 +59,30 @@ QVector3D Calibrator::calibrate(const QVector3D & vec)
     return QVector3D((vec.x() - x_bias) * x_scale,
                      (vec.y() - y_bias) * y_scale,
                      (vec.z() - z_bias) * z_scale);
+}
+
+void Calibrator::save()
+{
+    QString filename = "res/magnet_calib.dat";
+    QFile file(filename);
+    if(file.open(QIODevice::ReadWrite))
+    {
+        QDataStream stream(&file);
+        stream << x_bias << y_bias << z_bias << x_scale << y_scale << z_scale;
+        file.close();
+    }
+}
+
+void Calibrator::load()
+{
+    QString filename = "res/magnet_calib.dat";
+    QFile file(filename);
+    if(file.open(QIODevice::ReadWrite))
+    {
+        QDataStream stream(&file);
+        stream >> x_bias >> y_bias >> z_bias >> x_scale >> y_scale >> z_scale;
+        file.close();
+    }
 }
 
 void Calibrator::update_borders(double & lower, double & upper, double val)
