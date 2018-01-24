@@ -35,6 +35,8 @@ private slots:
 
     void on_pushButton_2_toggled(bool checked);
 
+    void on_pushButton_3_clicked();
+
 private:
     void process_data(const QByteArray & data);
 

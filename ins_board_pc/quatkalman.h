@@ -23,11 +23,9 @@ public:
         NumVector a;
         NumVector m;
         QDate day;
+        NumVector geo;
         NumVector pos;
-        //double lat;
-        //double lon;
-        //double alt;
-        double vel;
+        NumVector v;
         double dt;
     };
 
@@ -56,12 +54,15 @@ private:
     NumMatrix create_transition_mtx(const KalmanInput & z);
     NumMatrix create_proc_noise_cov_mtx(double dt);
     NumMatrix create_meas_noise_cov_mtx(double lat, double lon);
-    NumMatrix create_meas_proj_mtx(const KalmanInput & z, const NumVector & predicted_z);
+    NumMatrix create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v);
 
     /* auxiliary transformations */
     NumMatrix quaternion_to_dcm(const NumVector & quaternion);
     NumMatrix geodetic_to_dcm(double lat, double lon);
     NumVector expected_mag(double lat, double lon, double alt, QDate day);
+    NumVector quat_multiply(const NumVector & p, const NumVector & q);
+    void normalize_state();
+    bool invert_matrix(const NumMatrix & mtx, NumMatrix & inv);
 
     /* auxiliary derivatives */
     NumMatrix ddcm_dqs(const NumVector & quaternion);
@@ -106,6 +107,9 @@ private:
     double meas_magn_std;
     double meas_cep;
     double meas_vel_std;
+
+    static constexpr int state_size = 16;
+    static constexpr int measurement_size = 10;
 };
 
 #endif // QUATKALMAN_H

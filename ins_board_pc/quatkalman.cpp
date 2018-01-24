@@ -2,12 +2,15 @@
 
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/assignment.hpp>
 
 #include <iostream>
 #include <boost/numeric/ublas/io.hpp>
 
 #include <QtMath>
+#include <QDebug>
 
 QuaternionKalman::QuaternionKalman(double proc_gyro_std, double proc_gyro_bias_std,
                                    double proc_accel_std, double meas_accel_std,
@@ -18,8 +21,8 @@ QuaternionKalman::QuaternionKalman(double proc_gyro_std, double proc_gyro_bias_s
       meas_magn_std(meas_magn_std), meas_cep(meas_cep), meas_vel_std(meas_vel_std)
 {
     reset();
-    x = NumVector(16);
-    P = NumMatrix(16, 16);
+    x = NumVector(state_size);
+    P = NumMatrix(state_size, state_size);
 }
 
 void QuaternionKalman::initialize(const KalmanInput & z1)
@@ -27,10 +30,6 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
     double ax = z1.a[0];
     double ay = z1.a[1];
     double az = z1.a[2];
-
-    double mx = z1.m[0];
-    double my = z1.m[1];
-    double mz = z1.m[2];
 
     NumVector qacc(4);
     if(az >= 0)
@@ -48,24 +47,65 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
         qacc[3] = ax / qSqrt(2 * (1 - az));
     }
 
-    NumVector qmag(4);
-    //double G =
+    NumMatrix accel_rotator = trans(quaternion_to_dcm(qacc));
+    NumVector l = prod(accel_rotator, z1.m);
 
-    /*
-    double lat, lon, alt;
-    NumVector pos(3);
-    pos <<= z1.pos[0], z1.pos[1], z1.pos[2];
-    calculate_geodetic(pos, lat, lon, alt);
-    NumVector orientation(4);
-    orientation <<= 1, 0, 0, 0;
-    double mx, my, mz;
-    calculate_magnetometer(orientation, norm_2(z1.m), lat, lon, alt, z1.day, mx, my, mz);
-    double ax, ay, az;
-    NumVector acceleration(3);
-    acceleration <<= 0, 0, 0;
-    calculate_accelerometer(orientation, acceleration, lat, lon, ax, ay, az);
-    int g = 0;
-    */
+    double lx = l[0];
+    double ly = l[1];
+
+    NumVector qmag(4);
+    double G = lx * lx + ly * ly;
+    double G_sqrt = qSqrt(G);
+
+    if(ly >= 0)
+    {
+        qmag[0] = qSqrt(G + ly * G_sqrt) / qSqrt(2 * G);
+        qmag[1] = 0;
+        qmag[2] = 0;
+        qmag[3] = - lx / qSqrt(2 * (G + ly * G_sqrt));
+    }
+    else
+    {
+        qmag[0] = - lx / qSqrt(2 * (G - ly * G_sqrt));
+        qmag[1] = 0;
+        qmag[2] = 0;
+        qmag[3] = qSqrt(G - ly * G_sqrt) / qSqrt(2 * G);
+    }
+
+    NumVector qdecl(4);
+
+    double declination, inclination;
+    wmm.measure(z1.geo[0], z1.geo[1], z1.geo[2], z1.day, declination, inclination);
+
+    qdecl[0] = qCos(declination / 2);
+    qdecl[1] = 0;
+    qdecl[2] = 0;
+    qdecl[3] = qSin(declination / 2);
+
+    NumVector q = quat_multiply(quat_multiply(qacc, qmag), qdecl);
+
+    x[0] = q[0];
+    x[1] = q[1];
+    x[2] = q[2];
+    x[3] = q[3];
+
+    x[4] = 0;
+    x[5] = 0;
+    x[6] = 0;
+
+    x[7] = z1.pos[0];
+    x[8] = z1.pos[1];
+    x[9] = z1.pos[2];
+
+    x[10] = z1.v[0];
+    x[11] = z1.v[1];
+    x[12] = z1.v[2];
+
+    x[13] = (z1.v[0] - z0.v[0]) / z1.dt;
+    x[14] = (z1.v[1] - z0.v[1]) / z1.dt;
+    x[15] = (z1.v[2] - z0.v[2]) / z1.dt;
+
+    P = ZeroMatrix(16, 16);
 }
 
 void QuaternionKalman::reset()
@@ -98,8 +138,12 @@ void QuaternionKalman::update(const KalmanInput & z)
     NumMatrix Q = create_proc_noise_cov_mtx(z.dt);
 
     x = prod(F, x);
+    normalize_state();
 
-    NumVector z_pr(10);
+    NumMatrix tmp = prod(F, P);
+    P = prod(tmp, trans(F)) + Q;
+
+    NumVector z_pr(measurement_size);
 
     double lat, lon, alt;
     NumVector predicted_pos = get_position();
@@ -114,10 +158,32 @@ void QuaternionKalman::update(const KalmanInput & z)
     z_pr(7) = predicted_pos(1);
     z_pr(8) = predicted_pos(2);
 
-    calculate_velocity(get_velocity(), z_pr(9));
+    NumVector predicted_v = get_velocity();
+    calculate_velocity(predicted_v, z_pr(9));
+
+    NumVector z_meas(measurement_size);
+    z_meas <<= z.a, z.m, z.pos, norm_2(z.v);
+
+    NumVector y = z_meas - z_pr;
 
     NumMatrix R = create_meas_noise_cov_mtx(lat, lon);
-    NumMatrix H = create_meas_proj_mtx(z, z_pr);
+    NumMatrix H = create_meas_proj_mtx(lat, lon, alt, z.day, predicted_v);
+
+    tmp = prod(H, P);
+    NumMatrix S = prod(tmp, trans(H)) + R;
+
+    NumMatrix S_inv(S.size1(), S.size2());
+    if(invert_matrix(S, S_inv))
+    {
+        tmp = prod(P, trans(H));
+        NumMatrix K = prod(tmp, S_inv);
+
+        x += prod(K, y);
+        normalize_state();
+
+        tmp = IdentityMatrix(x.size()) - prod(K, H);
+        P = prod(tmp, P);
+    }
 }
 
 NumMatrix QuaternionKalman::create_quat_bias_mtx(double dt_2)
@@ -158,7 +224,7 @@ NumMatrix QuaternionKalman::create_transition_mtx(const KalmanInput & z)
 
     NumMatrix K = create_quat_bias_mtx(dt_2);
 
-    NumMatrix F(16, 16);
+    NumMatrix F(state_size, state_size);
 
     F <<= V, K, ZeroMatrix(4, 9),
             ZeroMatrix(3, 4), IdentityMatrix(3), ZeroMatrix(3, 9),
@@ -188,7 +254,7 @@ NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt)
 
     NumMatrix Qp = proc_accel_std * proc_accel_std * prod(G, trans(G));
 
-    NumMatrix Q(16, 16);
+    NumMatrix Q(state_size, state_size);
 
     Q <<= Qq, ZeroMatrix(4, 12),
             ZeroMatrix(3, 4), Qb, ZeroMatrix(3, 9),
@@ -214,7 +280,7 @@ NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon)
     NumMatrix tmp = prod(trans(Cel), local_cov);
     NumMatrix Rp = prod(tmp, Cel);
 
-    NumMatrix R = IdentityMatrix(10);
+    NumMatrix R(measurement_size, measurement_size);
 
     R <<= Ra, ZeroMatrix(3, 7),
             ZeroMatrix(3, 3), Rm, ZeroMatrix(3, 4),
@@ -224,9 +290,83 @@ NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon)
     return R;
 }
 
-NumMatrix QuaternionKalman::create_meas_proj_mtx(const KalmanInput & z, const NumVector & predicted_z)
+NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v)
 {
+    // 1
+    NumMatrix Dac_Dq(3, 4);
 
+    NumVector a = get_acceleration();
+    NumVector q = get_orinetation_quaternion();
+
+    NumMatrix Cel = geodetic_to_dcm(lat, lon);
+    NumMatrix Clb = quaternion_to_dcm(q);
+    NumMatrix Ceb = prod(Clb, Cel);
+
+    NumMatrix Ddcm_Dqs = ddcm_dqs(q);
+    NumMatrix Ddcm_Dqx = ddcm_dqx(q);
+    NumMatrix Ddcm_Dqy = ddcm_dqy(q);
+    NumMatrix Ddcm_Dqz = ddcm_dqz(q);
+
+    NumVector tmp = prod(Cel, a);
+
+    NumVector col_s = column(Ddcm_Dqs, 2) + prod(Ddcm_Dqs, tmp);
+    NumVector col_x = column(Ddcm_Dqx, 2) + prod(Ddcm_Dqx, tmp);
+    NumVector col_y = column(Ddcm_Dqy, 2) + prod(Ddcm_Dqy, tmp);
+    NumVector col_z = column(Ddcm_Dqz, 2) + prod(Ddcm_Dqz, tmp);
+
+    Dac_Dq <<= ublas::traverse_policy::by_column(), col_s, col_x, col_y, col_z;
+
+    // 2
+    NumMatrix Dac_Dpos(3, 3);
+
+    NumMatrix Dgeo_Dpos = dgeo_dpos(lat, lon, alt);
+    NumMatrix Ddcm_Dlat = dcm_lat_partial(lat, lon);
+    NumMatrix Ddcm_Dlon = dcm_lon_partial(lat, lon);
+
+    NumMatrix Dcel_Dx = Dgeo_Dpos(0, 0) * Ddcm_Dlat + Dgeo_Dpos(1, 0) * Ddcm_Dlon;
+    NumMatrix Dcel_Dy = Dgeo_Dpos(0, 1) * Ddcm_Dlat + Dgeo_Dpos(1, 1) * Ddcm_Dlon;
+    NumMatrix Dcel_Dz = Dgeo_Dpos(0, 2) * Ddcm_Dlat + Dgeo_Dpos(1, 2) * Ddcm_Dlon;
+
+    tmp = prod(Dcel_Dx, a);
+    col_x = prod(Clb, tmp);
+    tmp = prod(Dcel_Dy, a);
+    col_y = prod(Clb, tmp);
+    tmp = prod(Dcel_Dz, a);
+    col_z = prod(Clb, tmp);
+
+    Dac_Dpos <<= ublas::traverse_policy::by_column(), col_x, col_y, col_z;
+
+    // 3
+    NumMatrix Dac_Da = Ceb;
+
+    // 4
+    NumMatrix Dm_Dq(3, 4);
+
+    NumVector earth_mag = expected_mag(lat, lon, alt, day);
+
+    col_s = prod(Ddcm_Dqs, earth_mag);
+    col_x = prod(Ddcm_Dqx, earth_mag);
+    col_y = prod(Ddcm_Dqy, earth_mag);
+    col_z = prod(Ddcm_Dqz, earth_mag);
+
+    Dm_Dq <<= ublas::traverse_policy::by_column(), col_s, col_x, col_y, col_z;
+
+    // 5
+    NumMatrix Dpos_Dpos = IdentityMatrix(3);
+
+    // 6
+    NumMatrix Dv_Dv(1, 3);
+    double v_abs = norm_2(v);
+    Dv_Dv <<= v[0] / v_abs, v[1] / v_abs, v[2] / v_abs;
+
+    // Combine
+    NumMatrix H(measurement_size, state_size);
+    H <<= Dac_Dq, ZeroMatrix(3, 3), Dac_Dpos, ZeroMatrix(3, 3), Dac_Da,
+            Dm_Dq, ZeroMatrix(3, 12),
+            ZeroMatrix(3, 7), Dpos_Dpos, ZeroMatrix(3, 6),
+            ZeroMatrix(1, 10), Dv_Dv, ZeroMatrix(1, 3);
+
+    return H;
 }
 
 void QuaternionKalman::calculate_geodetic(const NumVector & position,
@@ -334,6 +474,66 @@ NumVector QuaternionKalman::expected_mag(double lat, double lon, double alt, QDa
     RES <<= sdecl * cincl, cdecl * cincl, -sincl;
     return RES;
 }
+
+NumVector QuaternionKalman::quat_multiply(const NumVector & p, const NumVector & q)
+{
+    NumVector res(4);
+
+    double p0 = p[0];
+    double p1 = p[1];
+    double p2 = p[2];
+    double p3 = p[3];
+
+    double q0 = q[0];
+    double q1 = q[1];
+    double q2 = q[2];
+    double q3 = q[3];
+
+    res[0] = p0 * q0 - p1 * q1 - p2 * q2 - p3 * q3;
+    res[1] = p0 * q1 + p1 * q0 + p2 * q3 - p3 * q2;
+    res[2] = p0 * q2 - p1 * q3 + p2 * q0 + p3 * q1;
+    res[3] = p0 * q3 + p1 * q2 - p2 * q1 + p3 * q0;
+
+    return res;
+}
+
+void QuaternionKalman::normalize_state()
+{
+    double qs = x[0];
+    double qx = x[1];
+    double qy = x[2];
+    double qz = x[3];
+
+    double quat_norm = qSqrt(qs * qs + qx * qx + qy * qy + qz * qz);
+    x[0] /= quat_norm;
+    x[1] /= quat_norm;
+    x[2] /= quat_norm;
+    x[3] /= quat_norm;
+}
+
+bool QuaternionKalman::invert_matrix(const NumMatrix & mtx, NumMatrix & inv)
+{
+    typedef ublas::permutation_matrix<std::size_t> pmatrix;
+
+    NumMatrix A(mtx);
+
+    // create a permutation matrix for the LU-factorization
+    pmatrix pm(A.size1());
+
+    // perform LU-factorization
+    int res = lu_factorize(A, pm);
+    if (res != 0)
+        return false;
+
+    // create identity matrix of "inverse"
+    inv.assign(IdentityMatrix(A.size1()));
+
+    // backsubstitute to get the inverse
+    lu_substitute(A, pm, inv);
+
+    return true;
+}
+
 
 NumMatrix QuaternionKalman::ddcm_dqs(const NumVector & quaternion)
 {

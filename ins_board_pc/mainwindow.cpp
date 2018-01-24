@@ -79,22 +79,23 @@ void MainWindow::process_data(const QByteArray & data)
 
         if(ui->pushButton_2->isChecked())
         {
-            NumVector w(3), a(3), m(3), pos(3);
+            NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
 
             w <<= qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
             a <<= in.a_x, in.a_y, in.a_z;
             m <<= in.m_x, in.m_y, in.m_z;
+            geo <<= qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
             pos <<= in.gps.x, in.gps.y, in.gps.z;
+            v <<= in.gps.vx, in.gps.vy, in.gps.vz;
 
             magn_cal.calibrate(m[0], m[1], m[2]);
 
             QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
 
-            double vel = qSqrt(in.gps.vx * in.gps.vx + in.gps.vy * in.gps.vy + in.gps.vz * in.gps.vz);
-
-            QuaternionKalman::KalmanInput z{w, a, m, day, pos, vel, in.et};
+            QuaternionKalman::KalmanInput z{w, a, m, day, geo, pos, v, in.et};
 
             marg_filt->step(z);
+            //qDebug() << m[0] << m[1] << m[2] << endl;
         }
     }
 
@@ -311,4 +312,9 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
     {
 
     }
+}
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    magn_cal.save();
 }
