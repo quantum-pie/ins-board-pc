@@ -9,6 +9,8 @@
 #include <QtMath>
 #include <QDateTime>
 
+#include <QElapsedTimer>
+
 using namespace QtDataVisualization;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -31,7 +33,9 @@ MainWindow::MainWindow(QWidget *parent) :
     init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
     init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
 
-    marg_filt = new QuaternionKalman(0.2, 0.01, 0.1, 0.002, 1.5, 2.5, 0.1);
+    marg_filt = new QuaternionKalman(0.001, 0.00000000001, 0.001,
+                                     0.002, 1.5,
+                                     2.5, 0.1);
 
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 
@@ -47,7 +51,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::read_datagrams()
 {
-    while (udp_socket->hasPendingDatagrams())
+    while(udp_socket->hasPendingDatagrams())
     {
         QNetworkDatagram datagram = udp_socket->receiveDatagram();
         process_data(datagram.data());
@@ -64,6 +68,7 @@ void MainWindow::process_data(const QByteArray & data)
     ds >> pkt;
 
     input_t in;
+    double et = 0;
     for(size_t i = 0; i < samples; ++i)
     {
         ds >>   in.et >> in.w_x >> in.w_y >> in.w_z >>
@@ -77,26 +82,7 @@ void MainWindow::process_data(const QByteArray & data)
                 in.gps.x >> in.gps.y >> in.gps.z >>
                 in.gps.vx >> in.gps.vy >> in.gps.vz;
 
-        if(ui->pushButton_2->isChecked())
-        {
-            NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
-
-            w <<= qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
-            a <<= in.a_x, in.a_y, in.a_z;
-            m <<= in.m_x, in.m_y, in.m_z;
-            geo <<= qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
-            pos <<= in.gps.x, in.gps.y, in.gps.z;
-            v <<= in.gps.vx, in.gps.vy, in.gps.vz;
-
-            magn_cal.calibrate(m[0], m[1], m[2]);
-
-            QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
-
-            QuaternionKalman::KalmanInput z{w, a, m, day, geo, pos, v, in.et};
-
-            marg_filt->step(z);
-            //qDebug() << m[0] << m[1] << m[2] << endl;
-        }
+        et += in.et;
     }
 
     if(ui->tabWidget->currentIndex() == 0)
@@ -127,7 +113,7 @@ void MainWindow::process_data(const QByteArray & data)
 
     if(ui->tabWidget->currentIndex() == 2)
     {
-        if(in.gps.fix > 1)
+        if(in.gps.fix)
         {
             ui->x_le->setText(QString::number(in.gps.x, 'f', 2));
             ui->y_le->setText(QString::number(in.gps.y, 'f', 2));
@@ -145,6 +131,36 @@ void MainWindow::process_data(const QByteArray & data)
             dt.setTime(QTime(in.gps.time.hour, in.gps.time.minute, in.gps.time.second, in.gps.time.msecond));
 
             ui->time_le->setText(dt.toString());
+        }
+    }
+
+    if(ui->tabWidget->currentIndex() == 3)
+    {
+        if(ui->pushButton_2->isChecked())
+        {
+            NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
+
+            w <<= qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
+            a <<= in.a_x, in.a_y, in.a_z;
+            m <<= in.m_x, in.m_y, in.m_z;
+            geo <<= qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
+            pos <<= in.gps.x, in.gps.y, in.gps.z;
+            v <<= in.gps.vx, in.gps.vy, in.gps.vz;
+
+            magn_cal.calibrate(m[0], m[1], m[2]);
+
+            QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
+
+            QuaternionKalman::KalmanInput z{w, a, m, day, geo, pos, v, et};
+
+            marg_filt->step(z);
+
+            if(marg_filt->is_initialized())
+            {
+                double r, p, y;
+                marg_filt->get_rpy(r, p, y);
+                update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
+            }
         }
     }
 }
@@ -233,6 +249,34 @@ void MainWindow::init_graphs()
     ui->plot3->setBackground(Qt::lightGray);
     ui->plot3->axisRect()->setBackground(Qt::black);
     ui->plot3->legend->setBrush(Qt::lightGray);
+
+    //
+    ui->plot4->plotLayout()->insertRow(0);
+    ui->plot4->plotLayout()->addElement(0, 0, new QCPTextElement(ui->plot4, "Roll Pitch Yaw"));
+
+    ui->plot4->addGraph();
+    ui->plot4->addGraph();
+    ui->plot4->addGraph();
+
+    ui->plot4->graph(0)->setName("R");
+    ui->plot4->graph(1)->setName("P");
+    ui->plot4->graph(2)->setName("Y");
+
+    ui->plot4->legend->setVisible(true);
+
+    ui->plot4->graph(0)->setPen(QPen(Qt::blue));
+    ui->plot4->graph(1)->setPen(QPen(Qt::red));
+    ui->plot4->graph(2)->setPen(QPen(Qt::cyan));
+
+    ui->plot4->xAxis->setRange(0, 200);
+    ui->plot4->xAxis->setLabel("packet");
+
+    ui->plot4->yAxis->setRange(-180, 180);
+    ui->plot4->yAxis->setLabel("Angle, deg");
+
+    ui->plot4->setBackground(Qt::lightGray);
+    ui->plot4->axisRect()->setBackground(Qt::black);
+    ui->plot4->legend->setBrush(Qt::lightGray);
 }
 
 void MainWindow::update_plot(QCustomPlot * plot, QVector3D vec)
@@ -306,11 +350,7 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
 {
     if(checked)
     {
-        marg_filt->reset();
-    }
-    else
-    {
-
+        //marg_filt->reset();
     }
 }
 

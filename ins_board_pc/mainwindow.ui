@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -190,123 +190,18 @@
        <attribute name="title">
         <string>GPS</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,1,1,5">
-        <item row="0" column="3">
-         <spacer name="horizontalSpacer_17">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>539</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_7">
-          <property name="text">
-           <string>X:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1" colspan="2">
-         <widget class="QLineEdit" name="x_le"/>
-        </item>
-        <item row="1" column="3">
-         <spacer name="horizontalSpacer_5">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>539</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_8">
-          <property name="text">
-           <string>Y:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1" colspan="2">
-         <widget class="QLineEdit" name="y_le"/>
-        </item>
-        <item row="2" column="3">
-         <spacer name="horizontalSpacer_6">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>539</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>Z:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1" colspan="2">
-         <widget class="QLineEdit" name="z_le"/>
-        </item>
-        <item row="3" column="3">
-         <spacer name="horizontalSpacer_7">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>539</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
+       <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,0,0,0">
         <item row="4" column="0">
-         <widget class="QLabel" name="label_10">
-          <property name="text">
-           <string>VX:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1" colspan="2">
-         <widget class="QLineEdit" name="vx_le"/>
-        </item>
-        <item row="4" column="3">
-         <spacer name="horizontalSpacer_8">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>539</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="5" column="0">
          <widget class="QLabel" name="label_11">
           <property name="text">
            <string>VY:</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="1" colspan="2">
+        <item row="4" column="1" colspan="2">
          <widget class="QLineEdit" name="vy_le"/>
         </item>
-        <item row="5" column="3">
+        <item row="4" column="3">
          <spacer name="horizontalSpacer_9">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -319,17 +214,17 @@
           </property>
          </spacer>
         </item>
-        <item row="6" column="0">
+        <item row="5" column="0">
          <widget class="QLabel" name="label_12">
           <property name="text">
            <string>VZ:</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="1" colspan="2">
+        <item row="5" column="1" colspan="2">
          <widget class="QLineEdit" name="vz_le"/>
         </item>
-        <item row="6" column="3">
+        <item row="5" column="3">
          <spacer name="horizontalSpacer_10">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -342,17 +237,17 @@
           </property>
          </spacer>
         </item>
-        <item row="7" column="0">
+        <item row="6" column="0">
          <widget class="QLabel" name="label_13">
           <property name="text">
            <string>LAT:</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="1" colspan="2">
+        <item row="6" column="1" colspan="2">
          <widget class="QLineEdit" name="lat_le"/>
         </item>
-        <item row="7" column="3">
+        <item row="6" column="3">
          <spacer name="horizontalSpacer_11">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -365,17 +260,17 @@
           </property>
          </spacer>
         </item>
-        <item row="8" column="0">
+        <item row="7" column="0">
          <widget class="QLabel" name="label_14">
           <property name="text">
            <string>LON:</string>
           </property>
          </widget>
         </item>
-        <item row="8" column="1" colspan="2">
+        <item row="7" column="1" colspan="2">
          <widget class="QLineEdit" name="lon_le"/>
         </item>
-        <item row="8" column="3">
+        <item row="7" column="3">
          <spacer name="horizontalSpacer_12">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -388,17 +283,17 @@
           </property>
          </spacer>
         </item>
-        <item row="9" column="0">
+        <item row="8" column="0">
          <widget class="QLabel" name="label_15">
           <property name="text">
            <string>ALT:</string>
           </property>
          </widget>
         </item>
-        <item row="9" column="1" colspan="2">
+        <item row="8" column="1" colspan="2">
          <widget class="QLineEdit" name="alt_le"/>
         </item>
-        <item row="9" column="3">
+        <item row="8" column="3">
          <spacer name="horizontalSpacer_13">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -411,17 +306,17 @@
           </property>
          </spacer>
         </item>
-        <item row="10" column="0">
+        <item row="9" column="0">
          <widget class="QLabel" name="label_16">
           <property name="text">
            <string>MSL_ALT:</string>
           </property>
          </widget>
         </item>
-        <item row="10" column="1" colspan="2">
+        <item row="9" column="1" colspan="2">
          <widget class="QLineEdit" name="msl_alt_le"/>
         </item>
-        <item row="10" column="3">
+        <item row="9" column="3">
          <spacer name="horizontalSpacer_14">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -434,17 +329,17 @@
           </property>
          </spacer>
         </item>
-        <item row="11" column="0">
+        <item row="10" column="0">
          <widget class="QLabel" name="label_17">
           <property name="text">
            <string>TIME:</string>
           </property>
          </widget>
         </item>
-        <item row="11" column="1" colspan="2">
+        <item row="10" column="1" colspan="2">
          <widget class="QLineEdit" name="time_le"/>
         </item>
-        <item row="11" column="3">
+        <item row="10" column="3">
          <spacer name="horizontalSpacer_15">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -458,27 +353,129 @@
          </spacer>
         </item>
         <item row="0" column="0">
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QLabel" name="label_7">
           <property name="text">
-           <string>Run</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
+           <string>X:</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1" colspan="2">
-         <spacer name="horizontalSpacer_16">
+         <widget class="QLineEdit" name="x_le"/>
+        </item>
+        <item row="0" column="3">
+         <spacer name="horizontalSpacer_5">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>214</width>
+            <width>539</width>
             <height>20</height>
            </size>
           </property>
          </spacer>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Y:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" colspan="2">
+         <widget class="QLineEdit" name="y_le"/>
+        </item>
+        <item row="1" column="3">
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>539</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Z:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" colspan="2">
+         <widget class="QLineEdit" name="z_le"/>
+        </item>
+        <item row="2" column="3">
+         <spacer name="horizontalSpacer_7">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>539</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>VX:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1" colspan="2">
+         <widget class="QLineEdit" name="vx_le"/>
+        </item>
+        <item row="3" column="3">
+         <spacer name="horizontalSpacer_8">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>539</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_4">
+       <attribute name="title">
+        <string>Kalman</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="1" column="0" colspan="2">
+         <widget class="QCustomPlot" name="plot4" native="true"/>
+        </item>
+        <item row="0" column="1">
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>791</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_2">
+          <property name="text">
+           <string>Start</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
