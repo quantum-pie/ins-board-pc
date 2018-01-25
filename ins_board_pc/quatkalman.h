@@ -38,12 +38,15 @@ public:
 
     void reset();
 
+    bool is_initialized();
+
     NumVector get_state();
-    NumVector get_orinetation_quaternion();
+    NumVector get_orientation_quaternion();
     NumVector get_gyro_bias();
     NumVector get_position();
     NumVector get_velocity();
     NumVector get_acceleration();
+    void get_rpy(double & roll, double & pitch, double & yaw);
 
 private:    
     void update(const KalmanInput & z);
@@ -63,6 +66,10 @@ private:
     NumVector quat_multiply(const NumVector & p, const NumVector & q);
     void normalize_state();
     bool invert_matrix(const NumMatrix & mtx, NumMatrix & inv);
+
+    /* debug functions */
+    void debug_vector(const NumVector & vec, QString name);
+    void debug_matrix(const NumMatrix & mtx, QString name);
 
     /* auxiliary derivatives */
     NumMatrix ddcm_dqs(const NumVector & quaternion);

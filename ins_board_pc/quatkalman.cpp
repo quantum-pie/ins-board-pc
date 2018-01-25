@@ -6,9 +6,6 @@
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/assignment.hpp>
 
-#include <iostream>
-#include <boost/numeric/ublas/io.hpp>
-
 #include <QtMath>
 #include <QDebug>
 
@@ -27,9 +24,11 @@ QuaternionKalman::QuaternionKalman(double proc_gyro_std, double proc_gyro_bias_s
 
 void QuaternionKalman::initialize(const KalmanInput & z1)
 {
-    double ax = z1.a[0];
-    double ay = z1.a[1];
-    double az = z1.a[2];
+    NumVector a_norm = z1.a / norm_2(z1.a);
+
+    double ax = a_norm[0];
+    double ay = a_norm[1];
+    double az = a_norm[2];
 
     NumVector qacc(4);
     if(az >= 0)
@@ -77,17 +76,20 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
     double declination, inclination;
     wmm.measure(z1.geo[0], z1.geo[1], z1.geo[2], z1.day, declination, inclination);
 
-    qdecl[0] = qCos(declination / 2);
+    /* rotate magnetic field by declination degrees around Z axis clockwise */
+    qdecl[0] = qCos(-declination / 2);
     qdecl[1] = 0;
     qdecl[2] = 0;
-    qdecl[3] = qSin(declination / 2);
+    qdecl[3] = qSin(-declination / 2);
 
-    NumVector q = quat_multiply(quat_multiply(qacc, qmag), qdecl);
+    NumVector tmp = quat_multiply(qmag, qdecl);
+    NumVector q = quat_multiply(qacc, tmp);
 
+    // from lb to bl quaternion
     x[0] = q[0];
-    x[1] = q[1];
-    x[2] = q[2];
-    x[3] = q[3];
+    x[1] = -q[1];
+    x[2] = -q[2];
+    x[3] = -q[3];
 
     x[4] = 0;
     x[5] = 0;
@@ -105,13 +107,18 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
     x[14] = (z1.v[1] - z0.v[1]) / z1.dt;
     x[15] = (z1.v[2] - z0.v[2]) / z1.dt;
 
-    P = ZeroMatrix(16, 16);
+    P = ZeroMatrix(state_size, state_size);
 }
 
 void QuaternionKalman::reset()
 {
     initialized = false;
     first_sample_received = false;
+}
+
+bool QuaternionKalman::is_initialized()
+{
+    return initialized;
 }
 
 void QuaternionKalman::step(const KalmanInput & z)
@@ -139,7 +146,7 @@ void QuaternionKalman::update(const KalmanInput & z)
 
     x = prod(F, x);
     normalize_state();
-
+/*
     NumMatrix tmp = prod(F, P);
     P = prod(tmp, trans(F)) + Q;
 
@@ -147,7 +154,8 @@ void QuaternionKalman::update(const KalmanInput & z)
 
     double lat, lon, alt;
     NumVector predicted_pos = get_position();
-    NumVector predicted_orientation = get_orinetation_quaternion();
+
+    NumVector predicted_orientation = get_orientation_quaternion();
 
     calculate_geodetic(predicted_pos, lat, lon, alt);
 
@@ -167,6 +175,7 @@ void QuaternionKalman::update(const KalmanInput & z)
     NumVector y = z_meas - z_pr;
 
     NumMatrix R = create_meas_noise_cov_mtx(lat, lon);
+
     NumMatrix H = create_meas_proj_mtx(lat, lon, alt, z.day, predicted_v);
 
     tmp = prod(H, P);
@@ -184,6 +193,7 @@ void QuaternionKalman::update(const KalmanInput & z)
         tmp = IdentityMatrix(x.size()) - prod(K, H);
         P = prod(tmp, P);
     }
+*/
 }
 
 NumMatrix QuaternionKalman::create_quat_bias_mtx(double dt_2)
@@ -214,7 +224,7 @@ NumMatrix QuaternionKalman::create_transition_mtx(const KalmanInput & z)
 
     /* constructing state transition matrix */
     NumMatrix V(4, 4);
-    V <<=    0,      -z.w[0], -z.w[1],  z.w[2],
+    V <<=    0,      -z.w[0], -z.w[1], -z.w[2],
              z.w[0],  0,       z.w[2], -z.w[1],
              z.w[1], -z.w[2],  0,       z.w[0],
              z.w[2],  z.w[1], -z.w[0],  0;
@@ -296,7 +306,7 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     NumMatrix Dac_Dq(3, 4);
 
     NumVector a = get_acceleration();
-    NumVector q = get_orinetation_quaternion();
+    NumVector q = get_orientation_quaternion();
 
     NumMatrix Cel = geodetic_to_dcm(lat, lon);
     NumMatrix Clb = quaternion_to_dcm(q);
@@ -357,7 +367,15 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     // 6
     NumMatrix Dv_Dv(1, 3);
     double v_abs = norm_2(v);
-    Dv_Dv <<= v[0] / v_abs, v[1] / v_abs, v[2] / v_abs;
+
+    if(v_abs > 0)
+    {
+        Dv_Dv <<= v[0] / v_abs, v[1] / v_abs, v[2] / v_abs;
+    }
+    else
+    {
+        Dv_Dv <<= 0, 0, 0;
+    }
 
     // Combine
     NumMatrix H(measurement_size, state_size);
@@ -413,6 +431,9 @@ void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & v
 
 NumMatrix QuaternionKalman::quaternion_to_dcm(const NumVector & quaternion)
 {
+    // TODO Maybe transpose (likely) because state quat is about body to local rotation (check it).
+    // Refactor all derivatives accordingly
+
     double qs = quaternion[0];
     double qx = quaternion[1];
     double qy = quaternion[2];
@@ -534,6 +555,30 @@ bool QuaternionKalman::invert_matrix(const NumMatrix & mtx, NumMatrix & inv)
     return true;
 }
 
+void QuaternionKalman::debug_vector(const NumVector & vec, QString name)
+{
+    QDebug deb = qDebug();
+    deb << name + ":" << endl;
+    for(size_t i = 0; i < vec.size(); ++i)
+    {
+        deb << vec[i];
+    }
+    deb << endl;
+}
+
+void QuaternionKalman::debug_matrix(const NumMatrix & mtx, QString name)
+{
+    QDebug deb = qDebug();
+    deb << name + ":" << endl;
+    for(size_t i = 0; i < mtx.size1(); ++i)
+    {
+        for(size_t j = 0; j < mtx.size2(); ++j)
+        {
+            deb << mtx(i, j);
+        }
+        deb << endl;
+    }
+}
 
 NumMatrix QuaternionKalman::ddcm_dqs(const NumVector & quaternion)
 {
@@ -673,7 +718,7 @@ NumVector QuaternionKalman::get_state()
     return x;
 }
 
-NumVector QuaternionKalman::get_orinetation_quaternion()
+NumVector QuaternionKalman::get_orientation_quaternion()
 {
     return ublas::vector_range<NumVector>(x, ublas::range(0, 4));
 }
@@ -696,4 +741,50 @@ NumVector QuaternionKalman::get_velocity()
 NumVector QuaternionKalman::get_acceleration()
 {
     return ublas::vector_range<NumVector>(x, ublas::range(13, 16));
+}
+
+void QuaternionKalman::get_rpy(double & roll, double & pitch, double & yaw)
+{
+    /*! ZXY rotation sequence implied.
+     * Explanation:
+     * Conventional aerospace rotation sequence is ZYX,
+     * but since our coordinate system has Y axis aligned with fuselage,
+     * we need to switch rotation order of X and Y.
+    */
+
+    double qs = x[0];
+    double qx = x[1];
+    double qy = x[2];
+    double qz = x[3];
+
+    double test = qy * qz + qs * qx;
+
+/*
+    if (test > 0.499)
+    {
+        // singularity at north pole
+        yaw = - 2 * qAtan2(qz, qs);
+        pitch = M_PI / 2;
+        roll = 0;
+        return;
+    }
+
+    if (test < -0.499)
+    {
+        // singularity at south pole
+        yaw = 2 * qAtan2(qz, qs);
+        pitch = - M_PI / 2;
+        roll = 0;
+        return;
+    }
+*/
+
+    double qss = qs * qs;
+    double qxx = qx * qx;
+    double qyy = qy * qy;
+    double qzz = qz * qz;
+
+    yaw = -qAtan2(2 * qs * qz - 2 * qx * qy, qss - qxx + qyy - qzz);
+    pitch = qAsin(2 * test);
+    roll = qAtan2(2 * qs * qy - 2 * qx * qz, qss - qxx - qyy + qzz);
 }
