@@ -9,13 +9,8 @@
 #include <QtMath>
 #include <QDebug>
 
-QuaternionKalman::QuaternionKalman(double proc_gyro_std, double proc_gyro_bias_std,
-                                   double proc_accel_std, double meas_accel_std,
-                                   double meas_magn_std, double meas_cep,
-                                   double meas_vel_std)
-    : proc_gyro_std(proc_gyro_std), proc_gyro_bias_std(proc_gyro_bias_std),
-      proc_accel_std(proc_accel_std), meas_accel_std(meas_accel_std),
-      meas_magn_std(meas_magn_std), meas_cep(meas_cep), meas_vel_std(meas_vel_std)
+QuaternionKalman::QuaternionKalman(const FilterParams & params)
+    : params(params)
 {
     reset();
     x = NumVector(state_size);
@@ -107,7 +102,26 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
     x[14] = (z1.v[1] - z0.v[1]) / z1.dt;
     x[15] = (z1.v[2] - z0.v[2]) / z1.dt;
 
-    P = ZeroMatrix(state_size, state_size);
+    P = IdentityMatrix(state_size, state_size) * 1e-4; //!< consider "bad" initial orientation estimate
+
+    P(4, 4) = 1e-6;
+    P(5, 5) = 1e-6;
+    P(6, 6) = 1e-6;
+
+    double position_variance = params.meas_params.gps_cep * params.meas_params.gps_cep;
+    P(7, 7) = position_variance;
+    P(8, 8) = position_variance;
+    P(9, 9) = position_variance;
+
+    double velocity_variance = params.meas_params.gps_vel_abs_std * params.meas_params.gps_vel_abs_std;
+    P(10, 10) = velocity_variance;
+    P(11, 11) = velocity_variance;
+    P(12, 12) = velocity_variance;
+
+    double accel_variance = 2 * velocity_variance / (z1.dt * z1.dt);
+    P(10, 10) = accel_variance;
+    P(11, 11) = accel_variance;
+    P(12, 12) = accel_variance;
 }
 
 void QuaternionKalman::reset()
@@ -146,7 +160,7 @@ void QuaternionKalman::update(const KalmanInput & z)
 
     x = prod(F, x);
     normalize_state();
-/*
+
     NumMatrix tmp = prod(F, P);
     P = prod(tmp, trans(F)) + Q;
 
@@ -159,8 +173,17 @@ void QuaternionKalman::update(const KalmanInput & z)
 
     calculate_geodetic(predicted_pos, lat, lon, alt);
 
+    double mag_magn = norm_2(z.m);
+
     calculate_accelerometer(predicted_orientation, get_acceleration(), lat, lon, z_pr(0), z_pr(1), z_pr(2));
-    calculate_magnetometer(predicted_orientation, norm_2(z.m), lat, lon, alt, z.day, z_pr(3), z_pr(4), z_pr(5));
+    calculate_magnetometer(predicted_orientation, lat, lon, alt, z.day, z_pr(3), z_pr(4), z_pr(5));
+
+    NumVector calc_mag(3);
+    calc_mag <<= z_pr(3), z_pr(4), z_pr(5);
+
+    debug_vector(calc_mag, "predicted mag");
+
+    debug_vector(z.m / mag_magn, "measured mag");
 
     z_pr(6) = predicted_pos(0);
     z_pr(7) = predicted_pos(1);
@@ -170,11 +193,11 @@ void QuaternionKalman::update(const KalmanInput & z)
     calculate_velocity(predicted_v, z_pr(9));
 
     NumVector z_meas(measurement_size);
-    z_meas <<= z.a, z.m, z.pos, norm_2(z.v);
+    z_meas <<= z.a, z.m / mag_magn, z.pos, norm_2(z.v);
 
     NumVector y = z_meas - z_pr;
 
-    NumMatrix R = create_meas_noise_cov_mtx(lat, lon);
+    NumMatrix R = create_meas_noise_cov_mtx(lat, lon, mag_magn);
 
     NumMatrix H = create_meas_proj_mtx(lat, lon, alt, z.day, predicted_v);
 
@@ -192,8 +215,11 @@ void QuaternionKalman::update(const KalmanInput & z)
 
         tmp = IdentityMatrix(x.size()) - prod(K, H);
         P = prod(tmp, P);
+
+        //debug_vector(x, "state after update");
     }
-*/
+
+    debug_vector(get_gyro_bias(), "gyro bias");
 }
 
 NumMatrix QuaternionKalman::create_quat_bias_mtx(double dt_2)
@@ -242,6 +268,7 @@ NumMatrix QuaternionKalman::create_transition_mtx(const KalmanInput & z)
             ZeroMatrix(3, 10), IdentityMatrix(3), dt * IdentityMatrix(3),
             ZeroMatrix(3, 13), IdentityMatrix(3);
 
+    //debug_matrix(F, "F");
     return F;
 }
 
@@ -254,15 +281,15 @@ NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt)
 
     NumMatrix K = create_quat_bias_mtx(dt_2);
 
-    NumMatrix Qq = proc_gyro_std * proc_gyro_std * prod(K, trans(K));
-    NumMatrix Qb = proc_gyro_bias_std * proc_gyro_bias_std * IdentityMatrix(3);
+    NumMatrix Qq = params.proc_params.gyro_std * params.proc_params.gyro_std * prod(K, trans(K));
+    NumMatrix Qb = params.proc_params.gyro_bias_std * params.proc_params.gyro_bias_std * IdentityMatrix(3);
 
     NumMatrix G(9, 1);
     G <<= dt_sq_2, dt_sq_2, dt_sq_2,
             dt, dt, dt,
             1, 1, 1;
 
-    NumMatrix Qp = proc_accel_std * proc_accel_std * prod(G, trans(G));
+    NumMatrix Qp = params.proc_params.accel_std * params.proc_params.accel_std * prod(G, trans(G));
 
     NumMatrix Q(state_size, state_size);
 
@@ -273,12 +300,14 @@ NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt)
     return Q;
 }
 
-NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon)
+NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon, double magn_mag)
 {
-    NumMatrix Ra = meas_accel_std * meas_accel_std * IdentityMatrix(3);
-    NumMatrix Rm = meas_magn_std * meas_magn_std * IdentityMatrix(3);
+    NumMatrix Ra = params.meas_params.accel_std * params.meas_params.accel_std * IdentityMatrix(3);
 
-    double horizontal_linear_std = meas_cep * 1.2;
+    double normalized_magn_std = params.meas_params.magn_std / magn_mag;
+    NumMatrix Rm = normalized_magn_std * normalized_magn_std * IdentityMatrix(3);
+
+    double horizontal_linear_std = params.meas_params.gps_cep * 1.2;
     double altitude_std = horizontal_linear_std / 0.53;
 
     NumMatrix Cel = geodetic_to_dcm(lat, lon);
@@ -295,7 +324,7 @@ NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon)
     R <<= Ra, ZeroMatrix(3, 7),
             ZeroMatrix(3, 3), Rm, ZeroMatrix(3, 4),
             ZeroMatrix(3, 6), Rp, ZeroMatrix(3, 1),
-            ZeroMatrix(1, 9), meas_vel_std * meas_vel_std;
+            ZeroMatrix(1, 9), params.meas_params.gps_vel_abs_std * params.meas_params.gps_vel_abs_std;
 
     return R;
 }
@@ -412,11 +441,11 @@ void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_qua
     az = rot_accel(2);
 }
 
-void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat, double magnitude,
+void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat,
                                               double lat, double lon, double alt, QDate day,
                                               double & mx, double & my, double & mz)
 {
-    NumVector rot_magn = magnitude * prod(quaternion_to_dcm(orientation_quat),
+    NumVector rot_magn = prod(quaternion_to_dcm(orientation_quat),
                                           expected_mag(lat, lon, alt, day));
 
     mx = rot_magn(0);
@@ -431,9 +460,6 @@ void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & v
 
 NumMatrix QuaternionKalman::quaternion_to_dcm(const NumVector & quaternion)
 {
-    // TODO Maybe transpose (likely) because state quat is about body to local rotation (check it).
-    // Refactor all derivatives accordingly
-
     double qs = quaternion[0];
     double qx = quaternion[1];
     double qy = quaternion[2];
@@ -453,13 +479,13 @@ NumMatrix QuaternionKalman::quaternion_to_dcm(const NumVector & quaternion)
     double qyz = qy * qz;
 
     DCM(0, 0) = qss + qxx - qyy - qzz;
-    DCM(0, 1) = 2 * (qxy - qsz);
-    DCM(0, 2) = 2 * (qxz + qsy);
-    DCM(1, 0) = 2 * (qxy + qsz);
+    DCM(0, 1) = 2 * (qxy + qsz);
+    DCM(0, 2) = 2 * (qxz - qsy);
+    DCM(1, 0) = 2 * (qxy - qsz);
     DCM(1, 1) = qss - qxx + qyy - qzz;
-    DCM(1, 2) = 2 * (qyz - qsx);
-    DCM(2, 0) = 2 * (qxz - qsy);
-    DCM(2, 1) = 2 * (qyz + qsx);
+    DCM(1, 2) = 2 * (qyz + qsx);
+    DCM(2, 0) = 2 * (qxz + qsy);
+    DCM(2, 1) = 2 * (qyz - qsx);
     DCM(2, 2) = qss - qxx - qyy + qzz;
 
     return DCM;
@@ -589,9 +615,9 @@ NumMatrix QuaternionKalman::ddcm_dqs(const NumVector & quaternion)
 
     NumMatrix RES(3, 3);
 
-    RES <<= qs, -qz, qy,
-            qz, qs, -qx,
-            -qy, qx, qs;
+    RES <<= qs, qz, -qy,
+            -qz, qs, qx,
+             qy, -qx, qs;
 
     RES *= 2;
 
@@ -608,8 +634,8 @@ NumMatrix QuaternionKalman::ddcm_dqx(const NumVector & quaternion)
     NumMatrix RES(3, 3);
 
     RES <<= qx, qy, qz,
-            qy, -qx, -qs,
-            qz, qs, -qx;
+            qy, -qx, qs,
+            qz, -qs, -qx;
 
     RES *= 2;
 
@@ -625,9 +651,9 @@ NumMatrix QuaternionKalman::ddcm_dqy(const NumVector & quaternion)
 
     NumMatrix RES(3, 3);
 
-    RES <<= -qy, qx, qs,
+    RES <<= -qy, qx, -qs,
             qx, qy, qz,
-            -qs, qz, -qy;
+            qs, qz, -qy;
 
     RES *= 2;
 
@@ -643,8 +669,8 @@ NumMatrix QuaternionKalman::ddcm_dqz(const NumVector & quaternion)
 
     NumMatrix RES(3, 3);
 
-    RES <<= -qz, -qs, qx,
-            qs, -qz, qy,
+    RES <<= -qz, qs, qx,
+            -qs, -qz, qy,
             qx, qy, qz;
 
     RES *= 2;

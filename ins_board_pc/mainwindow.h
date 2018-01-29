@@ -97,6 +97,26 @@ private:
         double m_z;
         gps_input_t gps;
     };
+
+
+
+    double ax_sum = 0;
+    double ay_sum = 0;
+    double az_sum = 0;
+
+    double mx_sum = 0;
+    double my_sum = 0;
+    double mz_sum = 0;
+
+    double ax_sum_sq = 0;
+    double ay_sum_sq = 0;
+    double az_sum_sq = 0;
+
+    double mx_sum_sq = 0;
+    double my_sum_sq = 0;
+    double mz_sum_sq = 0;
+
+    int N = 0;
 };
 
 #endif // MAINWINDOW_H

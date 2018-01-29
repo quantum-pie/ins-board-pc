@@ -29,10 +29,28 @@ public:
         double dt;
     };
 
-    QuaternionKalman(double proc_gyro_std, double proc_gyro_bias_std,
-                     double proc_accel_std, double meas_accel_std,
-                     double meas_magn_std, double meas_cep,
-                     double meas_vel_std);
+    struct ProcessNoiseParams
+    {
+        double gyro_std;
+        double gyro_bias_std;
+        double accel_std;
+    };
+
+    struct MeasurementNoiseParams
+    {
+        double accel_std;
+        double magn_std;
+        double gps_cep;
+        double gps_vel_abs_std;
+    };
+
+    struct FilterParams
+    {
+        ProcessNoiseParams proc_params;
+        MeasurementNoiseParams meas_params;
+    };
+
+    QuaternionKalman(const FilterParams & params);
 
     void step(const KalmanInput & z);
 
@@ -56,7 +74,7 @@ private:
     NumMatrix create_quat_bias_mtx(double dt_2);
     NumMatrix create_transition_mtx(const KalmanInput & z);
     NumMatrix create_proc_noise_cov_mtx(double dt);
-    NumMatrix create_meas_noise_cov_mtx(double lat, double lon);
+    NumMatrix create_meas_noise_cov_mtx(double lat, double lon, double magn_mag);
     NumMatrix create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v);
 
     /* auxiliary transformations */
@@ -88,7 +106,7 @@ private:
                                  double lat, double lon,
                                  double & ax, double & ay, double & az);
 
-    void calculate_magnetometer(const NumVector & orientation_quat, double magnitude,
+    void calculate_magnetometer(const NumVector & orientation_quat,
                                 double lat, double lon, double alt, QDate day,
                                 double & mx, double & my, double & mz);
 
@@ -107,13 +125,7 @@ private:
     bool initialized;
     bool first_sample_received;
 
-    double proc_gyro_std;
-    double proc_gyro_bias_std;
-    double proc_accel_std;
-    double meas_accel_std;
-    double meas_magn_std;
-    double meas_cep;
-    double meas_vel_std;
+    FilterParams params;
 
     static constexpr int state_size = 16;
     static constexpr int measurement_size = 10;

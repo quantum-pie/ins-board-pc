@@ -9,8 +9,6 @@
 #include <QtMath>
 #include <QDateTime>
 
-#include <QElapsedTimer>
-
 using namespace QtDataVisualization;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -33,9 +31,18 @@ MainWindow::MainWindow(QWidget *parent) :
     init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
     init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
 
-    marg_filt = new QuaternionKalman(0.001, 0.00000000001, 0.001,
-                                     0.002, 1.5,
-                                     2.5, 0.1);
+    QuaternionKalman::ProcessNoiseParams proc_params;
+    proc_params.gyro_std = 0.01; //!< dps
+    proc_params.gyro_bias_std = 0; //!< assume constant bias
+    proc_params.accel_std = 0.00; //!< m^2/s
+
+    QuaternionKalman::MeasurementNoiseParams meas_params;
+    meas_params.accel_std = 0.005; //!< g
+    meas_params.magn_std = 1.2; //!< uT
+    meas_params.gps_cep = 100;//2.5; //!< m
+    meas_params.gps_vel_abs_std = 100;//0.1; //!< m/s
+
+    marg_filt = new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params});
 
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 
