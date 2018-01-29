@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QuaternionKalman::ProcessNoiseParams proc_params;
     proc_params.gyro_std = 0.01; //!< dps
-    proc_params.gyro_bias_std = 0; //!< assume constant bias
+    proc_params.gyro_bias_std = 1e-12; //!< assume almost constant bias
     proc_params.accel_std = 0.00; //!< m^2/s
 
     QuaternionKalman::MeasurementNoiseParams meas_params;

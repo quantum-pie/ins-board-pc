@@ -17,9 +17,30 @@ QuaternionKalman::QuaternionKalman(const FilterParams & params)
     P = NumMatrix(state_size, state_size);
 }
 
-void QuaternionKalman::initialize(const KalmanInput & z1)
+void QuaternionKalman::accumulate(const KalmanInput & z)
 {
-    NumVector a_norm = z1.a / norm_2(z1.a);
+    accum.w += z.w;
+    accum.a += z.a;
+    accum.m += z.m;
+    accum.day = z.day;
+    accum.geo += z.geo;
+    accum.pos += z.pos;
+    accum.v += z.v;
+    accum.dt = z.dt;
+
+    accum_size++;
+}
+
+void QuaternionKalman::initialize()
+{
+    NumVector gyro_bias = accum.w / accum_size;
+    accum.a /= accum_size;
+    accum.m /= accum_size;
+    accum.pos /= accum_size;
+    accum.v /= accum_size;
+    accum.geo /= accum_size;
+
+    NumVector a_norm = accum.a / norm_2(accum.a);
 
     double ax = a_norm[0];
     double ay = a_norm[1];
@@ -41,8 +62,8 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
         qacc[3] = ax / qSqrt(2 * (1 - az));
     }
 
-    NumMatrix accel_rotator = trans(quaternion_to_dcm(qacc));
-    NumVector l = prod(accel_rotator, z1.m);
+    NumMatrix accel_rotator = quaternion_to_dcm(qacc);
+    NumVector l = prod(accel_rotator, accum.m);
 
     double lx = l[0];
     double ly = l[1];
@@ -69,13 +90,13 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
     NumVector qdecl(4);
 
     double declination, inclination;
-    wmm.measure(z1.geo[0], z1.geo[1], z1.geo[2], z1.day, declination, inclination);
+    wmm.measure(accum.geo[0], accum.geo[1], accum.geo[2], accum.day, declination, inclination);
 
-    /* rotate magnetic field by declination degrees around Z axis clockwise */
-    qdecl[0] = qCos(-declination / 2);
+    /* rotate magnetic field by declination degrees around Z axis counterclockwise */
+    qdecl[0] = qCos(declination / 2);
     qdecl[1] = 0;
     qdecl[2] = 0;
-    qdecl[3] = qSin(-declination / 2);
+    qdecl[3] = qSin(declination / 2);
 
     NumVector tmp = quat_multiply(qmag, qdecl);
     NumVector q = quat_multiply(qacc, tmp);
@@ -86,21 +107,21 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
     x[2] = -q[2];
     x[3] = -q[3];
 
-    x[4] = 0;
-    x[5] = 0;
-    x[6] = 0;
+    x[4] = gyro_bias[0];
+    x[5] = gyro_bias[1];
+    x[6] = gyro_bias[2];
 
-    x[7] = z1.pos[0];
-    x[8] = z1.pos[1];
-    x[9] = z1.pos[2];
+    x[7] = accum.pos[0];
+    x[8] = accum.pos[1];
+    x[9] = accum.pos[2];
 
-    x[10] = z1.v[0];
-    x[11] = z1.v[1];
-    x[12] = z1.v[2];
+    x[10] = accum.v[0];
+    x[11] = accum.v[1];
+    x[12] = accum.v[2];
 
-    x[13] = (z1.v[0] - z0.v[0]) / z1.dt;
-    x[14] = (z1.v[1] - z0.v[1]) / z1.dt;
-    x[15] = (z1.v[2] - z0.v[2]) / z1.dt;
+    x[13] = 0;
+    x[14] = 0;
+    x[15] = 0;
 
     P = IdentityMatrix(state_size, state_size) * 1e-4; //!< consider "bad" initial orientation estimate
 
@@ -118,7 +139,7 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
     P(11, 11) = velocity_variance;
     P(12, 12) = velocity_variance;
 
-    double accel_variance = 2 * velocity_variance / (z1.dt * z1.dt);
+    double accel_variance = 2 * velocity_variance / (accum.dt * accum.dt);
     P(10, 10) = accel_variance;
     P(11, 11) = accel_variance;
     P(12, 12) = accel_variance;
@@ -127,7 +148,16 @@ void QuaternionKalman::initialize(const KalmanInput & z1)
 void QuaternionKalman::reset()
 {
     initialized = false;
-    first_sample_received = false;
+    accum_size = 0;
+
+    accum.w = ZeroVector(3);
+    accum.a = ZeroVector(3);
+    accum.m = ZeroVector(3);
+    accum.day = QDate();
+    accum.pos = ZeroVector(3);
+    accum.geo = ZeroVector(3);
+    accum.v = ZeroVector(3);
+    accum.dt = 0;
 }
 
 bool QuaternionKalman::is_initialized()
@@ -141,15 +171,14 @@ void QuaternionKalman::step(const KalmanInput & z)
     {
         update(z);
     }
-    else if(first_sample_received)
-    {
-        initialize(z);
-        initialized = true;
-    }
     else
     {
-        z0 = z;
-        first_sample_received = true;
+        accumulate(z);
+        if(accum_size == accum_capacity)
+        {
+            initialize();
+            initialized = true;
+        }
     }
 }
 

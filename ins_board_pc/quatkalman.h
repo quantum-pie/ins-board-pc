@@ -12,6 +12,7 @@ namespace ublas = boost::numeric::ublas;
 using NumMatrix = ublas::matrix<double>;
 using NumVector = ublas::vector<double>;
 using ZeroMatrix = ublas::zero_matrix<double>;
+using ZeroVector = ublas::zero_vector<double>;
 using IdentityMatrix = ublas::identity_matrix<double>;
 
 class QuaternionKalman
@@ -68,7 +69,8 @@ public:
 
 private:    
     void update(const KalmanInput & z);
-    void initialize(const KalmanInput & z1);
+    void accumulate(const KalmanInput & z);
+    void initialize();//(const KalmanInput & z);
 
     /* create Kalman matrices */
     NumMatrix create_quat_bias_mtx(double dt_2);
@@ -117,16 +119,17 @@ private:
 
     WrapperWMM wmm;
 
-    KalmanInput z0;
-
     NumVector x;
     NumMatrix P;
 
     bool initialized;
-    bool first_sample_received;
 
     FilterParams params;
 
+    KalmanInput accum;
+    int accum_size;
+
+    static constexpr int accum_capacity = 50;
     static constexpr int state_size = 16;
     static constexpr int measurement_size = 10;
 };
