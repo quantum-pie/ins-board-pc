@@ -210,10 +210,6 @@ void QuaternionKalman::update(const KalmanInput & z)
     NumVector calc_mag(3);
     calc_mag <<= z_pr(3), z_pr(4), z_pr(5);
 
-    debug_vector(calc_mag, "predicted mag");
-
-    debug_vector(z.m / mag_magn, "measured mag");
-
     z_pr(6) = predicted_pos(0);
     z_pr(7) = predicted_pos(1);
     z_pr(8) = predicted_pos(2);
@@ -227,7 +223,6 @@ void QuaternionKalman::update(const KalmanInput & z)
     NumVector y = z_meas - z_pr;
 
     NumMatrix R = create_meas_noise_cov_mtx(lat, lon, mag_magn);
-
     NumMatrix H = create_meas_proj_mtx(lat, lon, alt, z.day, predicted_v);
 
     tmp = prod(H, P);
@@ -244,8 +239,6 @@ void QuaternionKalman::update(const KalmanInput & z)
 
         tmp = IdentityMatrix(x.size()) - prod(K, H);
         P = prod(tmp, P);
-
-        //debug_vector(x, "state after update");
     }
 
     debug_vector(get_gyro_bias(), "gyro bias");
@@ -297,7 +290,6 @@ NumMatrix QuaternionKalman::create_transition_mtx(const KalmanInput & z)
             ZeroMatrix(3, 10), IdentityMatrix(3), dt * IdentityMatrix(3),
             ZeroMatrix(3, 13), IdentityMatrix(3);
 
-    //debug_matrix(F, "F");
     return F;
 }
 
@@ -313,10 +305,10 @@ NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt)
     NumMatrix Qq = params.proc_params.gyro_std * params.proc_params.gyro_std * prod(K, trans(K));
     NumMatrix Qb = params.proc_params.gyro_bias_std * params.proc_params.gyro_bias_std * IdentityMatrix(3);
 
-    NumMatrix G(9, 1);
-    G <<= dt_sq_2, dt_sq_2, dt_sq_2,
-            dt, dt, dt,
-            1, 1, 1;
+    NumMatrix G(9, 3);
+    G <<= IdentityMatrix(3) * dt_sq_2,
+            IdentityMatrix(3) * dt,
+            IdentityMatrix(3);
 
     NumMatrix Qp = params.proc_params.accel_std * params.proc_params.accel_std * prod(G, trans(G));
 
