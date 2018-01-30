@@ -9,6 +9,12 @@
 #include <QtMath>
 #include <QDateTime>
 
+#include <Qt3DCore/QEntity>
+#include <Qt3DRender/QMaterial>
+#include <Qt3DRender/QCamera>
+#include <Qt3DRender/QCameraLens>
+#include <Qt3DExtras>
+
 using namespace QtDataVisualization;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -31,16 +37,18 @@ MainWindow::MainWindow(QWidget *parent) :
     init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
     init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
 
+    init_orient_plot();
+
     QuaternionKalman::ProcessNoiseParams proc_params;
-    proc_params.gyro_std = 0.01; //!< dps
-    proc_params.gyro_bias_std = 1e-12; //!< assume almost constant bias
-    proc_params.accel_std = 0.00; //!< m^2/s
+    proc_params.gyro_std = 0.1; //!< dps
+    proc_params.gyro_bias_std = 1e-8; //!< assume almost constant bias
+    proc_params.accel_std = 2; //!< m^2/s
 
     QuaternionKalman::MeasurementNoiseParams meas_params;
-    meas_params.accel_std = 0.005; //!< g
-    meas_params.magn_std = 1.2; //!< uT
-    meas_params.gps_cep = 100;//2.5; //!< m
-    meas_params.gps_vel_abs_std = 100;//0.1; //!< m/s
+    meas_params.accel_std = 0.05; //0.005 //!< g
+    meas_params.magn_std = 0.5;//1.2; //!< uT
+    meas_params.gps_cep = 2.5;//2.5; //!< m
+    meas_params.gps_vel_abs_std = 0.1;//0.1; //!< m/s
 
     marg_filt = new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params});
 
@@ -75,7 +83,6 @@ void MainWindow::process_data(const QByteArray & data)
     ds >> pkt;
 
     input_t in;
-    double et = 0;
     for(size_t i = 0; i < samples; ++i)
     {
         ds >>   in.et >> in.w_x >> in.w_y >> in.w_z >>
@@ -89,7 +96,25 @@ void MainWindow::process_data(const QByteArray & data)
                 in.gps.x >> in.gps.y >> in.gps.z >>
                 in.gps.vx >> in.gps.vy >> in.gps.vz;
 
-        et += in.et;
+        if(ui->pushButton_2->isChecked())
+        {
+            NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
+
+            w <<= qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
+            a <<= in.a_x, in.a_y, in.a_z;
+            m <<= in.m_x, in.m_y, in.m_z;
+            geo <<= qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
+            pos <<= in.gps.x, in.gps.y, in.gps.z;
+            v <<= in.gps.vx, in.gps.vy, in.gps.vz;
+
+            magn_cal.calibrate(m[0], m[1], m[2]);
+
+            QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
+
+            QuaternionKalman::KalmanInput z{w, a, m, day, geo, pos, v, in.et};
+
+            marg_filt->step(z);
+        }
     }
 
     if(ui->tabWidget->currentIndex() == 0)
@@ -145,28 +170,25 @@ void MainWindow::process_data(const QByteArray & data)
     {
         if(ui->pushButton_2->isChecked())
         {
-            NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
-
-            w <<= qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
-            a <<= in.a_x, in.a_y, in.a_z;
-            m <<= in.m_x, in.m_y, in.m_z;
-            geo <<= qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
-            pos <<= in.gps.x, in.gps.y, in.gps.z;
-            v <<= in.gps.vx, in.gps.vy, in.gps.vz;
-
-            magn_cal.calibrate(m[0], m[1], m[2]);
-
-            QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
-
-            QuaternionKalman::KalmanInput z{w, a, m, day, geo, pos, v, et};
-
-            marg_filt->step(z);
-
             if(marg_filt->is_initialized())
             {
                 double r, p, y;
                 marg_filt->get_rpy(r, p, y);
                 update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
+
+                NumVector quat = marg_filt->get_orientation_quaternion();
+                body_transform->setRotation(QQuaternion(quat[0], quat[1], quat[2], quat[3]));
+
+                QMatrix4x4 m;
+                m.rotate(QQuaternion(quat[0], quat[1], quat[2], quat[3]));
+                m.translate(QVector3D(0, 5, 0));
+                sphere_transform->setMatrix(m);
+
+                double lat, lon, alt;
+                marg_filt->get_geodetic(lat, lon, alt);
+
+                NumVector vel = marg_filt->get_velocity();
+                update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
             }
         }
     }
@@ -284,6 +306,35 @@ void MainWindow::init_graphs()
     ui->plot4->setBackground(Qt::lightGray);
     ui->plot4->axisRect()->setBackground(Qt::black);
     ui->plot4->legend->setBrush(Qt::lightGray);
+
+    //
+    //
+    ui->plot5->plotLayout()->insertRow(0);
+    ui->plot5->plotLayout()->addElement(0, 0, new QCPTextElement(ui->plot5, "Speed"));
+
+    ui->plot5->addGraph();
+    ui->plot5->addGraph();
+    ui->plot5->addGraph();
+
+    ui->plot5->graph(0)->setName("x");
+    ui->plot5->graph(1)->setName("y");
+    ui->plot5->graph(2)->setName("z");
+
+    ui->plot5->legend->setVisible(true);
+
+    ui->plot5->graph(0)->setPen(QPen(Qt::blue));
+    ui->plot5->graph(1)->setPen(QPen(Qt::red));
+    ui->plot5->graph(2)->setPen(QPen(Qt::cyan));
+
+    ui->plot5->xAxis->setRange(0, 200);
+    ui->plot5->xAxis->setLabel("packet");
+
+    ui->plot5->yAxis->setRange(-5, 5);
+    ui->plot5->yAxis->setLabel("Velocity, m/s");
+
+    ui->plot5->setBackground(Qt::lightGray);
+    ui->plot5->axisRect()->setBackground(Qt::black);
+    ui->plot5->legend->setBrush(Qt::lightGray);
 }
 
 void MainWindow::update_plot(QCustomPlot * plot, QVector3D vec)
@@ -331,6 +382,131 @@ void MainWindow::init_magnet_plot(QWidget * dummy_container, QScatterDataArray *
     plot->setAspectRatio(1);
 
     data->reserve(1000);
+}
+
+void MainWindow::init_orient_plot()
+{
+    orient_window = new Qt3DExtras::Qt3DWindow;
+    orient_window->defaultFrameGraph()->setClearColor(QColor(126, 192, 238));
+    QWidget *orient_plot_container = QWidget::createWindowContainer(orient_window);
+    Qt3DCore::QEntity *root = new Qt3DCore::QEntity;
+    Qt3DExtras::QPhongMaterial *material = new Qt3DExtras::QPhongMaterial(root);
+    material->setDiffuse(Qt::red);
+
+    Qt3DCore::QEntity *body = new Qt3DCore::QEntity(root);
+    Qt3DExtras::QCuboidMesh *mesh = new Qt3DExtras::QCuboidMesh;
+
+    mesh->setXExtent(5);
+    mesh->setYExtent(10);
+
+    body_transform = new Qt3DCore::QTransform;
+
+    body->addComponent(mesh);
+    body->addComponent(body_transform);
+    body->addComponent(material);
+
+    Qt3DExtras::QPhongMaterial *plane_material = new Qt3DExtras::QPhongMaterial(root);
+    plane_material->setDiffuse(QColor(77, 158, 58));
+    plane_material->setSpecular(Qt::white);
+
+    Qt3DCore::QEntity *reference = new Qt3DCore::QEntity(root);
+    Qt3DExtras::QPlaneMesh *plane = new Qt3DExtras::QPlaneMesh;
+
+    plane->setHeight(200);
+    plane->setWidth(200);
+
+    Qt3DCore::QTransform * plane_transform = new Qt3DCore::QTransform;
+    plane_transform->setRotation(QQuaternion::fromAxisAndAngle(1, 0, 0, 90));
+    plane_transform->setTranslation(QVector3D(0, 0, -6));
+
+    reference->addComponent(plane);
+    reference->addComponent(plane_material);
+    reference->addComponent(plane_transform);
+
+    reference->setEnabled(true);
+
+    Qt3DCore::QEntity * north_entity = new  Qt3DCore::QEntity(root);
+    Qt3DExtras::QSphereMesh * sphere = new Qt3DExtras::QSphereMesh;
+
+    Qt3DExtras::QPhongMaterial *sphere_material = new Qt3DExtras::QPhongMaterial(root);
+    sphere_material->setDiffuse(Qt::blue);
+
+    sphere_transform = new Qt3DCore::QTransform;
+    sphere_transform->setTranslation(QVector3D(0, 5, 0));
+
+    sphere->setRadius(1);
+
+    north_entity->addComponent(sphere_transform);
+    north_entity->addComponent(sphere);
+    north_entity->addComponent(sphere_material);
+
+    north_entity->setEnabled(true);
+
+    //
+    Qt3DCore::QEntity * north_line = new  Qt3DCore::QEntity(root);
+    Qt3DExtras::QCylinderMesh * nline = new Qt3DExtras::QCylinderMesh;
+
+    Qt3DCore::QTransform * nline_transform = new Qt3DCore::QTransform;
+    nline_transform->setTranslation(QVector3D(0, 50, -6));
+    //
+
+    nline->setLength(100);
+    nline->setRadius(0.2);
+
+    north_line->addComponent(nline_transform);
+    north_line->addComponent(nline);
+    north_line->addComponent(sphere_material);
+
+    north_line->setEnabled(true);
+
+    //
+    Qt3DCore::QEntity * south_line = new  Qt3DCore::QEntity(root);
+    Qt3DExtras::QCylinderMesh * sline = new Qt3DExtras::QCylinderMesh;
+
+    Qt3DCore::QTransform * sline_transform = new Qt3DCore::QTransform;
+    sline_transform->setTranslation(QVector3D(0, -50, -6));
+    //
+
+    sline->setLength(100);
+    sline->setRadius(0.2);
+
+    south_line->addComponent(sline_transform);
+    south_line->addComponent(sline);
+    south_line->addComponent(material);
+
+    south_line->setEnabled(true);
+
+    //
+    Qt3DCore::QEntity * light_entity = new Qt3DCore::QEntity(root);
+    Qt3DRender::QPointLight * light = new Qt3DRender::QPointLight(light_entity);
+    light->setColor(Qt::white);
+    light->setIntensity(1.);
+
+    Qt3DCore::QTransform * light_transform = new Qt3DCore::QTransform;
+    light_transform->setTranslation(QVector3D(0, -20, 20));
+
+    light_entity->addComponent(light_transform);
+    light_entity->addComponent(light);
+
+    light_entity->setEnabled(true);
+
+    Qt3DRender::QCamera *camera = orient_window->camera();
+    camera->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
+    camera->setViewCenter(QVector3D(0, 0, 0));
+    camera->setPosition(QVector3D(0, 0, 20.0f));
+    camera->rotateAboutViewCenter(QQuaternion::fromAxisAndAngle(1, 0, 0, 79));
+
+    Qt3DExtras::QOrbitCameraController *camController = new Qt3DExtras::QOrbitCameraController(root);
+    camController->setLinearSpeed( 50.0f );
+    camController->setLookSpeed( 180.0f );
+    camController->setCamera(camera);
+
+    orient_window->setRootEntity(root);
+
+    ui->gridLayout_3->replaceWidget(ui->dwidget, orient_plot_container);
+
+    orient_window->show();
+
 }
 
 void MainWindow::on_pushButton_toggled(bool checked)

@@ -8,6 +8,9 @@
 #include <QVector3D>
 #include <QtDataVisualization>
 
+#include <Qt3DCore/QTransform>
+#include <Qt3DExtras/Qt3DWindow>
+
 class QCustomPlot;
 class QUdpSocket;
 
@@ -29,6 +32,7 @@ private slots:
     void read_datagrams();
     void init_graphs();
     void init_magnet_plot(QWidget * dummy_container, QScatterDataArray * data_container, Q3DScatter * plot, QString title);
+    void init_orient_plot();
     void update_plot(QCustomPlot * plot, QVector3D vec);
 
     void on_pushButton_toggled(bool checked);
@@ -52,6 +56,9 @@ private:
     Calibrator magn_cal;
 
     QuaternionKalman *marg_filt;
+
+    Qt3DExtras::Qt3DWindow *orient_window;
+    Qt3DCore::QTransform * body_transform, * sphere_transform;
 
     const size_t pkt_header_size = 4;
     const size_t sample_size = 169;
@@ -97,26 +104,6 @@ private:
         double m_z;
         gps_input_t gps;
     };
-
-
-
-    double ax_sum = 0;
-    double ay_sum = 0;
-    double az_sum = 0;
-
-    double mx_sum = 0;
-    double my_sum = 0;
-    double mz_sum = 0;
-
-    double ax_sum_sq = 0;
-    double ay_sum_sq = 0;
-    double az_sum_sq = 0;
-
-    double mx_sum_sq = 0;
-    double my_sum_sq = 0;
-    double mz_sum_sq = 0;
-
-    int N = 0;
 };
 
 #endif // MAINWINDOW_H
