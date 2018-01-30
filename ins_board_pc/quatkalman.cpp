@@ -9,6 +9,8 @@
 #include <QtMath>
 #include <QDebug>
 
+#include <QElapsedTimer>
+
 QuaternionKalman::QuaternionKalman(const FilterParams & params)
     : params(params)
 {
@@ -125,9 +127,13 @@ void QuaternionKalman::initialize()
 
     P = IdentityMatrix(state_size, state_size) * 1e-4; //!< consider "bad" initial orientation estimate
 
-    P(4, 4) = 1e-6;
-    P(5, 5) = 1e-6;
-    P(6, 6) = 1e-6;
+    P(4, 4) = 1e-20;
+    P(5, 5) = 1e-20;
+    P(6, 6) = 1e-20;
+
+    //P(4, 4) = 0;
+    //P(5, 5) = 0;
+    //P(6, 6) = 0;
 
     double position_variance = params.meas_params.gps_cep * params.meas_params.gps_cep;
     P(7, 7) = position_variance;
@@ -140,9 +146,9 @@ void QuaternionKalman::initialize()
     P(12, 12) = velocity_variance;
 
     double accel_variance = 2 * velocity_variance / (accum.dt * accum.dt);
-    P(10, 10) = accel_variance;
-    P(11, 11) = accel_variance;
-    P(12, 12) = accel_variance;
+    P(13, 13) = accel_variance;
+    P(14, 14) = accel_variance;
+    P(15, 15) = accel_variance;
 }
 
 void QuaternionKalman::reset()
@@ -187,6 +193,10 @@ void QuaternionKalman::update(const KalmanInput & z)
     NumMatrix F = create_transition_mtx(z);
     NumMatrix Q = create_proc_noise_cov_mtx(z.dt);
 
+    //debug_matrix(F, "F");
+    //debug_matrix(Q, "Q");
+    //debug_matrix(P, "P");
+
     x = prod(F, x);
     normalize_state();
 
@@ -197,18 +207,14 @@ void QuaternionKalman::update(const KalmanInput & z)
 
     double lat, lon, alt;
     NumVector predicted_pos = get_position();
-
     NumVector predicted_orientation = get_orientation_quaternion();
 
     calculate_geodetic(predicted_pos, lat, lon, alt);
 
     double mag_magn = norm_2(z.m);
 
-    calculate_accelerometer(predicted_orientation, get_acceleration(), lat, lon, z_pr(0), z_pr(1), z_pr(2));
+    calculate_accelerometer(predicted_orientation, get_acceleration(), lat, lon, alt, z_pr(0), z_pr(1), z_pr(2));
     calculate_magnetometer(predicted_orientation, lat, lon, alt, z.day, z_pr(3), z_pr(4), z_pr(5));
-
-    NumVector calc_mag(3);
-    calc_mag <<= z_pr(3), z_pr(4), z_pr(5);
 
     z_pr(6) = predicted_pos(0);
     z_pr(7) = predicted_pos(1);
@@ -222,13 +228,20 @@ void QuaternionKalman::update(const KalmanInput & z)
 
     NumVector y = z_meas - z_pr;
 
+    debug_vector(z_meas, "meas");
+    debug_vector(z_pr, "pred");
+
     NumMatrix R = create_meas_noise_cov_mtx(lat, lon, mag_magn);
     NumMatrix H = create_meas_proj_mtx(lat, lon, alt, z.day, predicted_v);
+
+    //debug_matrix(R, "R");
+    //debug_matrix(H, "H");
 
     tmp = prod(H, P);
     NumMatrix S = prod(tmp, trans(H)) + R;
 
     NumMatrix S_inv(S.size1(), S.size2());
+
     if(invert_matrix(S, S_inv))
     {
         tmp = prod(P, trans(H));
@@ -241,6 +254,7 @@ void QuaternionKalman::update(const KalmanInput & z)
         P = prod(tmp, P);
     }
 
+    //debug_vector(get_velocity(), "vel");
     debug_vector(get_gyro_bias(), "gyro bias");
 }
 
@@ -355,7 +369,9 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     // 1
     NumMatrix Dac_Dq(3, 4);
 
-    NumVector a = get_acceleration();
+    double height_adjust = expected_gravity_accel(lat, alt) / equator_gravity;
+
+    NumVector a = get_acceleration() / equator_gravity;
     NumVector q = get_orientation_quaternion();
 
     NumMatrix Cel = geodetic_to_dcm(lat, lon);
@@ -369,10 +385,10 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
 
     NumVector tmp = prod(Cel, a);
 
-    NumVector col_s = column(Ddcm_Dqs, 2) + prod(Ddcm_Dqs, tmp);
-    NumVector col_x = column(Ddcm_Dqx, 2) + prod(Ddcm_Dqx, tmp);
-    NumVector col_y = column(Ddcm_Dqy, 2) + prod(Ddcm_Dqy, tmp);
-    NumVector col_z = column(Ddcm_Dqz, 2) + prod(Ddcm_Dqz, tmp);
+    NumVector col_s = column(Ddcm_Dqs, 2) * height_adjust + prod(Ddcm_Dqs, tmp);
+    NumVector col_x = column(Ddcm_Dqx, 2) * height_adjust + prod(Ddcm_Dqx, tmp);
+    NumVector col_y = column(Ddcm_Dqy, 2) * height_adjust + prod(Ddcm_Dqy, tmp);
+    NumVector col_z = column(Ddcm_Dqz, 2) * height_adjust + prod(Ddcm_Dqz, tmp);
 
     Dac_Dq <<= ublas::traverse_policy::by_column(), col_s, col_x, col_y, col_z;
 
@@ -397,7 +413,7 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     Dac_Dpos <<= ublas::traverse_policy::by_column(), col_x, col_y, col_z;
 
     // 3
-    NumMatrix Dac_Da = Ceb;
+    NumMatrix Dac_Da = Ceb / equator_gravity;
 
     // 4
     NumMatrix Dm_Dq(3, 4);
@@ -444,15 +460,18 @@ void QuaternionKalman::calculate_geodetic(const NumVector & position,
 }
 
 void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
-                             double lat, double lon,
+                             double lat, double lon, double alt,
                              double & ax, double & ay, double & az)
 {
+    double height_adjust = expected_gravity_accel(lat, alt) / standard_gravity;
+
     NumMatrix Clb = quaternion_to_dcm(orientation_quat);
     NumMatrix Cel = geodetic_to_dcm(lat, lon);
     NumMatrix tmp = prod(Clb, Cel);
-    NumVector movement_component = prod(tmp, acceleration);
+    NumVector movement_component = prod(tmp, acceleration / standard_gravity);
     NumVector g(3);
-    g <<= 0, 0, 1;
+    g <<= 0, 0, height_adjust;
+
     NumVector gravity_component = prod(Clb, g);
 
     NumVector rot_accel = gravity_component + movement_component;
@@ -541,6 +560,17 @@ NumVector QuaternionKalman::expected_mag(double lat, double lon, double alt, QDa
     NumVector RES(3);
     RES <<= sdecl * cincl, cdecl * cincl, -sincl;
     return RES;
+}
+
+double QuaternionKalman::expected_gravity_accel(double lat, double alt)
+{
+    double f = wmm.ellip_f();
+    double a = wmm.ellip_a();
+    double a_sq = a * a;
+    double slat_sq = qPow(qSin(lat), 2);
+
+    double normal_surface_gravity = equator_gravity * (1 + wgs_k * slat_sq) / qSqrt(1 - wmm.ellip_epssq() * slat_sq);
+    return normal_surface_gravity * (1 - 2 * alt / a * (1 + f + wgs_m - 2 * f * slat_sq) + 3 * alt * alt / a_sq);
 }
 
 NumVector QuaternionKalman::quat_multiply(const NumVector & p, const NumVector & q)
@@ -834,4 +864,9 @@ void QuaternionKalman::get_rpy(double & roll, double & pitch, double & yaw)
     yaw = -qAtan2(2 * qs * qz - 2 * qx * qy, qss - qxx + qyy - qzz);
     pitch = qAsin(2 * test);
     roll = qAtan2(2 * qs * qy - 2 * qx * qz, qss - qxx - qyy + qzz);
+}
+
+void QuaternionKalman::get_geodetic(double & lat, double & lon, double & alt)
+{
+    calculate_geodetic(get_position(), lat, lon, alt);
 }

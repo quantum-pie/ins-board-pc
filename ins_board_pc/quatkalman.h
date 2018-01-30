@@ -66,11 +66,12 @@ public:
     NumVector get_velocity();
     NumVector get_acceleration();
     void get_rpy(double & roll, double & pitch, double & yaw);
+    void get_geodetic(double & lat, double & lon, double & alt);
 
 private:    
     void update(const KalmanInput & z);
     void accumulate(const KalmanInput & z);
-    void initialize();//(const KalmanInput & z);
+    void initialize();
 
     /* create Kalman matrices */
     NumMatrix create_quat_bias_mtx(double dt_2);
@@ -83,7 +84,10 @@ private:
     NumMatrix quaternion_to_dcm(const NumVector & quaternion);
     NumMatrix geodetic_to_dcm(double lat, double lon);
     NumVector expected_mag(double lat, double lon, double alt, QDate day);
+    double expected_gravity_accel(double lat, double alt);
+
     NumVector quat_multiply(const NumVector & p, const NumVector & q);
+
     void normalize_state();
     bool invert_matrix(const NumMatrix & mtx, NumMatrix & inv);
 
@@ -105,7 +109,7 @@ private:
 
     /* from state to measurements */
     void calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
-                                 double lat, double lon,
+                                 double lat, double lon, double alt,
                                  double & ax, double & ay, double & az);
 
     void calculate_magnetometer(const NumVector & orientation_quat,
@@ -129,9 +133,13 @@ private:
     KalmanInput accum;
     int accum_size;
 
-    static constexpr int accum_capacity = 50;
+    static constexpr int accum_capacity = 500;
     static constexpr int state_size = 16;
     static constexpr int measurement_size = 10;
+    static constexpr double equator_gravity = 9.7803267714;
+    static constexpr double standard_gravity = 9.80665;
+    static constexpr double wgs_k = 0.00193185265241;
+    static constexpr double wgs_m = 0.00344978650684;
 };
 
 #endif // QUATKALMAN_H
