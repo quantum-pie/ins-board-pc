@@ -60,6 +60,11 @@ double WrapperWMM::ellip_a()
     return ellip.a * 1e3;
 }
 
+double WrapperWMM::ellip_f()
+{
+    return ellip.fla;
+}
+
 double WrapperWMM::ellip_epssq()
 {
     return ellip.epssq;

@@ -16,6 +16,7 @@ public:
     double ellip_a();
     double ellip_epssq();
     double earth_rad();
+    double ellip_f();
 
 private:
     MAGtype_Ellipsoid ellip;
