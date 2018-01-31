@@ -125,27 +125,24 @@ void QuaternionKalman::initialize()
     x[14] = 0;
     x[15] = 0;
 
-    P = IdentityMatrix(state_size, state_size) * 1e-4; //!< consider "bad" initial orientation estimate
+    P = IdentityMatrix(state_size, state_size) * params.init_params.quat_std * params.init_params.quat_std;
 
-    P(4, 4) = 1e-20;
-    P(5, 5) = 1e-20;
-    P(6, 6) = 1e-20;
+    double bias_var = params.init_params.bias_std * params.init_params.bias_std;
+    P(4, 4) = bias_var;
+    P(5, 5) = bias_var;
+    P(6, 6) = bias_var;
 
-    //P(4, 4) = 0;
-    //P(5, 5) = 0;
-    //P(6, 6) = 0;
-
-    double position_variance = params.meas_params.gps_cep * params.meas_params.gps_cep;
+    double position_variance = params.init_params.pos_std * params.init_params.pos_std;
     P(7, 7) = position_variance;
     P(8, 8) = position_variance;
     P(9, 9) = position_variance;
 
-    double velocity_variance = params.meas_params.gps_vel_abs_std * params.meas_params.gps_vel_abs_std;
+    double velocity_variance = params.init_params.vel_std * params.init_params.vel_std;
     P(10, 10) = velocity_variance;
     P(11, 11) = velocity_variance;
     P(12, 12) = velocity_variance;
 
-    double accel_variance = 2 * velocity_variance / (accum.dt * accum.dt);
+    double accel_variance = params.init_params.accel_std * params.init_params.accel_std;
     P(13, 13) = accel_variance;
     P(14, 14) = accel_variance;
     P(15, 15) = accel_variance;
@@ -869,4 +866,64 @@ void QuaternionKalman::get_rpy(double & roll, double & pitch, double & yaw)
 void QuaternionKalman::get_geodetic(double & lat, double & lon, double & alt)
 {
     calculate_geodetic(get_position(), lat, lon, alt);
+}
+
+void QuaternionKalman::set_proc_gyro_std(double std)
+{
+    params.proc_params.gyro_std = std;
+}
+
+void QuaternionKalman::set_proc_gyro_bias_std(double std)
+{
+    params.proc_params.gyro_bias_std = std;
+}
+
+void QuaternionKalman::set_proc_accel_std(double std)
+{
+    params.proc_params.accel_std = std;
+}
+
+void QuaternionKalman::set_meas_accel_std(double std)
+{
+    params.meas_params.accel_std = std;
+}
+
+void QuaternionKalman::set_meas_magn_std(double std)
+{
+    params.meas_params.magn_std = std;
+}
+
+void QuaternionKalman::set_meas_pos_std(double std)
+{
+    params.meas_params.gps_cep = std;
+}
+
+void QuaternionKalman::set_meas_vel_std(double std)
+{
+    params.meas_params.gps_vel_abs_std = std;
+}
+
+void QuaternionKalman::set_init_quat_std(double std)
+{
+    params.init_params.quat_std = std;
+}
+
+void QuaternionKalman::set_init_bias_std(double std)
+{
+    params.init_params.bias_std = std;
+}
+
+void QuaternionKalman::set_init_pos_std(double std)
+{
+    params.init_params.pos_std = std;
+}
+
+void QuaternionKalman::set_init_vel_std(double std)
+{
+    params.init_params.vel_std = std;
+}
+
+void QuaternionKalman::set_init_accel_std(double std)
+{
+    params.init_params.accel_std = std;
 }

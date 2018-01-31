@@ -40,9 +40,9 @@ MainWindow::MainWindow(QWidget *parent) :
     init_orient_plot();
 
     QuaternionKalman::ProcessNoiseParams proc_params;
-    proc_params.gyro_std = 0.1; //!< dps
+    proc_params.gyro_std = 0.05; //!< dps
     proc_params.gyro_bias_std = 1e-8; //!< assume almost constant bias
-    proc_params.accel_std = 2; //!< m^2/s
+    proc_params.accel_std = 0.01; //!< m^2/s
 
     QuaternionKalman::MeasurementNoiseParams meas_params;
     meas_params.accel_std = 0.05; //0.005 //!< g
@@ -50,7 +50,29 @@ MainWindow::MainWindow(QWidget *parent) :
     meas_params.gps_cep = 2.5;//2.5; //!< m
     meas_params.gps_vel_abs_std = 0.1;//0.1; //!< m/s
 
-    marg_filt = new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params});
+    QuaternionKalman::InitCovParams cov_params;
+    cov_params.quat_std = 1e-2;
+    cov_params.bias_std = 1e-10;
+    cov_params.pos_std = 2.5;
+    cov_params.vel_std = 0.1;
+    cov_params.accel_std = 1;
+
+    ui->gyro_process_le->setText(QString::number(proc_params.gyro_std));
+    ui->gyro_bias_process_le->setText(QString::number(proc_params.gyro_bias_std));
+    ui->accel_process_le->setText(QString::number(proc_params.accel_std));
+
+    ui->accel_meas_le->setText(QString::number(meas_params.accel_std));
+    ui->magn_meas_le->setText(QString::number(meas_params.magn_std));
+    ui->pos_meas_le->setText(QString::number(meas_params.gps_cep));
+    ui->vel_meas_le->setText(QString::number(meas_params.gps_vel_abs_std));
+
+    ui->quat_init_le->setText(QString::number(cov_params.quat_std));
+    ui->bias_init_le->setText(QString::number(cov_params.bias_std));
+    ui->pos_init_le->setText(QString::number(cov_params.pos_std));
+    ui->vel_init_le->setText(QString::number(cov_params.vel_std));
+    ui->accel_init_le->setText(QString::number(cov_params.accel_std));
+
+    marg_filt = new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params});
 
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 
@@ -533,11 +555,71 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
 {
     if(checked)
     {
-        //marg_filt->reset();
+        marg_filt->reset();
     }
 }
 
 void MainWindow::on_pushButton_3_clicked()
 {
     magn_cal.save();
+}
+
+void MainWindow::on_gyro_process_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_proc_gyro_std(arg1.toDouble());
+}
+
+void MainWindow::on_gyro_bias_process_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_proc_gyro_bias_std(arg1.toDouble());
+}
+
+void MainWindow::on_accel_process_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_proc_accel_std(arg1.toDouble());
+}
+
+void MainWindow::on_accel_meas_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_meas_accel_std(arg1.toDouble());
+}
+
+void MainWindow::on_magn_meas_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_meas_magn_std(arg1.toDouble());
+}
+
+void MainWindow::on_pos_meas_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_meas_pos_std(arg1.toDouble());
+}
+
+void MainWindow::on_vel_meas_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_meas_vel_std(arg1.toDouble());
+}
+
+void MainWindow::on_quat_init_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_init_quat_std(arg1.toDouble());
+}
+
+void MainWindow::on_bias_init_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_init_bias_std(arg1.toDouble());
+}
+
+void MainWindow::on_pos_init_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_init_pos_std(arg1.toDouble());
+}
+
+void MainWindow::on_vel_init_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_init_vel_std(arg1.toDouble());
+}
+
+void MainWindow::on_accel_init_le_textEdited(const QString &arg1)
+{
+    marg_filt->set_init_accel_std(arg1.toDouble());
 }

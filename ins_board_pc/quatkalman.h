@@ -45,10 +45,20 @@ public:
         double gps_vel_abs_std;
     };
 
+    struct InitCovParams
+    {
+        double quat_std;
+        double bias_std;
+        double pos_std;
+        double vel_std;
+        double accel_std;
+    };
+
     struct FilterParams
     {
         ProcessNoiseParams proc_params;
         MeasurementNoiseParams meas_params;
+        InitCovParams init_params;
     };
 
     QuaternionKalman(const FilterParams & params);
@@ -65,8 +75,24 @@ public:
     NumVector get_position();
     NumVector get_velocity();
     NumVector get_acceleration();
+
     void get_rpy(double & roll, double & pitch, double & yaw);
     void get_geodetic(double & lat, double & lon, double & alt);
+
+    void set_proc_gyro_std(double std);
+    void set_proc_gyro_bias_std(double std);
+    void set_proc_accel_std(double std);
+
+    void set_meas_accel_std(double std);
+    void set_meas_magn_std(double std);
+    void set_meas_pos_std(double std);
+    void set_meas_vel_std(double std);
+
+    void set_init_quat_std(double std);
+    void set_init_bias_std(double std);
+    void set_init_pos_std(double std);
+    void set_init_vel_std(double std);
+    void set_init_accel_std(double std);
 
 private:    
     void update(const KalmanInput & z);

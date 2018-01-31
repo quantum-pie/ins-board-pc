@@ -41,6 +41,30 @@ private slots:
 
     void on_pushButton_3_clicked();
 
+    void on_gyro_process_le_textEdited(const QString &arg1);
+
+    void on_gyro_bias_process_le_textEdited(const QString &arg1);
+
+    void on_accel_process_le_textEdited(const QString &arg1);
+
+    void on_accel_meas_le_textEdited(const QString &arg1);
+
+    void on_magn_meas_le_textEdited(const QString &arg1);
+
+    void on_pos_meas_le_textEdited(const QString &arg1);
+
+    void on_vel_meas_le_textEdited(const QString &arg1);
+
+    void on_quat_init_le_textEdited(const QString &arg1);
+
+    void on_bias_init_le_textEdited(const QString &arg1);
+
+    void on_pos_init_le_textEdited(const QString &arg1);
+
+    void on_vel_init_le_textEdited(const QString &arg1);
+
+    void on_accel_init_le_textEdited(const QString &arg1);
+
 private:
     void process_data(const QByteArray & data);
 
