@@ -40,15 +40,15 @@ MainWindow::MainWindow(QWidget *parent) :
     init_orient_plot();
 
     QuaternionKalman::ProcessNoiseParams proc_params;
-    proc_params.gyro_std = 0.05; //!< dps
+    proc_params.gyro_std = 0.01; //!< dps
     proc_params.gyro_bias_std = 1e-8; //!< assume almost constant bias
-    proc_params.accel_std = 0.01; //!< m^2/s
+    proc_params.accel_std = 0.00001; //!< m^2/s
 
     QuaternionKalman::MeasurementNoiseParams meas_params;
-    meas_params.accel_std = 0.05; //0.005 //!< g
-    meas_params.magn_std = 0.5;//1.2; //!< uT
+    meas_params.accel_std = 0.03; //0.005 //!< g
+    meas_params.magn_std = 1.2;//1.2; //!< uT
     meas_params.gps_cep = 2.5;//2.5; //!< m
-    meas_params.gps_vel_abs_std = 0.1;//0.1; //!< m/s
+    meas_params.gps_vel_abs_std = 0.2;//0.1; //!< m/s
 
     QuaternionKalman::InitCovParams cov_params;
     cov_params.quat_std = 1e-2;
@@ -71,6 +71,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pos_init_le->setText(QString::number(cov_params.pos_std));
     ui->vel_init_le->setText(QString::number(cov_params.vel_std));
     ui->accel_init_le->setText(QString::number(cov_params.accel_std));
+
+    ui->samples_le->setText(QString::number(roll_ctrl.get_sampling()));
 
     marg_filt = new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params});
 
@@ -199,18 +201,28 @@ void MainWindow::process_data(const QByteArray & data)
                 update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
 
                 NumVector quat = marg_filt->get_orientation_quaternion();
-                body_transform->setRotation(QQuaternion(quat[0], quat[1], quat[2], quat[3]));
+                QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
+
+                body_transform->setRotation(qquat);
 
                 QMatrix4x4 m;
-                m.rotate(QQuaternion(quat[0], quat[1], quat[2], quat[3]));
+                m.rotate(qquat);
                 m.translate(QVector3D(0, 5, 0));
                 sphere_transform->setMatrix(m);
 
-                double lat, lon, alt;
-                marg_filt->get_geodetic(lat, lon, alt);
-
                 NumVector vel = marg_filt->get_velocity();
                 update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
+
+                roll_ctrl.update(qRadiansToDegrees(r));
+                pitch_ctrl.update(qRadiansToDegrees(p));
+                yaw_ctrl.update(qRadiansToDegrees(y));
+
+                if(roll_ctrl.is_saturated())
+                {
+                    ui->roll_std_le->setText(QString::number(roll_ctrl.get_std(), 'f', 2));
+                    ui->pitch_std_le->setText(QString::number(pitch_ctrl.get_std(), 'f', 2));
+                    ui->yaw_std_le->setText(QString::number(yaw_ctrl.get_std(), 'f', 2));
+                }
             }
         }
     }
@@ -622,4 +634,12 @@ void MainWindow::on_vel_init_le_textEdited(const QString &arg1)
 void MainWindow::on_accel_init_le_textEdited(const QString &arg1)
 {
     marg_filt->set_init_accel_std(arg1.toDouble());
+}
+
+void MainWindow::on_samples_le_textEdited(const QString &arg1)
+{
+    size_t samples = arg1.toInt();
+    roll_ctrl.set_sampling(samples);
+    pitch_ctrl.set_sampling(samples);
+    yaw_ctrl.set_sampling(samples);
 }

@@ -3,6 +3,7 @@
 
 #include "calibrator.h"
 #include "quatkalman.h"
+#include "qualitycontrol.h"
 
 #include <QMainWindow>
 #include <QVector3D>
@@ -36,34 +37,22 @@ private slots:
     void update_plot(QCustomPlot * plot, QVector3D vec);
 
     void on_pushButton_toggled(bool checked);
-
     void on_pushButton_2_toggled(bool checked);
-
     void on_pushButton_3_clicked();
-
     void on_gyro_process_le_textEdited(const QString &arg1);
-
     void on_gyro_bias_process_le_textEdited(const QString &arg1);
-
     void on_accel_process_le_textEdited(const QString &arg1);
-
     void on_accel_meas_le_textEdited(const QString &arg1);
-
     void on_magn_meas_le_textEdited(const QString &arg1);
-
     void on_pos_meas_le_textEdited(const QString &arg1);
-
     void on_vel_meas_le_textEdited(const QString &arg1);
-
     void on_quat_init_le_textEdited(const QString &arg1);
-
     void on_bias_init_le_textEdited(const QString &arg1);
-
     void on_pos_init_le_textEdited(const QString &arg1);
-
     void on_vel_init_le_textEdited(const QString &arg1);
-
     void on_accel_init_le_textEdited(const QString &arg1);
+
+    void on_samples_le_textEdited(const QString &arg1);
 
 private:
     void process_data(const QByteArray & data);
@@ -80,6 +69,8 @@ private:
     Calibrator magn_cal;
 
     QuaternionKalman *marg_filt;
+
+    QualityControl roll_ctrl, pitch_ctrl, yaw_ctrl;
 
     Qt3DExtras::Qt3DWindow *orient_window;
     Qt3DCore::QTransform * body_transform, * sphere_transform;
