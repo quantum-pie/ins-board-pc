@@ -225,8 +225,8 @@ void QuaternionKalman::update(const KalmanInput & z)
 
     NumVector y = z_meas - z_pr;
 
-    debug_vector(z_meas, "meas");
-    debug_vector(z_pr, "pred");
+    //debug_vector(z_meas, "meas");
+    //debug_vector(z_pr, "pred");
 
     NumMatrix R = create_meas_noise_cov_mtx(lat, lon, mag_magn);
     NumMatrix H = create_meas_proj_mtx(lat, lon, alt, z.day, predicted_v);
@@ -251,8 +251,8 @@ void QuaternionKalman::update(const KalmanInput & z)
         P = prod(tmp, P);
     }
 
-    //debug_vector(get_velocity(), "vel");
-    debug_vector(get_gyro_bias(), "gyro bias");
+    debug_vector(get_orientation_quaternion(), "vel");
+    //debug_vector(get_gyro_bias(), "gyro bias");
 }
 
 NumMatrix QuaternionKalman::create_quat_bias_mtx(double dt_2)
@@ -366,9 +366,9 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     // 1
     NumMatrix Dac_Dq(3, 4);
 
-    double height_adjust = expected_gravity_accel(lat, alt) / equator_gravity;
+    double height_adjust = expected_gravity_accel(lat, alt) / standard_gravity;
 
-    NumVector a = get_acceleration() / equator_gravity;
+    NumVector a = get_acceleration() / standard_gravity;
     NumVector q = get_orientation_quaternion();
 
     NumMatrix Cel = geodetic_to_dcm(lat, lon);
@@ -410,7 +410,7 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     Dac_Dpos <<= ublas::traverse_policy::by_column(), col_x, col_y, col_z;
 
     // 3
-    NumMatrix Dac_Da = Ceb / equator_gravity;
+    NumMatrix Dac_Da = Ceb / standard_gravity;
 
     // 4
     NumMatrix Dm_Dq(3, 4);

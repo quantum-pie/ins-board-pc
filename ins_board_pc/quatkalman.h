@@ -159,13 +159,13 @@ private:
     KalmanInput accum;
     int accum_size;
 
-    static constexpr int accum_capacity = 500;
-    static constexpr int state_size = 16;
-    static constexpr int measurement_size = 10;
-    static constexpr double equator_gravity = 9.7803267714;
-    static constexpr double standard_gravity = 9.80665;
-    static constexpr double wgs_k = 0.00193185265241;
-    static constexpr double wgs_m = 0.00344978650684;
+    const int accum_capacity = 500;
+    const int state_size = 16;
+    const int measurement_size = 10;
+    const double equator_gravity = 9.7803267714;
+    const double standard_gravity = 9.80665;
+    const double wgs_k = 0.00193185265241;
+    const double wgs_m = 0.00344978650684;
 };
 
 #endif // QUATKALMAN_H
