@@ -654,32 +654,27 @@ NumVector QuaternionKalman::get_state()
 
 NumVector QuaternionKalman::get_orientation_quaternion()
 {
-    const NumVector & v = ublas::project(x, ublas::range(0, 4));
-    return v;
+    return ublas::project(x, ublas::range(0, 4));
 }
 
 NumVector QuaternionKalman::get_gyro_bias()
 {
-    const NumVector & v = ublas::project(x, ublas::range(4, 7));
-    return v;
+    return ublas::project(x, ublas::range(4, 7));
 }
 
 NumVector QuaternionKalman::get_position()
 {
-    const NumVector & v = ublas::project(x, ublas::range(7, 10));
-    return v;
+    return ublas::project(x, ublas::range(7, 10));
 }
 
 NumVector QuaternionKalman::get_velocity()
 {
-    const NumVector & v = ublas::project(x, ublas::range(10, 13));
-    return v;
+    return ublas::project(x, ublas::range(10, 13));
 }
 
 NumVector QuaternionKalman::get_acceleration()
 {
-    const NumVector & v = ublas::project(x, ublas::range(13, 16));
-    return v;
+    return ublas::project(x, ublas::range(13, 16));
 }
 
 void QuaternionKalman::get_rpy(double & roll, double & pitch, double & yaw)
