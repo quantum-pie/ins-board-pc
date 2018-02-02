@@ -3,17 +3,10 @@
 
 #include <QDate>
 
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+#include "ublastypes.h"
+#include "quaternions.h"
 
 #include "wmmwrapper.h"
-
-namespace ublas = boost::numeric::ublas;
-using NumMatrix = ublas::matrix<double>;
-using NumVector = ublas::vector<double>;
-using ZeroMatrix = ublas::zero_matrix<double>;
-using ZeroVector = ublas::zero_vector<double>;
-using IdentityMatrix = ublas::identity_matrix<double>;
 
 class QuaternionKalman
 {
@@ -98,6 +91,7 @@ private:
     void update(const KalmanInput & z);
     void accumulate(const KalmanInput & z);
     void initialize();
+    void normalize_state();
 
     /* create Kalman matrices */
     NumMatrix create_quat_bias_mtx(double dt_2);
@@ -107,14 +101,10 @@ private:
     NumMatrix create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v);
 
     /* auxiliary transformations */
-    NumMatrix quaternion_to_dcm(const NumVector & quaternion);
     NumMatrix geodetic_to_dcm(double lat, double lon);
     NumVector expected_mag(double lat, double lon, double alt, QDate day);
     double expected_gravity_accel(double lat, double alt);
 
-    NumVector quat_multiply(const NumVector & p, const NumVector & q);
-
-    void normalize_state();
     bool invert_matrix(const NumMatrix & mtx, NumMatrix & inv);
 
     /* debug functions */
@@ -122,11 +112,6 @@ private:
     void debug_matrix(const NumMatrix & mtx, QString name);
 
     /* auxiliary derivatives */
-    NumMatrix ddcm_dqs(const NumVector & quaternion);
-    NumMatrix ddcm_dqx(const NumVector & quaternion);
-    NumMatrix ddcm_dqy(const NumVector & quaternion);
-    NumMatrix ddcm_dqz(const NumVector & quaternion);
-
     NumMatrix dcm_lat_partial(double lat, double lon);
     NumMatrix dcm_lon_partial(double lat, double lon);
 

@@ -64,7 +64,7 @@ void QuaternionKalman::initialize()
         qacc[3] = ax / qSqrt(2 * (1 - az));
     }
 
-    NumMatrix accel_rotator = quaternion_to_dcm(qacc);
+    NumMatrix accel_rotator = qutils::quaternion_to_dcm(qacc);
     NumVector l = prod(accel_rotator, accum.m);
 
     double lx = l[0];
@@ -100,8 +100,8 @@ void QuaternionKalman::initialize()
     qdecl[2] = 0;
     qdecl[3] = qSin(declination / 2);
 
-    NumVector tmp = quat_multiply(qmag, qdecl);
-    NumVector q = quat_multiply(qacc, tmp);
+    NumVector tmp = qutils::quat_multiply(qmag, qdecl);
+    NumVector q = qutils::quat_multiply(qacc, tmp);
 
     // from lb to bl quaternion
     x[0] = q[0];
@@ -251,8 +251,13 @@ void QuaternionKalman::update(const KalmanInput & z)
         P = prod(tmp, P);
     }
 
-    debug_vector(get_orientation_quaternion(), "vel");
+    //debug_vector(get_orientation_quaternion(), "vel");
     //debug_vector(get_gyro_bias(), "gyro bias");
+}
+
+void QuaternionKalman::normalize_state()
+{
+    ublas::project(x, ublas::range(0, 4)) = qutils::quat_normalize(get_orientation_quaternion());
 }
 
 NumMatrix QuaternionKalman::create_quat_bias_mtx(double dt_2)
@@ -282,11 +287,7 @@ NumMatrix QuaternionKalman::create_transition_mtx(const KalmanInput & z)
     double dt_sq_2 = dt_sq / 2;
 
     /* constructing state transition matrix */
-    NumMatrix V(4, 4);
-    V <<=    0,      -z.w[0], -z.w[1], -z.w[2],
-             z.w[0],  0,       z.w[2], -z.w[1],
-             z.w[1], -z.w[2],  0,       z.w[0],
-             z.w[2],  z.w[1], -z.w[0],  0;
+    NumMatrix V = qutils::skew_symmetric(z.w);
 
     V *= dt_2;
     V += IdentityMatrix(4);
@@ -372,13 +373,13 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     NumVector q = get_orientation_quaternion();
 
     NumMatrix Cel = geodetic_to_dcm(lat, lon);
-    NumMatrix Clb = quaternion_to_dcm(q);
+    NumMatrix Clb = qutils::quaternion_to_dcm(q);
     NumMatrix Ceb = prod(Clb, Cel);
 
-    NumMatrix Ddcm_Dqs = ddcm_dqs(q);
-    NumMatrix Ddcm_Dqx = ddcm_dqx(q);
-    NumMatrix Ddcm_Dqy = ddcm_dqy(q);
-    NumMatrix Ddcm_Dqz = ddcm_dqz(q);
+    NumMatrix Ddcm_Dqs = qutils::ddcm_dqs(q);
+    NumMatrix Ddcm_Dqx = qutils::ddcm_dqx(q);
+    NumMatrix Ddcm_Dqy = qutils::ddcm_dqy(q);
+    NumMatrix Ddcm_Dqz = qutils::ddcm_dqz(q);
 
     NumVector tmp = prod(Cel, a);
 
@@ -462,7 +463,7 @@ void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_qua
 {
     double height_adjust = expected_gravity_accel(lat, alt) / standard_gravity;
 
-    NumMatrix Clb = quaternion_to_dcm(orientation_quat);
+    NumMatrix Clb = qutils::quaternion_to_dcm(orientation_quat);
     NumMatrix Cel = geodetic_to_dcm(lat, lon);
     NumMatrix tmp = prod(Clb, Cel);
     NumVector movement_component = prod(tmp, acceleration / standard_gravity);
@@ -482,7 +483,7 @@ void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat
                                               double lat, double lon, double alt, QDate day,
                                               double & mx, double & my, double & mz)
 {
-    NumVector rot_magn = prod(quaternion_to_dcm(orientation_quat),
+    NumVector rot_magn = prod(qutils::quaternion_to_dcm(orientation_quat),
                                           expected_mag(lat, lon, alt, day));
 
     mx = rot_magn(0);
@@ -493,39 +494,6 @@ void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat
 void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & vel)
 {
     vel = norm_2(velocity);
-}
-
-NumMatrix QuaternionKalman::quaternion_to_dcm(const NumVector & quaternion)
-{
-    double qs = quaternion[0];
-    double qx = quaternion[1];
-    double qy = quaternion[2];
-    double qz = quaternion[3];
-
-    NumMatrix DCM(3, 3);
-
-    double qss = qs * qs;
-    double qxx = qx * qx;
-    double qyy = qy * qy;
-    double qzz = qz * qz;
-    double qsx = qs * qx;
-    double qsy = qs * qy;
-    double qsz = qs * qz;
-    double qxy = qx * qy;
-    double qxz = qx * qz;
-    double qyz = qy * qz;
-
-    DCM(0, 0) = qss + qxx - qyy - qzz;
-    DCM(0, 1) = 2 * (qxy + qsz);
-    DCM(0, 2) = 2 * (qxz - qsy);
-    DCM(1, 0) = 2 * (qxy - qsz);
-    DCM(1, 1) = qss - qxx + qyy - qzz;
-    DCM(1, 2) = 2 * (qyz + qsx);
-    DCM(2, 0) = 2 * (qxz + qsy);
-    DCM(2, 1) = 2 * (qyz - qsx);
-    DCM(2, 2) = qss - qxx - qyy + qzz;
-
-    return DCM;
 }
 
 NumMatrix QuaternionKalman::geodetic_to_dcm(double lat, double lon)
@@ -568,42 +536,6 @@ double QuaternionKalman::expected_gravity_accel(double lat, double alt)
 
     double normal_surface_gravity = equator_gravity * (1 + wgs_k * slat_sq) / qSqrt(1 - wmm.ellip_epssq() * slat_sq);
     return normal_surface_gravity * (1 - 2 * alt / a * (1 + f + wgs_m - 2 * f * slat_sq) + 3 * alt * alt / a_sq);
-}
-
-NumVector QuaternionKalman::quat_multiply(const NumVector & p, const NumVector & q)
-{
-    NumVector res(4);
-
-    double p0 = p[0];
-    double p1 = p[1];
-    double p2 = p[2];
-    double p3 = p[3];
-
-    double q0 = q[0];
-    double q1 = q[1];
-    double q2 = q[2];
-    double q3 = q[3];
-
-    res[0] = p0 * q0 - p1 * q1 - p2 * q2 - p3 * q3;
-    res[1] = p0 * q1 + p1 * q0 + p2 * q3 - p3 * q2;
-    res[2] = p0 * q2 - p1 * q3 + p2 * q0 + p3 * q1;
-    res[3] = p0 * q3 + p1 * q2 - p2 * q1 + p3 * q0;
-
-    return res;
-}
-
-void QuaternionKalman::normalize_state()
-{
-    double qs = x[0];
-    double qx = x[1];
-    double qy = x[2];
-    double qz = x[3];
-
-    double quat_norm = qSqrt(qs * qs + qx * qx + qy * qy + qz * qz);
-    x[0] /= quat_norm;
-    x[1] /= quat_norm;
-    x[2] /= quat_norm;
-    x[3] /= quat_norm;
 }
 
 bool QuaternionKalman::invert_matrix(const NumMatrix & mtx, NumMatrix & inv)
@@ -652,78 +584,6 @@ void QuaternionKalman::debug_matrix(const NumMatrix & mtx, QString name)
         }
         deb << endl;
     }
-}
-
-NumMatrix QuaternionKalman::ddcm_dqs(const NumVector & quaternion)
-{
-    double qs = quaternion[0];
-    double qx = quaternion[1];
-    double qy = quaternion[2];
-    double qz = quaternion[3];
-
-    NumMatrix RES(3, 3);
-
-    RES <<= qs, qz, -qy,
-            -qz, qs, qx,
-             qy, -qx, qs;
-
-    RES *= 2;
-
-    return RES;
-}
-
-NumMatrix QuaternionKalman::ddcm_dqx(const NumVector & quaternion)
-{
-    double qs = quaternion[0];
-    double qx = quaternion[1];
-    double qy = quaternion[2];
-    double qz = quaternion[3];
-
-    NumMatrix RES(3, 3);
-
-    RES <<= qx, qy, qz,
-            qy, -qx, qs,
-            qz, -qs, -qx;
-
-    RES *= 2;
-
-    return RES;
-}
-
-NumMatrix QuaternionKalman::ddcm_dqy(const NumVector & quaternion)
-{
-    double qs = quaternion[0];
-    double qx = quaternion[1];
-    double qy = quaternion[2];
-    double qz = quaternion[3];
-
-    NumMatrix RES(3, 3);
-
-    RES <<= -qy, qx, -qs,
-            qx, qy, qz,
-            qs, qz, -qy;
-
-    RES *= 2;
-
-    return RES;
-}
-
-NumMatrix QuaternionKalman::ddcm_dqz(const NumVector & quaternion)
-{
-    double qs = quaternion[0];
-    double qx = quaternion[1];
-    double qy = quaternion[2];
-    double qz = quaternion[3];
-
-    NumMatrix RES(3, 3);
-
-    RES <<= -qz, qs, qx,
-            -qs, -qz, qy,
-            qx, qy, qz;
-
-    RES *= 2;
-
-    return RES;
 }
 
 NumMatrix QuaternionKalman::dcm_lat_partial(double lat, double lon)
@@ -794,73 +654,37 @@ NumVector QuaternionKalman::get_state()
 
 NumVector QuaternionKalman::get_orientation_quaternion()
 {
-    return ublas::vector_range<NumVector>(x, ublas::range(0, 4));
+    const NumVector & v = ublas::project(x, ublas::range(0, 4));
+    return v;
 }
 
 NumVector QuaternionKalman::get_gyro_bias()
 {
-    return ublas::vector_range<NumVector>(x, ublas::range(4, 7));
+    const NumVector & v = ublas::project(x, ublas::range(4, 7));
+    return v;
 }
 
 NumVector QuaternionKalman::get_position()
 {
-    return ublas::vector_range<NumVector>(x, ublas::range(7, 10));
+    const NumVector & v = ublas::project(x, ublas::range(7, 10));
+    return v;
 }
 
 NumVector QuaternionKalman::get_velocity()
 {
-    return ublas::vector_range<NumVector>(x, ublas::range(10, 13));
+    const NumVector & v = ublas::project(x, ublas::range(10, 13));
+    return v;
 }
 
 NumVector QuaternionKalman::get_acceleration()
 {
-    return ublas::vector_range<NumVector>(x, ublas::range(13, 16));
+    const NumVector & v = ublas::project(x, ublas::range(13, 16));
+    return v;
 }
 
 void QuaternionKalman::get_rpy(double & roll, double & pitch, double & yaw)
 {
-    /*! ZXY rotation sequence implied.
-     * Explanation:
-     * Conventional aerospace rotation sequence is ZYX,
-     * but since our coordinate system has Y axis aligned with fuselage,
-     * we need to switch rotation order of X and Y.
-    */
-
-    double qs = x[0];
-    double qx = x[1];
-    double qy = x[2];
-    double qz = x[3];
-
-    double test = qy * qz + qs * qx;
-
-/*
-    if (test > 0.499)
-    {
-        // singularity at north pole
-        yaw = - 2 * qAtan2(qz, qs);
-        pitch = M_PI / 2;
-        roll = 0;
-        return;
-    }
-
-    if (test < -0.499)
-    {
-        // singularity at south pole
-        yaw = 2 * qAtan2(qz, qs);
-        pitch = - M_PI / 2;
-        roll = 0;
-        return;
-    }
-*/
-
-    double qss = qs * qs;
-    double qxx = qx * qx;
-    double qyy = qy * qy;
-    double qzz = qz * qz;
-
-    yaw = -qAtan2(2 * qs * qz - 2 * qx * qy, qss - qxx + qyy - qzz);
-    pitch = qAsin(2 * test);
-    roll = qAtan2(2 * qs * qy - 2 * qx * qz, qss - qxx - qyy + qzz);
+    qutils::quat_to_rpy(get_orientation_quaternion(), roll, pitch, yaw);
 }
 
 void QuaternionKalman::get_geodetic(double & lat, double & lon, double & alt)
