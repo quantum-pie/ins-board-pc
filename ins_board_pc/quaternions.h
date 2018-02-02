@@ -12,7 +12,9 @@ NumMatrix quaternion_to_dcm(const NumVector & quaternion);
 
 NumVector quat_multiply(const NumVector & p, const NumVector & q);
 
-void quat_normalize(NumVector & quaternion);
+NumMatrix skew_symmetric(const NumVector & v);
+
+NumVector quat_normalize(const NumVector & quaternion);
 
 NumMatrix ddcm_dqs(const NumVector & quaternion);
 NumMatrix ddcm_dqx(const NumVector & quaternion);

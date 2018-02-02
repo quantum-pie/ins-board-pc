@@ -112,7 +112,7 @@ NumVector quat_multiply(const NumVector & p, const NumVector & q)
     return res;
 }
 
-void quat_normalize(NumVector & quaternion)
+NumVector quat_normalize(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -120,10 +120,26 @@ void quat_normalize(NumVector & quaternion)
     double qz = quaternion[3];
 
     double quat_norm = qSqrt(qs * qs + qx * qx + qy * qy + qz * qz);
-    quaternion[0] /= quat_norm;
-    quaternion[1] /= quat_norm;
-    quaternion[2] /= quat_norm;
-    quaternion[3] /= quat_norm;
+
+    NumVector res(4);
+
+    res[0] = quaternion[0] / quat_norm;
+    res[1] = quaternion[1] / quat_norm;
+    res[2] = quaternion[2] / quat_norm;
+    res[3] = quaternion[3] / quat_norm;
+
+    return res;
+}
+
+NumMatrix skew_symmetric(const NumVector & v)
+{
+    NumMatrix V(4, 4);
+    V <<=    0,    -v[0], -v[1], -v[2],
+             v[0],  0,     v[2], -v[1],
+             v[1], -v[2],  0,     v[0],
+             v[2],  v[1], -v[0],  0;
+
+    return V;
 }
 
 NumMatrix ddcm_dqs(const NumVector & quaternion)
