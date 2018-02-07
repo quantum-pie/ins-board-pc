@@ -1,7 +1,7 @@
 #ifndef QUATERNIONS_H
 #define QUATERNIONS_H
 
-#include "ublastypes.h"
+#include "ublasaux.h"
 
 namespace qutils
 {
@@ -15,6 +15,8 @@ NumVector quat_multiply(const NumVector & p, const NumVector & q);
 NumMatrix skew_symmetric(const NumVector & v);
 
 NumVector quat_normalize(const NumVector & quaternion);
+
+NumMatrix quat_delta_mtx(const NumVector & quaternion, double dt_2);
 
 NumMatrix ddcm_dqs(const NumVector & quaternion);
 NumMatrix ddcm_dqx(const NumVector & quaternion);

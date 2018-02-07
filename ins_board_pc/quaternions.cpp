@@ -131,6 +131,24 @@ NumVector quat_normalize(const NumVector & quaternion)
     return res;
 }
 
+NumMatrix quat_delta_mtx(const NumVector & quaternion, double dt_2)
+{
+    double q_s = quaternion[0];
+    double q_x = quaternion[1];
+    double q_y = quaternion[2];
+    double q_z = quaternion[3];
+
+    NumMatrix K(4, 3);
+    K <<= q_x,  q_y,  q_z,
+           -q_s,  q_z, -q_y,
+           -q_z, -q_s,  q_x,
+            q_y, -q_x, -q_s;
+
+    K *= dt_2;
+
+    return K;
+}
+
 NumMatrix skew_symmetric(const NumVector & v)
 {
     NumMatrix V(4, 4);
