@@ -18,6 +18,12 @@ NumVector quat_normalize(const NumVector & quaternion);
 
 NumMatrix quat_delta_mtx(const NumVector & quaternion, double dt_2);
 
+NumVector acceleration_quat(const NumVector & a);
+
+NumVector magnetometer_quat(const NumVector & l);
+
+NumVector declinator_quat(double declination);
+
 NumMatrix ddcm_dqs(const NumVector & quaternion);
 NumMatrix ddcm_dqx(const NumVector & quaternion);
 NumMatrix ddcm_dqy(const NumVector & quaternion);

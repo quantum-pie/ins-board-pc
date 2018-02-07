@@ -232,4 +232,71 @@ NumMatrix ddcm_dqz(const NumVector & quaternion)
     return RES;
 }
 
+NumVector acceleration_quat(const NumVector & a)
+{
+    NumVector a_norm = a / norm_2(a);
+
+    double ax = a_norm[0];
+    double ay = a_norm[1];
+    double az = a_norm[2];
+
+    NumVector qacc(4);
+    if(az >= 0)
+    {
+        qacc[0] = qSqrt( (az + 1) / 2);
+        qacc[1] = - ay / qSqrt(2 * (az + 1));
+        qacc[2] = ax / qSqrt(2 * (az + 1));
+        qacc[3] = 0;
+    }
+    else
+    {
+        qacc[0] = - ay / qSqrt(2 * (1 - az));
+        qacc[1] = qSqrt( (1 - az) / 2);
+        qacc[2] = 0;
+        qacc[3] = ax / qSqrt(2 * (1 - az));
+    }
+
+    return qacc;
+}
+
+NumVector magnetometer_quat(const NumVector & l)
+{
+    double lx = l[0];
+    double ly = l[1];
+
+    NumVector qmag(4);
+    double G = lx * lx + ly * ly;
+    double G_sqrt = qSqrt(G);
+
+    if(ly >= 0)
+    {
+        qmag[0] = qSqrt(G + ly * G_sqrt) / qSqrt(2 * G);
+        qmag[1] = 0;
+        qmag[2] = 0;
+        qmag[3] = - lx / qSqrt(2 * (G + ly * G_sqrt));
+    }
+    else
+    {
+        qmag[0] = - lx / qSqrt(2 * (G - ly * G_sqrt));
+        qmag[1] = 0;
+        qmag[2] = 0;
+        qmag[3] = qSqrt(G - ly * G_sqrt) / qSqrt(2 * G);
+    }
+
+    return qmag;
+}
+
+NumVector declinator_quat(double declination)
+{
+    NumVector qdecl(4);
+
+    // rotate magnetic field by declination degrees around Z axis counterclockwise
+    qdecl[0] = qCos(declination / 2);
+    qdecl[1] = 0;
+    qdecl[2] = 0;
+    qdecl[3] = qSin(declination / 2);
+
+    return qdecl;
+}
+
 }
