@@ -8,7 +8,8 @@
 #include <QtMath>
 
 QuatComplement::QuatComplement(const FilterParams & params)
-    : params(params)
+    : params(params),
+      bias_x_ctrl(accum_capacity), bias_y_ctrl(accum_capacity), bias_z_ctrl(accum_capacity)
 {
     reset();
     x = NumVector(state_size);
@@ -16,24 +17,24 @@ QuatComplement::QuatComplement(const FilterParams & params)
 
 void QuatComplement::accumulate(const ComplementInput & z)
 {
-    accum.w += z.w;
-    accum.a += z.a;
-    accum.m += z.m;
-    accum.dt = z.dt;
-
-    accum_size++;
+    bias_x_ctrl.update(z.w[0]);
+    bias_y_ctrl.update(z.w[1]);
+    bias_z_ctrl.update(z.w[2]);
 }
 
-void QuatComplement::initialize()
+bool QuatComplement::bias_estimated()
 {
-    NumVector gyro_bias = accum.w / accum_size;
-    accum.a /= accum_size;
-    accum.m /= accum_size;
+    return bias_x_ctrl.is_saturated() &&
+            bias_y_ctrl.is_saturated() &&
+            bias_z_ctrl.is_saturated();
+}
 
-    NumVector qacc = qutils::acceleration_quat(accum.a);
+void QuatComplement::initialize(const ComplementInput & z)
+{
+    NumVector qacc = qutils::acceleration_quat(z.a);
 
     NumMatrix accel_rotator = qutils::quaternion_to_dcm(qacc);
-    NumVector l = prod(accel_rotator, accum.m);
+    NumVector l = prod(accel_rotator, z.m);
 
     NumVector qmag = qutils::magnetometer_quat(l);
 
@@ -45,20 +46,18 @@ void QuatComplement::initialize()
     x[2] = -q[2];
     x[3] = -q[3];
 
-    x[4] = gyro_bias[0];
-    x[5] = gyro_bias[1];
-    x[6] = gyro_bias[2];
+    x[4] = bias_x_ctrl.get_mean();
+    x[5] = bias_y_ctrl.get_mean();
+    x[6] = bias_z_ctrl.get_mean();
 }
 
 void QuatComplement::reset()
 {
     initialized = false;
-    accum_size = 0;
 
-    accum.w = ZeroVector(3);
-    accum.a = ZeroVector(3);
-    accum.m = ZeroVector(3);
-    accum.dt = 0;
+    bias_x_ctrl.reset();
+    bias_y_ctrl.reset();
+    bias_z_ctrl.reset();
 }
 
 bool QuatComplement::is_initialized()
@@ -68,24 +67,45 @@ bool QuatComplement::is_initialized()
 
 void QuatComplement::step(const ComplementInput & z)
 {
+    accumulate(z);
     if(initialized)
     {
         update(z);
     }
-    else
+    else if(bias_estimated())
     {
-        accumulate(z);
-        if(accum_size == accum_capacity)
-        {
-            initialize();
-            initialized = true;
-        }
+        initialize(z);
+        initialized = true;
     }
 }
 
 void QuatComplement::update(const ComplementInput & z)
 {
-    // TODO
+    /* useful constants */
+    double dt = z.dt;
+    double dt_sq = z.dt * z.dt;
+    double dt_2 = z.dt / 2;
+    double dt_sq_2 = dt_sq / 2;
+
+    /* constructing the quaternion propagation matrix */
+    NumMatrix V = qutils::skew_symmetric(z.w);
+
+    V *= dt_2;
+    V += IdentityMatrix(4);
+
+    NumMatrix K = qutils::quat_delta_mtx(get_orientation_quaternion(), dt_2);
+
+    NumMatrix F(state_size, state_size);
+
+    F <<= V, K,
+          ZeroMatrix(3, 4), IdentityMatrix(3);
+
+    /* propagate quaternion */
+    x = prod(F, x);
+
+    x[4] = bias_x_ctrl.get_mean();
+    x[5] = bias_y_ctrl.get_mean();
+    x[6] = bias_z_ctrl.get_mean();
 }
 
 void QuatComplement::normalize_state()

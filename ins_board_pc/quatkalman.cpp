@@ -11,7 +11,8 @@
 #include <QElapsedTimer>
 
 QuaternionKalman::QuaternionKalman(const FilterParams & params)
-    : params(params)
+    : params(params),
+      bias_x_ctrl(accum_capacity), bias_y_ctrl(accum_capacity), bias_z_ctrl(accum_capacity)
 {
     reset();
     x = NumVector(state_size);
@@ -20,36 +21,22 @@ QuaternionKalman::QuaternionKalman(const FilterParams & params)
 
 void QuaternionKalman::accumulate(const KalmanInput & z)
 {
-    accum.w += z.w;
-    accum.a += z.a;
-    accum.m += z.m;
-    accum.day = z.day;
-    accum.geo += z.geo;
-    accum.pos += z.pos;
-    accum.v += z.v;
-    accum.dt = z.dt;
-
-    accum_size++;
+    bias_x_ctrl.update(z.w[0]);
+    bias_y_ctrl.update(z.w[1]);
+    bias_z_ctrl.update(z.w[2]);
 }
 
-void QuaternionKalman::initialize()
+void QuaternionKalman::initialize(const KalmanInput & z)
 {
-    NumVector gyro_bias = accum.w / accum_size;
-    accum.a /= accum_size;
-    accum.m /= accum_size;
-    accum.pos /= accum_size;
-    accum.v /= accum_size;
-    accum.geo /= accum_size;
-
-    NumVector qacc = qutils::acceleration_quat(accum.a);
+    NumVector qacc = qutils::acceleration_quat(z.a);
 
     NumMatrix accel_rotator = qutils::quaternion_to_dcm(qacc);
-    NumVector l = prod(accel_rotator, accum.m);
+    NumVector l = prod(accel_rotator, z.m);
 
     NumVector qmag = qutils::magnetometer_quat(l);
 
     double declination, inclination;
-    WrapperWMM::instance().measure(accum.geo[0], accum.geo[1], accum.geo[2], accum.day, declination, inclination);
+    WrapperWMM::instance().measure(z.geo[0], z.geo[1], z.geo[2], z.day, declination, inclination);
 
     NumVector qdecl = qutils::declinator_quat(declination);
 
@@ -62,17 +49,17 @@ void QuaternionKalman::initialize()
     x[2] = -q[2];
     x[3] = -q[3];
 
-    x[4] = gyro_bias[0];
-    x[5] = gyro_bias[1];
-    x[6] = gyro_bias[2];
+    x[4] = bias_x_ctrl.get_mean();
+    x[5] = bias_y_ctrl.get_mean();
+    x[6] = bias_z_ctrl.get_mean();
 
-    x[7] = accum.pos[0];
-    x[8] = accum.pos[1];
-    x[9] = accum.pos[2];
+    x[7] = z.pos[0];
+    x[8] = z.pos[1];
+    x[9] = z.pos[2];
 
-    x[10] = accum.v[0];
-    x[11] = accum.v[1];
-    x[12] = accum.v[2];
+    x[10] = z.v[0];
+    x[11] = z.v[1];
+    x[12] = z.v[2];
 
     x[13] = 0;
     x[14] = 0;
@@ -104,21 +91,22 @@ void QuaternionKalman::initialize()
 void QuaternionKalman::reset()
 {
     initialized = false;
-    accum_size = 0;
 
-    accum.w = ZeroVector(3);
-    accum.a = ZeroVector(3);
-    accum.m = ZeroVector(3);
-    accum.day = QDate();
-    accum.pos = ZeroVector(3);
-    accum.geo = ZeroVector(3);
-    accum.v = ZeroVector(3);
-    accum.dt = 0;
+    bias_x_ctrl.reset();
+    bias_y_ctrl.reset();
+    bias_z_ctrl.reset();
 }
 
 bool QuaternionKalman::is_initialized()
 {
     return initialized;
+}
+
+bool QuaternionKalman::bias_estimated()
+{
+    return bias_x_ctrl.is_saturated() &&
+            bias_y_ctrl.is_saturated() &&
+            bias_z_ctrl.is_saturated();
 }
 
 void QuaternionKalman::step(const KalmanInput & z)
@@ -130,9 +118,9 @@ void QuaternionKalman::step(const KalmanInput & z)
     else
     {
         accumulate(z);
-        if(accum_size == accum_capacity)
+        if(bias_estimated())
         {
-            initialize();
+            initialize(z);
             initialized = true;
         }
     }

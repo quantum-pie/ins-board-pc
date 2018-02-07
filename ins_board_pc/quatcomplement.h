@@ -8,6 +8,7 @@
 
 #include "ublasaux.h"
 #include "quaternions.h"
+#include "qualitycontrol.h"
 
 class QuatComplement
 {
@@ -46,7 +47,8 @@ public:
 private:
     void update(const ComplementInput & z);
     void accumulate(const ComplementInput & z);
-    void initialize();
+    void initialize(const ComplementInput & z);
+    bool bias_estimated();
 
     void normalize_state();
 
@@ -55,8 +57,9 @@ private:
 
     FilterParams params;
 
-    ComplementInput accum;
-    int accum_size;
+    QualityControl bias_x_ctrl;
+    QualityControl bias_y_ctrl;
+    QualityControl bias_z_ctrl;
 
     const int accum_capacity = 500;
     const int state_size = 7;

@@ -5,6 +5,7 @@
 
 #include "ublasaux.h"
 #include "quaternions.h"
+#include "qualitycontrol.h"
 
 class QuaternionKalman
 {
@@ -88,7 +89,9 @@ public:
 private:    
     void update(const KalmanInput & z);
     void accumulate(const KalmanInput & z);
-    void initialize();
+    void initialize(const KalmanInput & z);
+    bool bias_estimated();
+
     void normalize_state();
 
     /* create Kalman matrices */
@@ -118,8 +121,9 @@ private:
 
     FilterParams params;
 
-    KalmanInput accum;
-    int accum_size;
+    QualityControl bias_x_ctrl;
+    QualityControl bias_y_ctrl;
+    QualityControl bias_z_ctrl;
 
     const int accum_capacity = 500;
     const int state_size = 16;
