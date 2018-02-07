@@ -36,7 +36,10 @@ SOURCES += main.cpp\
     quatkalman.cpp \
     wmm/GeomagnetismLibrary.c \
     wmmwrapper.cpp \
-    qualitycontrol.cpp
+    qualitycontrol.cpp \
+    quatcomplement.cpp \
+    quaternions.cpp \
+    ublasaux.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -44,6 +47,10 @@ HEADERS  += mainwindow.h \
     quatkalman.h \
     wmm/GeomagnetismHeader.h \
     wmmwrapper.h \
-    qualitycontrol.h
+    qualitycontrol.h \
+    quatcomplement.h \
+    quaternions.h \
+    ublasaux.h \
+    physconst.h
 
 FORMS    += mainwindow.ui
