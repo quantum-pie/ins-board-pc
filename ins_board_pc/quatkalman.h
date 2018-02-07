@@ -3,10 +3,8 @@
 
 #include <QDate>
 
-#include "ublastypes.h"
+#include "ublasaux.h"
 #include "quaternions.h"
-
-#include "wmmwrapper.h"
 
 class QuaternionKalman
 {
@@ -94,29 +92,10 @@ private:
     void normalize_state();
 
     /* create Kalman matrices */
-    NumMatrix create_quat_bias_mtx(double dt_2);
     NumMatrix create_transition_mtx(const KalmanInput & z);
     NumMatrix create_proc_noise_cov_mtx(double dt);
     NumMatrix create_meas_noise_cov_mtx(double lat, double lon, double magn_mag);
     NumMatrix create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v);
-
-    /* auxiliary transformations */
-    NumMatrix geodetic_to_dcm(double lat, double lon);
-    NumVector expected_mag(double lat, double lon, double alt, QDate day);
-    double expected_gravity_accel(double lat, double alt);
-
-    bool invert_matrix(const NumMatrix & mtx, NumMatrix & inv);
-
-    /* debug functions */
-    void debug_vector(const NumVector & vec, QString name);
-    void debug_matrix(const NumMatrix & mtx, QString name);
-
-    /* auxiliary derivatives */
-    NumMatrix dcm_lat_partial(double lat, double lon);
-    NumMatrix dcm_lon_partial(double lat, double lon);
-
-    /* main derivatives */
-    NumMatrix dgeo_dpos(double lat, double lon, double alt);
 
     /* from state to measurements */
     void calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
@@ -132,8 +111,6 @@ private:
 
     void calculate_velocity(const NumVector & velocity, double & vel);
 
-    WrapperWMM wmm;
-
     NumVector x;
     NumMatrix P;
 
@@ -147,10 +124,6 @@ private:
     const int accum_capacity = 500;
     const int state_size = 16;
     const int measurement_size = 10;
-    const double equator_gravity = 9.7803267714;
-    const double standard_gravity = 9.80665;
-    const double wgs_k = 0.00193185265241;
-    const double wgs_m = 0.00344978650684;
 };
 
 #endif // QUATKALMAN_H
