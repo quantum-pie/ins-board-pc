@@ -6,12 +6,8 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
-namespace ublas = boost::numeric::ublas;
-using NumMatrix = ublas::matrix<double>;
-using NumVector = ublas::vector<double>;
-using ZeroMatrix = ublas::zero_matrix<double>;
-using ZeroVector = ublas::zero_vector<double>;
-using IdentityMatrix = ublas::identity_matrix<double>;
+#include "ublasaux.h"
+#include "quaternions.h"
 
 class QuatComplement
 {
@@ -52,18 +48,7 @@ private:
     void accumulate(const ComplementInput & z);
     void initialize();
 
-    NumMatrix create_quat_bias_mtx(double dt_2);
-
-    /* auxiliary transformations */
-    NumMatrix quaternion_to_dcm(const NumVector & quaternion);
-
-    NumVector quat_multiply(const NumVector & p, const NumVector & q);
-
     void normalize_state();
-
-    /* debug functions */
-    void debug_vector(const NumVector & vec, QString name);
-    void debug_matrix(const NumMatrix & mtx, QString name);
 
     NumVector x;
     bool initialized;
@@ -75,7 +60,6 @@ private:
 
     const int accum_capacity = 500;
     const int state_size = 7;
-    const double standard_gravity = 9.80665;
 };
 
 #endif
