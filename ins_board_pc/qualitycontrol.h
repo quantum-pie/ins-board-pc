@@ -13,6 +13,7 @@ public:
     bool is_saturated();
     void set_sampling(std::size_t samples);
     std::size_t get_sampling();
+    void reset();
 
 private:
     std::size_t buf_size;

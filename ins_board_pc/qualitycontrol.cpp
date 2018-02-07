@@ -49,3 +49,9 @@ std::size_t QualityControl::get_sampling()
 {
     return buf_size;
 }
+
+void QualityControl::reset()
+{
+    buf.clear();
+}
+
