@@ -57,7 +57,7 @@ void quat_to_rpy(const NumVector & quaternion, double & roll, double & pitch, do
     roll = qAtan2(2 * qs * qy - 2 * qx * qz, qss - qxx - qyy + qzz);
 }
 
-NumMatrix quaternion_to_dcm(const NumVector & quaternion)
+NumMatrix quaternion_to_dcm_tr(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -85,6 +85,39 @@ NumMatrix quaternion_to_dcm(const NumVector & quaternion)
     DCM(1, 2) = 2 * (qyz + qsx);
     DCM(2, 0) = 2 * (qxz + qsy);
     DCM(2, 1) = 2 * (qyz - qsx);
+    DCM(2, 2) = qss - qxx - qyy + qzz;
+
+    return DCM;
+}
+
+NumMatrix quaternion_to_dcm(const NumVector & quaternion)
+{
+    double qs = quaternion[0];
+    double qx = quaternion[1];
+    double qy = quaternion[2];
+    double qz = quaternion[3];
+
+    NumMatrix DCM(3, 3);
+
+    double qss = qs * qs;
+    double qxx = qx * qx;
+    double qyy = qy * qy;
+    double qzz = qz * qz;
+    double qsx = qs * qx;
+    double qsy = qs * qy;
+    double qsz = qs * qz;
+    double qxy = qx * qy;
+    double qxz = qx * qz;
+    double qyz = qy * qz;
+
+    DCM(0, 0) = qss + qxx - qyy - qzz;
+    DCM(0, 1) = 2 * (qxy - qsz);
+    DCM(0, 2) = 2 * (qxz + qsy);
+    DCM(1, 0) = 2 * (qxy + qsz);
+    DCM(1, 1) = qss - qxx + qyy - qzz;
+    DCM(1, 2) = 2 * (qyz - qsx);
+    DCM(2, 0) = 2 * (qxz - qsy);
+    DCM(2, 1) = 2 * (qyz + qsx);
     DCM(2, 2) = qss - qxx - qyy + qzz;
 
     return DCM;
@@ -160,7 +193,7 @@ NumMatrix skew_symmetric(const NumVector & v)
     return V;
 }
 
-NumMatrix ddcm_dqs(const NumVector & quaternion)
+NumMatrix ddcm_dqs_tr(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -178,7 +211,7 @@ NumMatrix ddcm_dqs(const NumVector & quaternion)
     return RES;
 }
 
-NumMatrix ddcm_dqx(const NumVector & quaternion)
+NumMatrix ddcm_dqx_tr(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -196,7 +229,7 @@ NumMatrix ddcm_dqx(const NumVector & quaternion)
     return RES;
 }
 
-NumMatrix ddcm_dqy(const NumVector & quaternion)
+NumMatrix ddcm_dqy_tr(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -214,7 +247,7 @@ NumMatrix ddcm_dqy(const NumVector & quaternion)
     return RES;
 }
 
-NumMatrix ddcm_dqz(const NumVector & quaternion)
+NumMatrix ddcm_dqz_tr(const NumVector & quaternion)
 {
     double qs = quaternion[0];
     double qx = quaternion[1];
@@ -297,6 +330,38 @@ NumVector declinator_quat(double declination)
     qdecl[3] = qSin(declination / 2);
 
     return qdecl;
+}
+
+NumVector quat_conjugate(const NumVector & quaternion)
+{
+    NumVector q(4);
+    q[0] = quaternion[0];
+    q[1] = -quaternion[1];
+    q[2] = -quaternion[2];
+    q[3] = -quaternion[3];
+
+    return q;
+}
+
+NumVector identity_quaternion()
+{
+    NumVector q(4);
+    q[0] = 1;
+    q[1] = 0;
+    q[2] = 0;
+    q[3] = 0;
+
+    return q;
+}
+
+NumVector lerp(const NumVector & q, const NumVector & p, double alpha)
+{
+    return quat_normalize((1 - alpha) * q + alpha * p);
+}
+
+NumVector slerp(const NumVector & q, const NumVector & p, double alpha)
+{
+    // TODO
 }
 
 }
