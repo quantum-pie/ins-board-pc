@@ -1,4 +1,7 @@
 #include "wmmwrapper.h"
+#include "physconst.h"
+
+#include <boost/numeric/ublas/assignment.hpp>
 
 #include <QtMath>
 
@@ -46,13 +49,116 @@ void WrapperWMM::measure(double lat, double lon, double alt, QDate day, double &
     inclination = qDegreesToRadians(result.Incl);
 }
 
-void WrapperWMM::cartesian_to_geodetic(double x, double y, double z, double & lat, double & lon, double & alt)
+void WrapperWMM::cartesian_to_geodetic(const NumVector & pos, double & lat, double & lon, double & alt)
 {
     MAGtype_CoordGeodetic geodetic_coord;
-    MAG_CartesianToGeodetic(ellip, x * 1e-3, y * 1e-3, z * 1e-3, &geodetic_coord);
+    MAG_CartesianToGeodetic(ellip, pos[0] * 1e-3, pos[1] * 1e-3, pos[2] * 1e-3, &geodetic_coord);
     lat = qDegreesToRadians(geodetic_coord.phi);
     lon = qDegreesToRadians(geodetic_coord.lambda);
     alt = geodetic_coord.HeightAboveEllipsoid * 1e3;
+}
+
+NumMatrix WrapperWMM::geodetic_to_dcm(double lat, double lon)
+{
+    double clat = qCos(lat);
+    double slat = qSin(lat);
+    double clon = qCos(lon);
+    double slon = qSin(lon);
+
+    NumMatrix DCM(3, 3);
+
+    DCM <<= -slon, clon, 0,
+            -clon * slat, -slon * slat, clat,
+            clon * clat, slon * clat, slat;
+
+    return DCM;
+}
+
+NumVector WrapperWMM::expected_mag(double lat, double lon, double alt, QDate day)
+{
+    double declination, inclination;
+    measure(lat, lon, alt, day, declination, inclination);
+
+    double sdecl = qSin(declination);
+    double cdecl = qCos(declination);
+    double sincl = qSin(inclination);
+    double cincl = qCos(inclination);
+
+    NumVector RES(3);
+    RES <<= sdecl * cincl, cdecl * cincl, -sincl;
+    return RES;
+}
+
+double WrapperWMM::expected_gravity_accel(double lat, double alt)
+{
+    double f = ellip_f();
+    double a = ellip_a();
+    double a_sq = a * a;
+    double slat_sq = qPow(qSin(lat), 2);
+
+    double normal_surface_gravity = phconst::equator_gravity * (1 + phconst::wgs_k * slat_sq) / qSqrt(1 - ellip_epssq() * slat_sq);
+    return normal_surface_gravity * (1 - 2 * alt / a * (1 + f + phconst::wgs_m - 2 * f * slat_sq) + 3 * alt * alt / a_sq);
+}
+
+NumMatrix WrapperWMM::dcm_lat_partial(double lat, double lon)
+{
+    double clat = qCos(lat);
+    double slat = qSin(lat);
+    double clon = qCos(lon);
+    double slon = qSin(lon);
+
+    NumMatrix RES(3, 3);
+
+    RES <<= 0, 0, 0,
+            -clon * clat, -slon * clat, -slat,
+            -clon * slat, -slon * slat, clat;
+
+    return RES;
+}
+
+NumMatrix WrapperWMM::dcm_lon_partial(double lat, double lon)
+{
+    double clat = qCos(lat);
+    double slat = qSin(lat);
+    double clon = qCos(lon);
+    double slon = qSin(lon);
+
+    NumMatrix RES(3, 3);
+
+    RES <<= -clon, -slon, 0,
+            slon * slat, -clon * slat, 0,
+            -slon * clat, clon * clat, 0;
+
+    return RES;
+}
+
+NumMatrix WrapperWMM::dgeo_dpos(double lat, double lon, double alt)
+{
+    double clat = qCos(lat);
+    double slat = qSin(lat);
+    double clon = qCos(lon);
+    double slon = qSin(lon);
+
+    double bracket = qPow(1 - ellip_epssq() * slat * slat, 1.5);
+    double norm_rad = ellip_a() / qSqrt(1 - ellip_epssq() * slat * slat);
+    double common_mult = bracket / (ellip_a() * (ellip_epssq() - 1) - alt * bracket);
+    double common_mult_2 = 1 / (norm_rad + alt);
+
+    NumMatrix RES(3, 3);
+
+    RES(0, 0) = common_mult / (slat * clon);
+    RES(0, 1) = common_mult / (slat * slon);
+    RES(0, 2) = -common_mult / clat;
+
+    RES(1, 0) = -common_mult_2 / (clat * slon);
+    RES(1, 1) = common_mult_2 / (clat * clon);
+    RES(1, 2) = 0;
+
+    RES(2, 0) = 1 / (clat * clon);
+    RES(2, 1) = 1 / (clat * slon);
+    RES(2, 2) = 1 / slat;
+
+    return RES;
 }
 
 double WrapperWMM::ellip_a()
