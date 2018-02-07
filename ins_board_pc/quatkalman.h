@@ -114,6 +114,10 @@ private:
 
     void calculate_velocity(const NumVector & velocity, double & vel);
 
+    static const int accum_capacity = 500;
+    static const int state_size = 16;
+    static const int measurement_size = 10;
+
     NumVector x;
     NumMatrix P;
 
@@ -124,10 +128,6 @@ private:
     QualityControl bias_x_ctrl;
     QualityControl bias_y_ctrl;
     QualityControl bias_z_ctrl;
-
-    const int accum_capacity = 500;
-    const int state_size = 16;
-    const int measurement_size = 10;
 };
 
 #endif // QUATKALMAN_H

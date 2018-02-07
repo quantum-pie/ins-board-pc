@@ -52,6 +52,9 @@ private:
 
     void normalize_state();
 
+    static const int accum_capacity = 500;
+    static const int state_size = 7;
+
     NumVector x;
     bool initialized;
 
@@ -60,9 +63,6 @@ private:
     QualityControl bias_x_ctrl;
     QualityControl bias_y_ctrl;
     QualityControl bias_z_ctrl;
-
-    const int accum_capacity = 500;
-    const int state_size = 7;
 };
 
 #endif

@@ -10,6 +10,8 @@
 #include <QtMath>
 #include <QElapsedTimer>
 
+#include <QDebug>
+
 QuaternionKalman::QuaternionKalman(const FilterParams & params)
     : params(params),
       bias_x_ctrl(accum_capacity), bias_y_ctrl(accum_capacity), bias_z_ctrl(accum_capacity)
