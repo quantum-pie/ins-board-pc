@@ -51,6 +51,7 @@ private:
     bool bias_estimated();
 
     void normalize_state();
+    double calculate_gain(const NumVector & accel);
 
     static const int accum_capacity = 500;
     static const int state_size = 7;
