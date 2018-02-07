@@ -32,7 +32,7 @@ void QuaternionKalman::initialize(const KalmanInput & z)
 {
     NumVector qacc = qutils::acceleration_quat(z.a);
 
-    NumMatrix accel_rotator = qutils::quaternion_to_dcm(qacc);
+    NumMatrix accel_rotator = qutils::quaternion_to_dcm_tr(qacc);
     NumVector l = prod(accel_rotator, z.m);
 
     NumVector qmag = qutils::magnetometer_quat(l);
@@ -285,13 +285,13 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     NumVector q = get_orientation_quaternion();
 
     NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
-    NumMatrix Clb = qutils::quaternion_to_dcm(q);
+    NumMatrix Clb = qutils::quaternion_to_dcm_tr(q);
     NumMatrix Ceb = prod(Clb, Cel);
 
-    NumMatrix Ddcm_Dqs = qutils::ddcm_dqs(q);
-    NumMatrix Ddcm_Dqx = qutils::ddcm_dqx(q);
-    NumMatrix Ddcm_Dqy = qutils::ddcm_dqy(q);
-    NumMatrix Ddcm_Dqz = qutils::ddcm_dqz(q);
+    NumMatrix Ddcm_Dqs = qutils::ddcm_dqs_tr(q);
+    NumMatrix Ddcm_Dqx = qutils::ddcm_dqx_tr(q);
+    NumMatrix Ddcm_Dqy = qutils::ddcm_dqy_tr(q);
+    NumMatrix Ddcm_Dqz = qutils::ddcm_dqz_tr(q);
 
     NumVector tmp = prod(Cel, a);
 
@@ -375,7 +375,7 @@ void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_qua
 {
     double height_adjust = WrapperWMM::instance().expected_gravity_accel(lat, alt) / phconst::standard_gravity;
 
-    NumMatrix Clb = qutils::quaternion_to_dcm(orientation_quat);
+    NumMatrix Clb = qutils::quaternion_to_dcm_tr(orientation_quat);
     NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
     NumMatrix tmp = prod(Clb, Cel);
     NumVector movement_component = prod(tmp, acceleration / phconst::standard_gravity);
@@ -395,7 +395,7 @@ void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat
                                               double lat, double lon, double alt, QDate day,
                                               double & mx, double & my, double & mz)
 {
-    NumVector rot_magn = prod(qutils::quaternion_to_dcm(orientation_quat),
+    NumVector rot_magn = prod(qutils::quaternion_to_dcm_tr(orientation_quat),
                                           WrapperWMM::instance().expected_mag(lat, lon, alt, day));
 
     mx = rot_magn(0);
