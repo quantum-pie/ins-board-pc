@@ -133,3 +133,13 @@ void QuaternionComplement::get_rpy(double & roll, double & pitch, double & yaw)
 {
     qutils::quat_to_rpy(get_orientation_quaternion(), roll, pitch, yaw);
 }
+
+void QuaternionComplement::set_static_accel_gain(double gain)
+{
+    params.static_accel_gain = gain;
+}
+
+void QuaternionComplement::set_static_magn_gain(double gain)
+{
+    params.static_magn_gain = gain;
+}
