@@ -58,7 +58,6 @@ private slots:
     void on_a_gain_le_textEdited(const QString &arg1);
     void on_m_gain_le_textEdited(const QString &arg1);
     void on_samples_le_2_textEdited(const QString &arg1);
-
     void on_pushButton_4_toggled(bool checked);
 
 private:
@@ -117,6 +116,9 @@ private:
     void update_gps_tab(const input_t & in);
     void update_kalman_tab();
     void update_comp_pos_tab();
+
+    void update_body_transform(const QQuaternion & rotator,
+                               Qt3DCore::QTransform * body_transform, Qt3DCore::QTransform * sphere_transform);
 
     Ui::MainWindow * ui;
     QUdpSocket * udp_socket;

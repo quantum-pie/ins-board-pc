@@ -196,12 +196,7 @@ void MainWindow::update_kalman_tab()
     NumVector quat = kalman_filt->get_orientation_quaternion();
     QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
 
-    body_transform_kalman->setRotation(qquat);
-
-    QMatrix4x4 m;
-    m.rotate(qquat);
-    m.translate(QVector3D(0, 5, 0.5));
-    sphere_transform_kalman->setMatrix(m);
+    update_body_transform(qquat, body_transform_kalman, sphere_transform_kalman);
 
     NumVector vel = kalman_filt->get_velocity();
     update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
@@ -229,13 +224,7 @@ void MainWindow::update_comp_pos_tab()
     NumVector quat = complem->get_orientation_quaternion();
     QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
 
-
-    body_transform_compl->setRotation(qquat);
-
-    QMatrix4x4 m;
-    m.rotate(qquat);
-    m.translate(QVector3D(0, 5, 0.5));
-    sphere_transform_compl->setMatrix(m);
+    update_body_transform(qquat, body_transform_compl, sphere_transform_compl);
 
     roll_ctrl_compl.update(qRadiansToDegrees(r));
     pitch_ctrl_compl.update(qRadiansToDegrees(p));
@@ -251,6 +240,17 @@ void MainWindow::update_comp_pos_tab()
     /*
     TODO: Here we will read position filter results
     */
+}
+
+void MainWindow::update_body_transform(const QQuaternion & rotator,
+                           Qt3DCore::QTransform * body_transform, Qt3DCore::QTransform * sphere_transform)
+{
+    body_transform->setRotation(rotator);
+
+    QMatrix4x4 m;
+    m.rotate(rotator);
+    m.translate(QVector3D(0, 5, 0.5));
+    sphere_transform->setMatrix(m);
 }
 
 void MainWindow::read_datagrams()
