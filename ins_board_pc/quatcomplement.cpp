@@ -113,23 +113,23 @@ void QuaternionComplement::normalize_state()
     ublas::project(x, ublas::range(0, 4)) = qutils::quat_normalize(get_orientation_quaternion());
 }
 
-double QuaternionComplement::calculate_gain(const NumVector & accel)
+double QuaternionComplement::calculate_gain(const NumVector & accel) const
 {
     // TODO
     return params.static_accel_gain;
 }
 
-NumVector QuaternionComplement::get_orientation_quaternion()
+NumVector QuaternionComplement::get_orientation_quaternion() const
 {
     return ublas::project(x, ublas::range(0, 4));
 }
 
-NumVector QuaternionComplement::get_gyro_bias()
+NumVector QuaternionComplement::get_gyro_bias() const
 {
     return ublas::project(x, ublas::range(4, 7));
 }
 
-void QuaternionComplement::get_rpy(double & roll, double & pitch, double & yaw)
+void QuaternionComplement::get_rpy(double & roll, double & pitch, double & yaw) const
 {
     qutils::quat_to_rpy(get_orientation_quaternion(), roll, pitch, yaw);
 }

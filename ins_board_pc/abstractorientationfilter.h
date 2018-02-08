@@ -22,9 +22,9 @@ public:
         reset_this();
     }
 
-    virtual NumVector get_orientation_quaternion() = 0;
-    virtual NumVector get_gyro_bias() = 0;
-    virtual void get_rpy(double & roll, double & pitch, double & yaw) = 0;
+    virtual NumVector get_orientation_quaternion() const = 0;
+    virtual NumVector get_gyro_bias() const = 0;
+    virtual void get_rpy(double & roll, double & pitch, double & yaw) const = 0;
 
 protected:
     void accumulate(const FilterInput & z) override
@@ -34,7 +34,7 @@ protected:
         bias_z_ctrl.update(z.w[2]);
     }
 
-    bool bias_estimated()
+    bool bias_estimated() const
     {
         return bias_x_ctrl.is_saturated() &&
                 bias_y_ctrl.is_saturated() &&

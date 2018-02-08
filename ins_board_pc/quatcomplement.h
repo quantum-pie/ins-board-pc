@@ -23,10 +23,10 @@ public:
 
     void step(const FilterInput & z) override;
 
-    NumVector get_orientation_quaternion() override;
-    NumVector get_gyro_bias() override;
+    NumVector get_orientation_quaternion() const override;
+    NumVector get_gyro_bias() const override;
 
-    void get_rpy(double & roll, double & pitch, double & yaw) override;
+    void get_rpy(double & roll, double & pitch, double & yaw) const override;
 
     void set_static_accel_gain(double gain);
     void set_static_magn_gain(double gain);
@@ -37,7 +37,7 @@ protected:
     void normalize_state() override;
 
 private:
-    double calculate_gain(const NumVector & accel);
+    double calculate_gain(const NumVector & accel) const;
 
     static const int state_size = 7;
 

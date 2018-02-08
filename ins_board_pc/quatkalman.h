@@ -45,14 +45,14 @@ public:
     void step(const FilterInput & z) override;
     void reset() override;
 
-    NumVector get_orientation_quaternion() override;
-    NumVector get_gyro_bias() override;
-    NumVector get_position() override;
-    NumVector get_velocity() override;
-    NumVector get_acceleration() override;
+    NumVector get_orientation_quaternion() const override;
+    NumVector get_gyro_bias() const override;
+    NumVector get_position() const override;
+    NumVector get_velocity() const override;
+    NumVector get_acceleration() const override;
 
-    void get_rpy(double & roll, double & pitch, double & yaw) override;
-    void get_geodetic(double & lat, double & lon, double & alt) override;
+    void get_rpy(double & roll, double & pitch, double & yaw) const override;
+    void get_geodetic(double & lat, double & lon, double & alt) const override;
 
     void set_proc_gyro_std(double std);
     void set_proc_gyro_bias_std(double std);
@@ -77,24 +77,24 @@ protected:
 
 private:
     /* create Kalman matrices */
-    NumMatrix create_transition_mtx(const FilterInput & z);
-    NumMatrix create_proc_noise_cov_mtx(double dt);
-    NumMatrix create_meas_noise_cov_mtx(double lat, double lon, double magn_mag);
-    NumMatrix create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v);
+    NumMatrix create_transition_mtx(const FilterInput & z) const;
+    NumMatrix create_proc_noise_cov_mtx(double dt) const;
+    NumMatrix create_meas_noise_cov_mtx(double lat, double lon, double magn_mag) const;
+    NumMatrix create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v) const;
 
     /* from state to measurements */
     void calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
                                  double lat, double lon, double alt,
-                                 double & ax, double & ay, double & az);
+                                 double & ax, double & ay, double & az) const;
 
     void calculate_magnetometer(const NumVector & orientation_quat,
                                 double lat, double lon, double alt, QDate day,
-                                double & mx, double & my, double & mz);
+                                double & mx, double & my, double & mz) const;
 
     void calculate_geodetic(const NumVector & position,
-                            double & lat, double & lon, double & alt);
+                            double & lat, double & lon, double & alt) const;
 
-    void calculate_velocity(const NumVector & velocity, double & vel);
+    void calculate_velocity(const NumVector & velocity, double & vel) const;
 
     static const int state_size = 16;
     static const int measurement_size = 10;

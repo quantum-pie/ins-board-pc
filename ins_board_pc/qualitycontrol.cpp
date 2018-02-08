@@ -24,17 +24,17 @@ void QualityControl::update(double val)
     std = qSqrt(s2 / buf.size() - mean * mean);
 }
 
-double QualityControl::get_mean()
+double QualityControl::get_mean() const
 {
     return mean;
 }
 
-double QualityControl::get_std()
+double QualityControl::get_std() const
 {
     return std;
 }
 
-bool QualityControl::is_saturated()
+bool QualityControl::is_saturated() const
 {
     return buf.size() == buf_size;
 }
@@ -45,7 +45,7 @@ void QualityControl::set_sampling(std::size_t samples)
     buf_size = samples;
 }
 
-std::size_t QualityControl::get_sampling()
+std::size_t QualityControl::get_sampling() const
 {
     return buf_size;
 }

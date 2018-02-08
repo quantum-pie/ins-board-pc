@@ -47,21 +47,21 @@ void Calibrator::update(double x, double y, double z)
     z_scale = scaler / z_diff;
 }
 
-void Calibrator::calibrate(double & x, double & y, double & z)
+void Calibrator::calibrate(double & x, double & y, double & z) const
 {
     x = (x - x_bias) * x_scale;
     y = (y - y_bias) * y_scale;
     z = (z - z_bias) * z_scale;
 }
 
-QVector3D Calibrator::calibrate(const QVector3D & vec)
+QVector3D Calibrator::calibrate(const QVector3D & vec) const
 {
     return QVector3D((vec.x() - x_bias) * x_scale,
                      (vec.y() - y_bias) * y_scale,
                      (vec.z() - z_bias) * z_scale);
 }
 
-void Calibrator::save()
+void Calibrator::save() const
 {
     QString filename = "res/magnet_calib.dat";
     QFile file(filename);
@@ -93,32 +93,32 @@ void Calibrator::update_borders(double & lower, double & upper, double val)
         lower = val;
 }
 
-double Calibrator::get_x_bias()
+double Calibrator::get_x_bias() const
 {
     return x_bias;
 }
 
-double Calibrator::get_y_bias()
+double Calibrator::get_y_bias() const
 {
     return y_bias;
 }
 
-double Calibrator::get_z_bias()
+double Calibrator::get_z_bias() const
 {
     return z_bias;
 }
 
-double Calibrator::get_x_scale()
+double Calibrator::get_x_scale() const
 {
     return x_scale;
 }
 
-double Calibrator::get_y_scale()
+double Calibrator::get_y_scale() const
 {
     return y_scale;
 }
 
-double Calibrator::get_z_scale()
+double Calibrator::get_z_scale() const
 {
     return z_scale;
 }

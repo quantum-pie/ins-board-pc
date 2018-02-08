@@ -122,7 +122,7 @@ void MainWindow::setup_pos_kalman()
 
 }
 
-AbstractFilter::FilterInput MainWindow::parse_input(const input_t & in)
+AbstractFilter::FilterInput MainWindow::parse_input(const input_t & in) const
 {
     NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
 
@@ -749,7 +749,7 @@ void MainWindow::on_pushButton_4_toggled(bool checked)
     }
 }
 
-void MainWindow::on_pushButton_3_clicked()
+void MainWindow::on_pushButton_3_clicked() const
 {
     magn_cal.save();
 }

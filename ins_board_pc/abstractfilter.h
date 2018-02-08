@@ -29,7 +29,7 @@ public:
 
     virtual void step(const FilterInput & z) = 0;
 
-    NumVector get_state()
+    NumVector get_state() const
     {
         return x;
     }
@@ -39,7 +39,7 @@ public:
         reset_this();
     }
 
-    bool is_initialized()
+    bool is_initialized() const
     {
         return initialized;
     }

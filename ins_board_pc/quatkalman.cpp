@@ -180,7 +180,7 @@ void QuaternionKalman::normalize_state()
     ublas::project(x, ublas::range(0, 4)) = qutils::quat_normalize(get_orientation_quaternion());
 }
 
-NumMatrix QuaternionKalman::create_transition_mtx(const FilterInput & z)
+NumMatrix QuaternionKalman::create_transition_mtx(const FilterInput & z) const
 {
     /* useful constants */
     double dt = z.dt;
@@ -207,7 +207,7 @@ NumMatrix QuaternionKalman::create_transition_mtx(const FilterInput & z)
     return F;
 }
 
-NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt)
+NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt) const
 {
     /* useful constants */
     double dt_sq = dt * dt;
@@ -235,7 +235,7 @@ NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt)
     return Q;
 }
 
-NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon, double magn_mag)
+NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon, double magn_mag) const
 {
     NumMatrix Ra = params.meas_params.accel_std * params.meas_params.accel_std * IdentityMatrix(3);
 
@@ -264,7 +264,7 @@ NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon, do
     return R;
 }
 
-NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v)
+NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v) const
 {
     // 1
     NumMatrix Dac_Dq(3, 4);
@@ -354,14 +354,14 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
 }
 
 void QuaternionKalman::calculate_geodetic(const NumVector & position,
-                                          double & lat, double & lon, double & alt)
+                                          double & lat, double & lon, double & alt) const
 {
     WrapperWMM::instance().cartesian_to_geodetic(position, lat, lon, alt);
 }
 
 void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
                              double lat, double lon, double alt,
-                             double & ax, double & ay, double & az)
+                             double & ax, double & ay, double & az) const
 {
     double height_adjust = WrapperWMM::instance().expected_gravity_accel(lat, alt) / phconst::standard_gravity;
 
@@ -383,7 +383,7 @@ void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_qua
 
 void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat,
                                               double lat, double lon, double alt, QDate day,
-                                              double & mx, double & my, double & mz)
+                                              double & mx, double & my, double & mz) const
 {
     NumVector rot_magn = prod(qutils::quaternion_to_dcm_tr(orientation_quat),
                                           WrapperWMM::instance().expected_mag(lat, lon, alt, day));
@@ -393,42 +393,42 @@ void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat
     mz = rot_magn(2);
 }
 
-void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & vel)
+void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & vel) const
 {
     vel = norm_2(velocity);
 }
 
-NumVector QuaternionKalman::get_orientation_quaternion()
+NumVector QuaternionKalman::get_orientation_quaternion() const
 {
     return ublas::project(x, ublas::range(0, 4));
 }
 
-NumVector QuaternionKalman::get_gyro_bias()
+NumVector QuaternionKalman::get_gyro_bias() const
 {
     return ublas::project(x, ublas::range(4, 7));
 }
 
-NumVector QuaternionKalman::get_position()
+NumVector QuaternionKalman::get_position() const
 {
     return ublas::project(x, ublas::range(7, 10));
 }
 
-NumVector QuaternionKalman::get_velocity()
+NumVector QuaternionKalman::get_velocity() const
 {
     return ublas::project(x, ublas::range(10, 13));
 }
 
-NumVector QuaternionKalman::get_acceleration()
+NumVector QuaternionKalman::get_acceleration() const
 {
     return ublas::project(x, ublas::range(13, 16));
 }
 
-void QuaternionKalman::get_rpy(double & roll, double & pitch, double & yaw)
+void QuaternionKalman::get_rpy(double & roll, double & pitch, double & yaw) const
 {
     qutils::quat_to_rpy(get_orientation_quaternion(), roll, pitch, yaw);
 }
 
-void QuaternionKalman::get_geodetic(double & lat, double & lon, double & alt)
+void QuaternionKalman::get_geodetic(double & lat, double & lon, double & alt) const
 {
     calculate_geodetic(get_position(), lat, lon, alt);
 }

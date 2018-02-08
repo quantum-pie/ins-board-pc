@@ -9,16 +9,16 @@ public:
     Calibrator();
     void reset();
     void update(double x, double y, double z);
-    void calibrate(double & x, double & y, double & z);
-    QVector3D calibrate(const QVector3D & vec);
-    void save();
+    void calibrate(double & x, double & y, double & z) const;
+    QVector3D calibrate(const QVector3D & vec) const;
+    void save() const;
 
-    double get_x_bias();
-    double get_y_bias();
-    double get_z_bias();
-    double get_x_scale();
-    double get_y_scale();
-    double get_z_scale();
+    double get_x_bias() const;
+    double get_y_bias() const;
+    double get_z_bias() const;
+    double get_x_scale() const;
+    double get_y_scale() const;
+    double get_z_scale() const;
 
 private:
     void update_borders(double & lower, double & upper, double val);

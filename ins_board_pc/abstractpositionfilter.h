@@ -19,11 +19,11 @@ public:
         reset_this();
     }
 
-    virtual NumVector get_position() = 0;
-    virtual NumVector get_velocity() = 0;
-    virtual NumVector get_acceleration() = 0;
+    virtual NumVector get_position() const = 0;
+    virtual NumVector get_velocity() const = 0;
+    virtual NumVector get_acceleration() const = 0;
 
-    virtual void get_geodetic(double & lat, double & lon, double & alt) = 0;
+    virtual void get_geodetic(double & lat, double & lon, double & alt) const = 0;
 
 protected:
     void accumulate(const FilterInput &) override {}

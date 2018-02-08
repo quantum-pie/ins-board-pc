@@ -40,7 +40,7 @@ private slots:
 
     void on_pushButton_toggled(bool checked);
     void on_pushButton_2_toggled(bool checked);
-    void on_pushButton_3_clicked();
+    void on_pushButton_3_clicked() const;
     void on_gyro_process_le_textEdited(const QString &arg1);
     void on_gyro_bias_process_le_textEdited(const QString &arg1);
     void on_accel_process_le_textEdited(const QString &arg1);
@@ -109,7 +109,7 @@ private:
     void setup_complementary();
     void setup_pos_kalman();
 
-    AbstractFilter::FilterInput parse_input(const input_t & in);
+    AbstractFilter::FilterInput parse_input(const input_t & in) const;
 
     void update_raw_tab(const input_t & in);
     void update_calibration_tab(const input_t & in);

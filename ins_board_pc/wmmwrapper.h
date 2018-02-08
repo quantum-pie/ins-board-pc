@@ -19,23 +19,23 @@ public:
     }
 
     void measure(double lat, double lon, double alt, QDate day, double & declination, double & inclination);
-    double ellip_a();
-    double ellip_epssq();
-    double earth_rad();
-    double ellip_f();
+    double ellip_a() const;
+    double ellip_epssq() const;
+    double earth_rad() const;
+    double ellip_f() const;
 
-    void cartesian_to_geodetic(const NumVector & pos, double & lat, double & lon, double & alt);
+    void cartesian_to_geodetic(const NumVector & pos, double & lat, double & lon, double & alt) const;
 
-    NumMatrix geodetic_to_dcm(double lat, double lon);
+    NumMatrix geodetic_to_dcm(double lat, double lon) const;
     NumVector expected_mag(double lat, double lon, double alt, QDate day);
-    double expected_gravity_accel(double lat, double alt);
+    double expected_gravity_accel(double lat, double alt) const;
 
     /* auxiliary derivatives */
-    NumMatrix dcm_lat_partial(double lat, double lon);
-    NumMatrix dcm_lon_partial(double lat, double lon);
+    NumMatrix dcm_lat_partial(double lat, double lon) const;
+    NumMatrix dcm_lon_partial(double lat, double lon) const;
 
     /* main derivatives */
-    NumMatrix dgeo_dpos(double lat, double lon, double alt);
+    NumMatrix dgeo_dpos(double lat, double lon, double alt) const;
 
 private:
     WrapperWMM();
