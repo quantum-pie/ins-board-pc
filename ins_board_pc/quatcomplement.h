@@ -6,64 +6,42 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
-#include "ublasaux.h"
-#include "quaternions.h"
-#include "qualitycontrol.h"
+#include "abstractorientationfilter.h"
 
-class QuatComplement
+class QuaternionComplement final : public AbstractOrientationFilter
 {
 public:
-    struct ComplementInput
-    {
-        NumVector w;
-        NumVector a;
-        NumVector m;
-        double dt;
-    };
-
     struct FilterParams
     {
         double static_accel_gain;
         double static_magn_gain;
+        int accum_capacity;
     };
 
-    QuatComplement(const FilterParams & params);
+    QuaternionComplement(const FilterParams & params);
+    ~QuaternionComplement() override;
 
-    void step(const ComplementInput & z);
+    void step(const FilterInput & z) override;
 
-    void reset();
+    NumVector get_orientation_quaternion() override;
+    NumVector get_gyro_bias() override;
 
-    bool is_initialized();
-
-    NumVector get_state();
-    NumVector get_orientation_quaternion();
-    NumVector get_gyro_bias();
-
-    void get_rpy(double & roll, double & pitch, double & yaw);
+    void get_rpy(double & roll, double & pitch, double & yaw) override;
 
     void set_static_accel_gain(double gain);
     void set_static_magn_gain(double gain);
 
-private:
-    void update(const ComplementInput & z);
-    void accumulate(const ComplementInput & z);
-    void initialize(const ComplementInput & z);
-    bool bias_estimated();
+protected:
+    void update(const FilterInput & z) override;
+    void initialize(const FilterInput & z);
+    void normalize_state() override;
 
-    void normalize_state();
+private:
     double calculate_gain(const NumVector & accel);
 
-    static const int accum_capacity = 500;
     static const int state_size = 7;
 
-    NumVector x;
-    bool initialized;
-
     FilterParams params;
-
-    QualityControl bias_x_ctrl;
-    QualityControl bias_y_ctrl;
-    QualityControl bias_z_ctrl;
 };
 
 #endif
