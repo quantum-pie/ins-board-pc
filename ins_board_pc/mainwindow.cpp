@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "quatkalman.h"
+#include "quatcomplement.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 #include <QDataStream>
@@ -37,8 +40,12 @@ MainWindow::MainWindow(QWidget *parent) :
     init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
     init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
 
-    init_orient_plot();
+    body_transform_kalman = new Qt3DCore::QTransform;
+    body_transform_compl = new Qt3DCore::QTransform;
+    sphere_transform_kalman = new Qt3DCore::QTransform;
+    sphere_transform_compl = new Qt3DCore::QTransform;
 
+    //
     QuaternionKalman::ProcessNoiseParams proc_params;
     proc_params.gyro_std = 0.001; //!< dps
     proc_params.gyro_bias_std = 1e-8; //!< assume almost constant bias
@@ -72,10 +79,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->vel_init_le->setText(QString::number(cov_params.vel_std));
     ui->accel_init_le->setText(QString::number(cov_params.accel_std));
 
-    ui->samples_le->setText(QString::number(roll_ctrl.get_sampling()));
+    ui->samples_le->setText(QString::number(roll_ctrl_kalman.get_sampling()));
 
-    kalman_quat_filt = new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params, 500});
+    filters.push_back(new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params, 500}));
 
+    //
+    double static_accel_gain = 0.9;
+    double static_magn_gain = 0.9;
+
+    ui->a_gain_le->setText(QString::number(static_accel_gain));
+    ui->m_gain_le->setText(QString::number(static_magn_gain));
+
+    ui->samples_le_2->setText(QString::number(roll_ctrl_compl.get_sampling()));
+
+    filters.push_back(new QuaternionComplement(QuaternionComplement::FilterParams{static_accel_gain, static_magn_gain, 500}));
+
+    //
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 
     resize(1300, 800);
@@ -84,7 +103,10 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete udp_socket;
-    delete kalman_quat_filt;
+
+    for(auto * ptr : filters)
+        delete ptr;
+
     delete ui;
 }
 
@@ -137,7 +159,10 @@ void MainWindow::process_data(const QByteArray & data)
 
             AbstractFilter::FilterInput z{w, a, m, day, geo, pos, v, in.et};
 
-            kalman_quat_filt->step(z);
+            for(auto * ptr : filters)
+            {
+                ptr->step(z);
+            }
         }
     }
 
@@ -192,11 +217,17 @@ void MainWindow::process_data(const QByteArray & data)
 
     if(ui->tabWidget->currentIndex() == 3)
     {
+        if(!orient_window_kalman)
+        {
+            orient_window_kalman = new Qt3DExtras::Qt3DWindow;
+            init_orient_plot(ui->dwidget, ui->gridLayout_3, orient_window_kalman, body_transform_kalman, sphere_transform_kalman);
+        }
+
         if(ui->pushButton_2->isChecked())
         {
-            if(kalman_quat_filt->is_initialized())
+            if(filters.at(0)->is_initialized())
             {
-                QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+                QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
 
                 double r, p, y;
                 kalman_filt->get_rpy(r, p, y);
@@ -205,26 +236,75 @@ void MainWindow::process_data(const QByteArray & data)
                 NumVector quat = kalman_filt->get_orientation_quaternion();
                 QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
 
-                body_transform->setRotation(qquat);
+                body_transform_kalman->setRotation(qquat);
 
                 QMatrix4x4 m;
                 m.rotate(qquat);
-                m.translate(QVector3D(0, 5, 0));
-                sphere_transform->setMatrix(m);
+                m.translate(QVector3D(0, 5, 0.5));
+                sphere_transform_kalman->setMatrix(m);
 
                 NumVector vel = kalman_filt->get_velocity();
                 update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
 
-                roll_ctrl.update(qRadiansToDegrees(r));
-                pitch_ctrl.update(qRadiansToDegrees(p));
-                yaw_ctrl.update(qRadiansToDegrees(y));
+                roll_ctrl_kalman.update(qRadiansToDegrees(r));
+                pitch_ctrl_kalman.update(qRadiansToDegrees(p));
+                yaw_ctrl_kalman.update(qRadiansToDegrees(y));
 
-                if(roll_ctrl.is_saturated())
+                if(roll_ctrl_kalman.is_saturated())
                 {
-                    ui->roll_std_le->setText(QString::number(roll_ctrl.get_std(), 'f', 2));
-                    ui->pitch_std_le->setText(QString::number(pitch_ctrl.get_std(), 'f', 2));
-                    ui->yaw_std_le->setText(QString::number(yaw_ctrl.get_std(), 'f', 2));
+                    ui->roll_std_le->setText(QString::number(roll_ctrl_kalman.get_std(), 'f', 2));
+                    ui->pitch_std_le->setText(QString::number(pitch_ctrl_kalman.get_std(), 'f', 2));
+                    ui->yaw_std_le->setText(QString::number(yaw_ctrl_kalman.get_std(), 'f', 2));
                 }
+            }
+        }
+    }
+
+    if(ui->tabWidget->currentIndex() == 4)
+    {
+        if(!orient_window_compl)
+        {
+            orient_window_compl = new Qt3DExtras::Qt3DWindow;
+            init_orient_plot(ui->dwidget2, ui->gridLayout_8, orient_window_compl, body_transform_compl, sphere_transform_compl);
+        }
+
+        if(ui->pushButton_4->isChecked())
+        {
+            if(filters.at(1)->is_initialized())
+            {
+                QuaternionComplement * complem = dynamic_cast<QuaternionComplement *>(filters.at(1));
+
+                double r, p, y;
+                complem->get_rpy(r, p, y);
+                update_plot(ui->plot6, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
+
+                NumVector quat = complem->get_orientation_quaternion();
+                QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
+
+
+                body_transform_compl->setRotation(qquat);
+
+                QMatrix4x4 m;
+                m.rotate(qquat);
+                m.translate(QVector3D(0, 5, 0.5));
+                sphere_transform_compl->setMatrix(m);
+
+                /*
+                NumVector vel = kalman_filt->get_velocity();
+                update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
+                */
+
+                roll_ctrl_compl.update(qRadiansToDegrees(r));
+                pitch_ctrl_compl.update(qRadiansToDegrees(p));
+                yaw_ctrl_compl.update(qRadiansToDegrees(y));
+/*
+                if(roll_ctrl_compl.is_saturated())
+                {
+                    ui->roll_std_le->setText(QString::number(roll_ctrl_compl.get_std(), 'f', 2));
+                    ui->pitch_std_le->setText(QString::number(pitch_ctrl_compl.get_std(), 'f', 2));
+                    ui->yaw_std_le->setText(QString::number(yaw_ctrl_compl.get_std(), 'f', 2));
+                }
+                */
             }
         }
     }
@@ -344,7 +424,6 @@ void MainWindow::init_graphs()
     ui->plot4->legend->setBrush(Qt::lightGray);
 
     //
-    //
     ui->plot5->plotLayout()->insertRow(0);
     ui->plot5->plotLayout()->addElement(0, 0, new QCPTextElement(ui->plot5, "Speed"));
 
@@ -371,6 +450,63 @@ void MainWindow::init_graphs()
     ui->plot5->setBackground(Qt::lightGray);
     ui->plot5->axisRect()->setBackground(Qt::black);
     ui->plot5->legend->setBrush(Qt::lightGray);
+
+    //
+    ui->plot6->plotLayout()->insertRow(0);
+    ui->plot6->plotLayout()->addElement(0, 0, new QCPTextElement(ui->plot6, "Roll Pitch Yaw"));
+
+    ui->plot6->addGraph();
+    ui->plot6->addGraph();
+    ui->plot6->addGraph();
+
+    ui->plot6->graph(0)->setName("R");
+    ui->plot6->graph(1)->setName("P");
+    ui->plot6->graph(2)->setName("Y");
+
+    ui->plot6->legend->setVisible(true);
+
+    ui->plot6->graph(0)->setPen(QPen(Qt::blue));
+    ui->plot6->graph(1)->setPen(QPen(Qt::red));
+    ui->plot6->graph(2)->setPen(QPen(Qt::cyan));
+
+    ui->plot6->xAxis->setRange(0, 200);
+    ui->plot6->xAxis->setLabel("packet");
+
+    ui->plot6->yAxis->setRange(-180, 180);
+    ui->plot6->yAxis->setLabel("Angle, deg");
+
+    ui->plot6->setBackground(Qt::lightGray);
+    ui->plot6->axisRect()->setBackground(Qt::black);
+    ui->plot6->legend->setBrush(Qt::lightGray);
+
+    //
+    //
+    ui->plot7->plotLayout()->insertRow(0);
+    ui->plot7->plotLayout()->addElement(0, 0, new QCPTextElement(ui->plot7, "Speed"));
+
+    ui->plot7->addGraph();
+    ui->plot7->addGraph();
+    ui->plot7->addGraph();
+
+    ui->plot7->graph(0)->setName("x");
+    ui->plot7->graph(1)->setName("y");
+    ui->plot7->graph(2)->setName("z");
+
+    ui->plot7->legend->setVisible(true);
+
+    ui->plot7->graph(0)->setPen(QPen(Qt::blue));
+    ui->plot7->graph(1)->setPen(QPen(Qt::red));
+    ui->plot7->graph(2)->setPen(QPen(Qt::cyan));
+
+    ui->plot7->xAxis->setRange(0, 200);
+    ui->plot7->xAxis->setLabel("packet");
+
+    ui->plot7->yAxis->setRange(-5, 5);
+    ui->plot7->yAxis->setLabel("Velocity, m/s");
+
+    ui->plot7->setBackground(Qt::lightGray);
+    ui->plot7->axisRect()->setBackground(Qt::black);
+    ui->plot7->legend->setBrush(Qt::lightGray);
 }
 
 void MainWindow::update_plot(QCustomPlot * plot, QVector3D vec)
@@ -420,11 +556,13 @@ void MainWindow::init_magnet_plot(QWidget * dummy_container, QScatterDataArray *
     data->reserve(1000);
 }
 
-void MainWindow::init_orient_plot()
+void MainWindow::init_orient_plot(QWidget * dummy_container, QGridLayout * layout_container,
+                                  Qt3DExtras::Qt3DWindow * plot,
+                                  Qt3DCore::QTransform * body_transform, Qt3DCore::QTransform * sphere_transform)
 {
-    orient_window = new Qt3DExtras::Qt3DWindow;
-    orient_window->defaultFrameGraph()->setClearColor(QColor(126, 192, 238));
-    QWidget *orient_plot_container = QWidget::createWindowContainer(orient_window);
+    plot = new Qt3DExtras::Qt3DWindow;
+    plot->defaultFrameGraph()->setClearColor(QColor(126, 192, 238));
+    QWidget *orient_plot_container = QWidget::createWindowContainer(plot);
     Qt3DCore::QEntity *root = new Qt3DCore::QEntity;
     Qt3DExtras::QPhongMaterial *material = new Qt3DExtras::QPhongMaterial(root);
     material->setDiffuse(Qt::red);
@@ -434,8 +572,6 @@ void MainWindow::init_orient_plot()
 
     mesh->setXExtent(5);
     mesh->setYExtent(10);
-
-    body_transform = new Qt3DCore::QTransform;
 
     body->addComponent(mesh);
     body->addComponent(body_transform);
@@ -467,10 +603,9 @@ void MainWindow::init_orient_plot()
     Qt3DExtras::QPhongMaterial *sphere_material = new Qt3DExtras::QPhongMaterial(root);
     sphere_material->setDiffuse(Qt::blue);
 
-    sphere_transform = new Qt3DCore::QTransform;
-    sphere_transform->setTranslation(QVector3D(0, 5, 0));
+    sphere_transform->setTranslation(QVector3D(0, 5, 0.5));
 
-    sphere->setRadius(1);
+    sphere->setRadius(0.5);
 
     north_entity->addComponent(sphere_transform);
     north_entity->addComponent(sphere);
@@ -526,7 +661,7 @@ void MainWindow::init_orient_plot()
 
     light_entity->setEnabled(true);
 
-    Qt3DRender::QCamera *camera = orient_window->camera();
+    Qt3DRender::QCamera *camera = plot->camera();
     camera->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
     camera->setViewCenter(QVector3D(0, 0, 0));
     camera->setPosition(QVector3D(0, 0, 20.0f));
@@ -537,12 +672,11 @@ void MainWindow::init_orient_plot()
     camController->setLookSpeed( 180.0f );
     camController->setCamera(camera);
 
-    orient_window->setRootEntity(root);
+    plot->setRootEntity(root);
 
-    ui->gridLayout_3->replaceWidget(ui->dwidget, orient_plot_container);
+    layout_container->replaceWidget(dummy_container, orient_plot_container);
 
-    orient_window->show();
-
+    plot->show();
 }
 
 void MainWindow::on_pushButton_toggled(bool checked)
@@ -569,7 +703,7 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
 {
     if(checked)
     {
-        kalman_quat_filt->reset();
+        filters.at(0)->reset();
     }
 }
 
@@ -580,80 +714,100 @@ void MainWindow::on_pushButton_3_clicked()
 
 void MainWindow::on_gyro_process_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_proc_gyro_std(arg1.toDouble());
 }
 
 void MainWindow::on_gyro_bias_process_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_proc_gyro_bias_std(arg1.toDouble());
 }
 
 void MainWindow::on_accel_process_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_proc_accel_std(arg1.toDouble());
 }
 
 void MainWindow::on_accel_meas_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_meas_accel_std(arg1.toDouble());
 }
 
 void MainWindow::on_magn_meas_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_meas_magn_std(arg1.toDouble());
 }
 
 void MainWindow::on_pos_meas_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_meas_pos_std(arg1.toDouble());
 }
 
 void MainWindow::on_vel_meas_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_meas_vel_std(arg1.toDouble());
 }
 
 void MainWindow::on_quat_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_init_quat_std(arg1.toDouble());
 }
 
 void MainWindow::on_bias_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_init_bias_std(arg1.toDouble());
 }
 
 void MainWindow::on_pos_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_init_pos_std(arg1.toDouble());
 }
 
 void MainWindow::on_vel_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = reinterpret_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_init_vel_std(arg1.toDouble());
 }
 
 void MainWindow::on_accel_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = reinterpret_cast<QuaternionKalman *>(kalman_quat_filt);
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_init_accel_std(arg1.toDouble());
 }
 
 void MainWindow::on_samples_le_textEdited(const QString &arg1)
 {
     size_t samples = arg1.toInt();
-    roll_ctrl.set_sampling(samples);
-    pitch_ctrl.set_sampling(samples);
-    yaw_ctrl.set_sampling(samples);
+    roll_ctrl_kalman.set_sampling(samples);
+    pitch_ctrl_kalman.set_sampling(samples);
+    yaw_ctrl_kalman.set_sampling(samples);
+}
+
+void MainWindow::on_a_gain_le_textEdited(const QString &arg1)
+{
+    QuaternionComplement * compl_filt = dynamic_cast<QuaternionComplement *>(filters.at(1));
+    compl_filt->set_static_accel_gain(arg1.toDouble());
+}
+
+void MainWindow::on_m_gain_le_textEdited(const QString &arg1)
+{
+    QuaternionComplement * compl_filt = dynamic_cast<QuaternionComplement *>(filters.at(1));
+    compl_filt->set_static_magn_gain(arg1.toDouble());
+}
+
+void MainWindow::on_samples_le_2_textEdited(const QString &arg1)
+{
+    size_t samples = arg1.toInt();
+    roll_ctrl_compl.set_sampling(samples);
+    pitch_ctrl_compl.set_sampling(samples);
+    yaw_ctrl_compl.set_sampling(samples);
 }

@@ -2,12 +2,13 @@
 #define MAINWINDOW_H
 
 #include "calibrator.h"
-#include "quatkalman.h"
+#include "abstractfilter.h"
 #include "qualitycontrol.h"
 
 #include <QMainWindow>
 #include <QVector3D>
 #include <QtDataVisualization>
+#include <QGridLayout>
 
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/Qt3DWindow>
@@ -33,7 +34,7 @@ private slots:
     void read_datagrams();
     void init_graphs();
     void init_magnet_plot(QWidget * dummy_container, QScatterDataArray * data_container, Q3DScatter * plot, QString title);
-    void init_orient_plot();
+    void init_orient_plot(QWidget * dummy_container, QGridLayout * layout_container, Qt3DExtras::Qt3DWindow * plot, Qt3DCore::QTransform * body, Qt3DCore::QTransform * sphere);
     void update_plot(QCustomPlot * plot, QVector3D vec);
 
     void on_pushButton_toggled(bool checked);
@@ -54,6 +55,12 @@ private slots:
 
     void on_samples_le_textEdited(const QString &arg1);
 
+    void on_a_gain_le_textEdited(const QString &arg1);
+
+    void on_m_gain_le_textEdited(const QString &arg1);
+
+    void on_samples_le_2_textEdited(const QString &arg1);
+
 private:
     void process_data(const QByteArray & data);
 
@@ -68,12 +75,16 @@ private:
 
     Calibrator magn_cal;
 
-    AbstractFilter * kalman_quat_filt;
+    QVector<AbstractFilter *> filters;
 
-    QualityControl roll_ctrl, pitch_ctrl, yaw_ctrl;
+    QualityControl roll_ctrl_kalman, pitch_ctrl_kalman, yaw_ctrl_kalman;
+    QualityControl roll_ctrl_compl, pitch_ctrl_compl, yaw_ctrl_compl;
 
-    Qt3DExtras::Qt3DWindow *orient_window;
-    Qt3DCore::QTransform * body_transform, * sphere_transform;
+    Qt3DExtras::Qt3DWindow * orient_window_kalman = 0;
+    Qt3DCore::QTransform * body_transform_kalman, * sphere_transform_kalman;
+
+    Qt3DExtras::Qt3DWindow * orient_window_compl = 0;
+    Qt3DCore::QTransform * body_transform_compl, * sphere_transform_compl;
 
     const size_t pkt_header_size = 4;
     const size_t sample_size = 169;

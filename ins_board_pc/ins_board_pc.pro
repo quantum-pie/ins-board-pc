@@ -39,7 +39,8 @@ SOURCES += main.cpp\
     quatcomplement.cpp \
     quaternions.cpp \
     ublasaux.cpp \
-    quatkalman.cpp
+    quatkalman.cpp \
+    poskalman.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -54,6 +55,7 @@ HEADERS  += mainwindow.h \
     abstractfilter.h \
     abstractorientationfilter.h \
     abstractpositionfilter.h \
-    quatkalman.h
+    quatkalman.h \
+    poskalman.h
 
 FORMS    += mainwindow.ui
