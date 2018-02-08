@@ -26,9 +26,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    udp_socket = new QUdpSocket(this);
-    udp_socket->bind(QHostAddress("192.168.4.1"), 65000);
-
     init_graphs();
 
     magnet_plot = new Q3DScatter;
@@ -40,12 +37,32 @@ MainWindow::MainWindow(QWidget *parent) :
     init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
     init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
 
-    body_transform_kalman = new Qt3DCore::QTransform;
-    body_transform_compl = new Qt3DCore::QTransform;
-    sphere_transform_kalman = new Qt3DCore::QTransform;
-    sphere_transform_compl = new Qt3DCore::QTransform;
+    setup_quat_kalman();
+    setup_complementary();
+    setup_pos_kalman();
 
-    //
+    udp_socket = new QUdpSocket(this);
+    udp_socket->bind(QHostAddress("192.168.4.1"), 65000);
+    connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
+
+    resize(1300, 800);
+}
+
+MainWindow::~MainWindow()
+{
+    delete udp_socket;
+
+    for(auto * ptr : filters)
+        delete ptr;
+
+    delete ui;
+}
+
+void MainWindow::setup_quat_kalman()
+{
+    body_transform_kalman = new Qt3DCore::QTransform;
+    sphere_transform_kalman = new Qt3DCore::QTransform;
+
     QuaternionKalman::ProcessNoiseParams proc_params;
     proc_params.gyro_std = 0.001; //!< dps
     proc_params.gyro_bias_std = 1e-8; //!< assume almost constant bias
@@ -82,8 +99,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->samples_le->setText(QString::number(roll_ctrl_kalman.get_sampling()));
 
     filters.push_back(new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params, 500}));
+}
 
-    //
+void MainWindow::setup_complementary()
+{
+    body_transform_compl = new Qt3DCore::QTransform;
+    sphere_transform_compl = new Qt3DCore::QTransform;
+
     double static_accel_gain = 0.9;
     double static_magn_gain = 0.9;
 
@@ -93,21 +115,142 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->samples_le_2->setText(QString::number(roll_ctrl_compl.get_sampling()));
 
     filters.push_back(new QuaternionComplement(QuaternionComplement::FilterParams{static_accel_gain, static_magn_gain, 500}));
-
-    //
-    connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
-
-    resize(1300, 800);
 }
 
-MainWindow::~MainWindow()
+void MainWindow::setup_pos_kalman()
 {
-    delete udp_socket;
 
-    for(auto * ptr : filters)
-        delete ptr;
+}
 
-    delete ui;
+AbstractFilter::FilterInput MainWindow::parse_input(const input_t & in)
+{
+    NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
+
+    w <<= qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
+    a <<= in.a_x, in.a_y, in.a_z;
+    m <<= in.m_x, in.m_y, in.m_z;
+    geo <<= qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
+    pos <<= in.gps.x, in.gps.y, in.gps.z;
+    v <<= in.gps.vx, in.gps.vy, in.gps.vz;
+
+    magn_cal.calibrate(m[0], m[1], m[2]);
+
+    QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
+
+    AbstractFilter::FilterInput z{w, a, m, day, geo, pos, v, in.et};
+
+    return z;
+}
+
+void MainWindow::update_raw_tab(const input_t & in)
+{
+    update_plot(ui->plot1, QVector3D(in.a_x * 1e3, in.a_y * 1e3, in.a_z * 1e3));
+    update_plot(ui->plot2, QVector3D(in.w_x, in.w_y, in.w_z));
+    update_plot(ui->plot3, QVector3D(in.m_x, in.m_y, in.m_z));
+}
+
+void MainWindow::update_calibration_tab(const input_t & in)
+{
+    magnet_data->append(QVector3D(in.m_x, in.m_z, in.m_y));
+    magnet_plot->seriesList().at(0)->dataProxy()->resetArray(magnet_data);
+
+    magn_cal.update(in.m_x, in.m_y, in.m_z);
+
+    ui->xbias_le->setText(QString::number(magn_cal.get_x_bias()));
+    ui->ybias_le->setText(QString::number(magn_cal.get_y_bias()));
+    ui->zbias_le->setText(QString::number(magn_cal.get_z_bias()));
+
+    ui->xspan_le->setText(QString::number(magn_cal.get_x_scale()));
+    ui->yspan_le->setText(QString::number(magn_cal.get_y_scale()));
+    ui->zspan_le->setText(QString::number(magn_cal.get_z_scale()));
+}
+
+void MainWindow::update_gps_tab(const input_t & in)
+{
+    ui->x_le->setText(QString::number(in.gps.x, 'f', 2));
+    ui->y_le->setText(QString::number(in.gps.y, 'f', 2));
+    ui->z_le->setText(QString::number(in.gps.z, 'f', 2));
+    ui->vx_le->setText(QString::number(in.gps.vx, 'f', 2));
+    ui->vy_le->setText(QString::number(in.gps.vy, 'f', 2));
+    ui->vz_le->setText(QString::number(in.gps.vz, 'f', 2));
+    ui->lat_le->setText(QString::number(in.gps.lat, 'f', 7));
+    ui->lon_le->setText(QString::number(in.gps.lon, 'f', 7));
+    ui->alt_le->setText(QString::number(in.gps.alt, 'f', 2));
+    ui->msl_alt_le->setText(QString::number(in.gps.msl_alt, 'f', 2));
+
+    QDateTime dt;
+    dt.setDate(QDate(in.gps.time.year, in.gps.time.month, in.gps.time.day));
+    dt.setTime(QTime(in.gps.time.hour, in.gps.time.minute, in.gps.time.second, in.gps.time.msecond));
+
+    ui->time_le->setText(dt.toString());
+}
+
+void MainWindow::update_kalman_tab()
+{
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
+
+    double r, p, y;
+    kalman_filt->get_rpy(r, p, y);
+    update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
+
+    NumVector quat = kalman_filt->get_orientation_quaternion();
+    QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
+
+    body_transform_kalman->setRotation(qquat);
+
+    QMatrix4x4 m;
+    m.rotate(qquat);
+    m.translate(QVector3D(0, 5, 0.5));
+    sphere_transform_kalman->setMatrix(m);
+
+    NumVector vel = kalman_filt->get_velocity();
+    update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
+
+    roll_ctrl_kalman.update(qRadiansToDegrees(r));
+    pitch_ctrl_kalman.update(qRadiansToDegrees(p));
+    yaw_ctrl_kalman.update(qRadiansToDegrees(y));
+
+    if(roll_ctrl_kalman.is_saturated())
+    {
+        ui->roll_std_le->setText(QString::number(roll_ctrl_kalman.get_std(), 'f', 2));
+        ui->pitch_std_le->setText(QString::number(pitch_ctrl_kalman.get_std(), 'f', 2));
+        ui->yaw_std_le->setText(QString::number(yaw_ctrl_kalman.get_std(), 'f', 2));
+    }
+}
+
+void MainWindow::update_comp_pos_tab()
+{
+    QuaternionComplement * complem = dynamic_cast<QuaternionComplement *>(filters.at(1));
+
+    double r, p, y;
+    complem->get_rpy(r, p, y);
+    update_plot(ui->plot6, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
+
+    NumVector quat = complem->get_orientation_quaternion();
+    QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
+
+
+    body_transform_compl->setRotation(qquat);
+
+    QMatrix4x4 m;
+    m.rotate(qquat);
+    m.translate(QVector3D(0, 5, 0.5));
+    sphere_transform_compl->setMatrix(m);
+
+    roll_ctrl_compl.update(qRadiansToDegrees(r));
+    pitch_ctrl_compl.update(qRadiansToDegrees(p));
+    yaw_ctrl_compl.update(qRadiansToDegrees(y));
+
+    if(roll_ctrl_compl.is_saturated())
+    {
+        ui->roll_std_le_2->setText(QString::number(roll_ctrl_compl.get_std(), 'f', 2));
+        ui->pitch_std_le_2->setText(QString::number(pitch_ctrl_compl.get_std(), 'f', 2));
+        ui->yaw_std_le_2->setText(QString::number(yaw_ctrl_compl.get_std(), 'f', 2));
+    }
+
+    /*
+    TODO: Here we will read position filter results
+    */
 }
 
 void MainWindow::read_datagrams()
@@ -142,77 +285,31 @@ void MainWindow::process_data(const QByteArray & data)
                 in.gps.x >> in.gps.y >> in.gps.z >>
                 in.gps.vx >> in.gps.vy >> in.gps.vz;
 
+        AbstractFilter::FilterInput z = parse_input(in);
         if(ui->pushButton_2->isChecked())
         {
-            NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
+            filters.at(0)->step(z);
+        }
 
-            w <<= qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
-            a <<= in.a_x, in.a_y, in.a_z;
-            m <<= in.m_x, in.m_y, in.m_z;
-            geo <<= qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
-            pos <<= in.gps.x, in.gps.y, in.gps.z;
-            v <<= in.gps.vx, in.gps.vy, in.gps.vz;
-
-            magn_cal.calibrate(m[0], m[1], m[2]);
-
-            QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
-
-            AbstractFilter::FilterInput z{w, a, m, day, geo, pos, v, in.et};
-
-            for(auto * ptr : filters)
-            {
-                ptr->step(z);
-            }
+        if(ui->pushButton_4->isChecked())
+        {
+            filters.at(1)->step(z);
         }
     }
 
     if(ui->tabWidget->currentIndex() == 0)
     {
-        update_plot(ui->plot1, QVector3D(in.a_x * 1e3, in.a_y * 1e3, in.a_z * 1e3));
-        update_plot(ui->plot2, QVector3D(in.w_x, in.w_y, in.w_z));
-        update_plot(ui->plot3, QVector3D(in.m_x, in.m_y, in.m_z));
+        update_raw_tab(in);
     }
 
-    if(ui->tabWidget->currentIndex() == 1)
+    if(ui->tabWidget->currentIndex() == 1 && ui->pushButton->isChecked())
     {
-        if(ui->pushButton->isChecked())
-        {
-            magnet_data->append(QVector3D(in.m_x, in.m_z, in.m_y));
-            magnet_plot->seriesList().at(0)->dataProxy()->resetArray(magnet_data);
-
-            magn_cal.update(in.m_x, in.m_y, in.m_z);
-
-            ui->xbias_le->setText(QString::number(magn_cal.get_x_bias()));
-            ui->ybias_le->setText(QString::number(magn_cal.get_y_bias()));
-            ui->zbias_le->setText(QString::number(magn_cal.get_z_bias()));
-
-            ui->xspan_le->setText(QString::number(magn_cal.get_x_scale()));
-            ui->yspan_le->setText(QString::number(magn_cal.get_y_scale()));
-            ui->zspan_le->setText(QString::number(magn_cal.get_z_scale()));
-        }
+        update_calibration_tab(in);
     }
 
-    if(ui->tabWidget->currentIndex() == 2)
+    if(ui->tabWidget->currentIndex() == 2 && in.gps.fix)
     {
-        if(in.gps.fix)
-        {
-            ui->x_le->setText(QString::number(in.gps.x, 'f', 2));
-            ui->y_le->setText(QString::number(in.gps.y, 'f', 2));
-            ui->z_le->setText(QString::number(in.gps.z, 'f', 2));
-            ui->vx_le->setText(QString::number(in.gps.vx, 'f', 2));
-            ui->vy_le->setText(QString::number(in.gps.vy, 'f', 2));
-            ui->vz_le->setText(QString::number(in.gps.vz, 'f', 2));
-            ui->lat_le->setText(QString::number(in.gps.lat, 'f', 7));
-            ui->lon_le->setText(QString::number(in.gps.lon, 'f', 7));
-            ui->alt_le->setText(QString::number(in.gps.alt, 'f', 2));
-            ui->msl_alt_le->setText(QString::number(in.gps.msl_alt, 'f', 2));
-
-            QDateTime dt;
-            dt.setDate(QDate(in.gps.time.year, in.gps.time.month, in.gps.time.day));
-            dt.setTime(QTime(in.gps.time.hour, in.gps.time.minute, in.gps.time.second, in.gps.time.msecond));
-
-            ui->time_le->setText(dt.toString());
-        }
+        update_gps_tab(in);
     }
 
     if(ui->tabWidget->currentIndex() == 3)
@@ -220,43 +317,13 @@ void MainWindow::process_data(const QByteArray & data)
         if(!orient_window_kalman)
         {
             orient_window_kalman = new Qt3DExtras::Qt3DWindow;
-            init_orient_plot(ui->dwidget, ui->gridLayout_3, orient_window_kalman, body_transform_kalman, sphere_transform_kalman);
+            init_orient_plot(ui->dwidget, ui->gridLayout_3,
+                             orient_window_kalman, body_transform_kalman, sphere_transform_kalman);
         }
 
-        if(ui->pushButton_2->isChecked())
+        if(ui->pushButton_2->isChecked() && filters.at(0)->is_initialized())
         {
-            if(filters.at(0)->is_initialized())
-            {
-                QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-
-                double r, p, y;
-                kalman_filt->get_rpy(r, p, y);
-                update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
-
-                NumVector quat = kalman_filt->get_orientation_quaternion();
-                QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
-
-                body_transform_kalman->setRotation(qquat);
-
-                QMatrix4x4 m;
-                m.rotate(qquat);
-                m.translate(QVector3D(0, 5, 0.5));
-                sphere_transform_kalman->setMatrix(m);
-
-                NumVector vel = kalman_filt->get_velocity();
-                update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
-
-                roll_ctrl_kalman.update(qRadiansToDegrees(r));
-                pitch_ctrl_kalman.update(qRadiansToDegrees(p));
-                yaw_ctrl_kalman.update(qRadiansToDegrees(y));
-
-                if(roll_ctrl_kalman.is_saturated())
-                {
-                    ui->roll_std_le->setText(QString::number(roll_ctrl_kalman.get_std(), 'f', 2));
-                    ui->pitch_std_le->setText(QString::number(pitch_ctrl_kalman.get_std(), 'f', 2));
-                    ui->yaw_std_le->setText(QString::number(yaw_ctrl_kalman.get_std(), 'f', 2));
-                }
-            }
+            update_kalman_tab();
         }
     }
 
@@ -265,47 +332,13 @@ void MainWindow::process_data(const QByteArray & data)
         if(!orient_window_compl)
         {
             orient_window_compl = new Qt3DExtras::Qt3DWindow;
-            init_orient_plot(ui->dwidget2, ui->gridLayout_8, orient_window_compl, body_transform_compl, sphere_transform_compl);
+            init_orient_plot(ui->dwidget2, ui->gridLayout_8,
+                             orient_window_compl, body_transform_compl, sphere_transform_compl);
         }
 
-        if(ui->pushButton_4->isChecked())
+        if(ui->pushButton_4->isChecked() && filters.at(1)->is_initialized())
         {
-            if(filters.at(1)->is_initialized())
-            {
-                QuaternionComplement * complem = dynamic_cast<QuaternionComplement *>(filters.at(1));
-
-                double r, p, y;
-                complem->get_rpy(r, p, y);
-                update_plot(ui->plot6, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
-
-                NumVector quat = complem->get_orientation_quaternion();
-                QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
-
-
-                body_transform_compl->setRotation(qquat);
-
-                QMatrix4x4 m;
-                m.rotate(qquat);
-                m.translate(QVector3D(0, 5, 0.5));
-                sphere_transform_compl->setMatrix(m);
-
-                /*
-                NumVector vel = kalman_filt->get_velocity();
-                update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
-                */
-
-                roll_ctrl_compl.update(qRadiansToDegrees(r));
-                pitch_ctrl_compl.update(qRadiansToDegrees(p));
-                yaw_ctrl_compl.update(qRadiansToDegrees(y));
-/*
-                if(roll_ctrl_compl.is_saturated())
-                {
-                    ui->roll_std_le->setText(QString::number(roll_ctrl_compl.get_std(), 'f', 2));
-                    ui->pitch_std_le->setText(QString::number(pitch_ctrl_compl.get_std(), 'f', 2));
-                    ui->yaw_std_le->setText(QString::number(yaw_ctrl_compl.get_std(), 'f', 2));
-                }
-                */
-            }
+            update_comp_pos_tab();
         }
     }
 }
@@ -704,6 +737,15 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
     if(checked)
     {
         filters.at(0)->reset();
+    }
+}
+
+void MainWindow::on_pushButton_4_toggled(bool checked)
+{
+    if(checked)
+    {
+        filters.at(1)->reset();
+        // and at(2) too
     }
 }
 
