@@ -1,27 +1,12 @@
-#ifndef QUATKALMAN_H
-#define QUATKALMAN_H
+#ifndef QUATKALMAN_TEST_H
+#define QUATKALMAN_TEST_H
 
-#include <QDate>
+#include "abstractorientationfilter.h"
+#include "abstractpositionfilter.h"
 
-#include "ublasaux.h"
-#include "quaternions.h"
-#include "qualitycontrol.h"
-
-class QuaternionKalman
+class QuaternionKalman final : public AbstractOrientationFilter, public AbstractPositionFilter
 {
 public:
-    struct KalmanInput
-    {
-        NumVector w;
-        NumVector a;
-        NumVector m;
-        QDate day;
-        NumVector geo;
-        NumVector pos;
-        NumVector v;
-        double dt;
-    };
-
     struct ProcessNoiseParams
     {
         double gyro_std;
@@ -51,25 +36,23 @@ public:
         ProcessNoiseParams proc_params;
         MeasurementNoiseParams meas_params;
         InitCovParams init_params;
+        int accum_capacity;
     };
 
     QuaternionKalman(const FilterParams & params);
+    ~QuaternionKalman() override;
 
-    void step(const KalmanInput & z);
+    void step(const FilterInput & z) override;
+    void reset() override;
 
-    void reset();
+    NumVector get_orientation_quaternion() override;
+    NumVector get_gyro_bias() override;
+    NumVector get_position() override;
+    NumVector get_velocity() override;
+    NumVector get_acceleration() override;
 
-    bool is_initialized();
-
-    NumVector get_state();
-    NumVector get_orientation_quaternion();
-    NumVector get_gyro_bias();
-    NumVector get_position();
-    NumVector get_velocity();
-    NumVector get_acceleration();
-
-    void get_rpy(double & roll, double & pitch, double & yaw);
-    void get_geodetic(double & lat, double & lon, double & alt);
+    void get_rpy(double & roll, double & pitch, double & yaw) override;
+    void get_geodetic(double & lat, double & lon, double & alt) override;
 
     void set_proc_gyro_std(double std);
     void set_proc_gyro_bias_std(double std);
@@ -86,16 +69,15 @@ public:
     void set_init_vel_std(double std);
     void set_init_accel_std(double std);
 
-private:    
-    void update(const KalmanInput & z);
-    void accumulate(const KalmanInput & z);
-    void initialize(const KalmanInput & z);
-    bool bias_estimated();
+protected:
+    void update(const FilterInput & z) override;
+    void accumulate(const FilterInput & z) override;
+    void initialize(const FilterInput & z) override;
+    void normalize_state() override;
 
-    void normalize_state();
-
+private:
     /* create Kalman matrices */
-    NumMatrix create_transition_mtx(const KalmanInput & z);
+    NumMatrix create_transition_mtx(const FilterInput & z);
     NumMatrix create_proc_noise_cov_mtx(double dt);
     NumMatrix create_meas_noise_cov_mtx(double lat, double lon, double magn_mag);
     NumMatrix create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v);
@@ -114,20 +96,11 @@ private:
 
     void calculate_velocity(const NumVector & velocity, double & vel);
 
-    static const int accum_capacity = 500;
     static const int state_size = 16;
     static const int measurement_size = 10;
 
-    NumVector x;
     NumMatrix P;
-
-    bool initialized;
-
     FilterParams params;
-
-    QualityControl bias_x_ctrl;
-    QualityControl bias_y_ctrl;
-    QualityControl bias_z_ctrl;
 };
 
-#endif // QUATKALMAN_H
+#endif // QUATKALMAN_TEST_H

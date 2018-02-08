@@ -12,8 +12,6 @@
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/Qt3DWindow>
 
-#include "quatkalman_test.h"
-
 class QCustomPlot;
 class QUdpSocket;
 
@@ -70,7 +68,6 @@ private:
 
     Calibrator magn_cal;
 
-    //QuaternionKalman *marg_filt;
     AbstractFilter * kalman_quat_filt;
 
     QualityControl roll_ctrl, pitch_ctrl, yaw_ctrl;

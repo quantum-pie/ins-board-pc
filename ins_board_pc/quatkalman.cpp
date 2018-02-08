@@ -1,6 +1,8 @@
 #include "quatkalman.h"
+
 #include "wmmwrapper.h"
 #include "physconst.h"
+#include "quaternions.h"
 
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
@@ -8,28 +10,38 @@
 #include <boost/numeric/ublas/assignment.hpp>
 
 #include <QtMath>
-#include <QElapsedTimer>
 
-#include <QDebug>
-
-QuaternionKalman::QuaternionKalman(const FilterParams & params)
-    : params(params),
-      bias_x_ctrl(accum_capacity), bias_y_ctrl(accum_capacity), bias_z_ctrl(accum_capacity)
+QuaternionKalman::QuaternionKalman(const FilterParams & par)
+    : AbstractOrientationFilter(par.accum_capacity),
+      AbstractPositionFilter(),
+      params(par)
 {
-    reset();
     x = NumVector(state_size);
     P = NumMatrix(state_size, state_size);
 }
 
-void QuaternionKalman::accumulate(const KalmanInput & z)
+QuaternionKalman::~QuaternionKalman()
 {
-    bias_x_ctrl.update(z.w[0]);
-    bias_y_ctrl.update(z.w[1]);
-    bias_z_ctrl.update(z.w[2]);
+
 }
 
-void QuaternionKalman::initialize(const KalmanInput & z)
+void QuaternionKalman::accumulate(const FilterInput & z)
 {
+    AbstractOrientationFilter::accumulate(z);
+    AbstractPositionFilter::accumulate(z);
+}
+
+void QuaternionKalman::reset()
+{
+    AbstractOrientationFilter::reset();
+    AbstractPositionFilter::reset();
+}
+
+void QuaternionKalman::initialize(const FilterInput & z)
+{
+    AbstractOrientationFilter::initialize(z);
+    AbstractPositionFilter::initialize(z);
+
     NumVector qacc = qutils::acceleration_quat(z.a);
 
     NumMatrix accel_rotator = qutils::quaternion_to_dcm_tr(qacc);
@@ -90,30 +102,9 @@ void QuaternionKalman::initialize(const KalmanInput & z)
     P(15, 15) = accel_variance;
 }
 
-void QuaternionKalman::reset()
+void QuaternionKalman::step(const FilterInput & z)
 {
-    initialized = false;
-
-    bias_x_ctrl.reset();
-    bias_y_ctrl.reset();
-    bias_z_ctrl.reset();
-}
-
-bool QuaternionKalman::is_initialized()
-{
-    return initialized;
-}
-
-bool QuaternionKalman::bias_estimated()
-{
-    return bias_x_ctrl.is_saturated() &&
-            bias_y_ctrl.is_saturated() &&
-            bias_z_ctrl.is_saturated();
-}
-
-void QuaternionKalman::step(const KalmanInput & z)
-{
-    if(initialized)
+    if(is_initialized())
     {
         update(z);
     }
@@ -123,12 +114,11 @@ void QuaternionKalman::step(const KalmanInput & z)
         if(bias_estimated())
         {
             initialize(z);
-            initialized = true;
         }
     }
 }
 
-void QuaternionKalman::update(const KalmanInput & z)
+void QuaternionKalman::update(const FilterInput & z)
 {
     NumMatrix F = create_transition_mtx(z);
     NumMatrix Q = create_proc_noise_cov_mtx(z.dt);
@@ -190,7 +180,7 @@ void QuaternionKalman::normalize_state()
     ublas::project(x, ublas::range(0, 4)) = qutils::quat_normalize(get_orientation_quaternion());
 }
 
-NumMatrix QuaternionKalman::create_transition_mtx(const KalmanInput & z)
+NumMatrix QuaternionKalman::create_transition_mtx(const FilterInput & z)
 {
     /* useful constants */
     double dt = z.dt;
@@ -406,11 +396,6 @@ void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat
 void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & vel)
 {
     vel = norm_2(velocity);
-}
-
-NumVector QuaternionKalman::get_state()
-{
-    return x;
 }
 
 NumVector QuaternionKalman::get_orientation_quaternion()

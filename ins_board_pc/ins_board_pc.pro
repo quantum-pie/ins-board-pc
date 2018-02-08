@@ -33,19 +33,17 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     qcustomplot.cpp \
     calibrator.cpp \
-    quatkalman.cpp \
     wmm/GeomagnetismLibrary.c \
     wmmwrapper.cpp \
     qualitycontrol.cpp \
     quatcomplement.cpp \
     quaternions.cpp \
     ublasaux.cpp \
-    quatkalman_test.cpp
+    quatkalman.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
     calibrator.h \
-    quatkalman.h \
     wmm/GeomagnetismHeader.h \
     wmmwrapper.h \
     qualitycontrol.h \
@@ -56,6 +54,6 @@ HEADERS  += mainwindow.h \
     abstractfilter.h \
     abstractorientationfilter.h \
     abstractpositionfilter.h \
-    quatkalman_test.h
+    quatkalman.h
 
 FORMS    += mainwindow.ui
