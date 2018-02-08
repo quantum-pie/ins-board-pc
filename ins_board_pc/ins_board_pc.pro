@@ -39,7 +39,8 @@ SOURCES += main.cpp\
     qualitycontrol.cpp \
     quatcomplement.cpp \
     quaternions.cpp \
-    ublasaux.cpp
+    ublasaux.cpp \
+    quatkalman_test.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -51,6 +52,10 @@ HEADERS  += mainwindow.h \
     quatcomplement.h \
     quaternions.h \
     ublasaux.h \
-    physconst.h
+    physconst.h \
+    abstractfilter.h \
+    abstractorientationfilter.h \
+    abstractpositionfilter.h \
+    quatkalman_test.h
 
 FORMS    += mainwindow.ui

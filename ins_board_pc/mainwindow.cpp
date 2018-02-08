@@ -39,18 +39,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
     init_orient_plot();
 
-    QuaternionKalman::ProcessNoiseParams proc_params;
-    proc_params.gyro_std = 0.01; //!< dps
+    QuatKalmanTest::ProcessNoiseParams proc_params;
+    proc_params.gyro_std = 0.001; //!< dps
     proc_params.gyro_bias_std = 1e-8; //!< assume almost constant bias
     proc_params.accel_std = 0.00001; //!< m^2/s
 
-    QuaternionKalman::MeasurementNoiseParams meas_params;
-    meas_params.accel_std = 0.03; //0.005 //!< g
+    QuatKalmanTest::MeasurementNoiseParams meas_params;
+    meas_params.accel_std = 0.005; //0.005 //!< g
     meas_params.magn_std = 1.2;//1.2; //!< uT
     meas_params.gps_cep = 2.5;//2.5; //!< m
     meas_params.gps_vel_abs_std = 0.2;//0.1; //!< m/s
 
-    QuaternionKalman::InitCovParams cov_params;
+    QuatKalmanTest::InitCovParams cov_params;
     cov_params.quat_std = 1e-2;
     cov_params.bias_std = 1e-10;
     cov_params.pos_std = 2.5;
@@ -74,7 +74,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->samples_le->setText(QString::number(roll_ctrl.get_sampling()));
 
-    marg_filt = new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params});
+    //marg_filt = new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params});
+
+    kalman_quat_filt = new QuatKalmanTest(QuatKalmanTest::FilterParams{proc_params, meas_params, cov_params, 500});
 
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 
@@ -84,7 +86,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete udp_socket;
-    delete marg_filt;
+    delete kalman_quat_filt;
     delete ui;
 }
 
@@ -135,9 +137,9 @@ void MainWindow::process_data(const QByteArray & data)
 
             QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
 
-            QuaternionKalman::KalmanInput z{w, a, m, day, geo, pos, v, in.et};
+            AbstractFilter::FilterInput z{w, a, m, day, geo, pos, v, in.et};
 
-            marg_filt->step(z);
+            kalman_quat_filt->step(z);
         }
     }
 
@@ -194,13 +196,15 @@ void MainWindow::process_data(const QByteArray & data)
     {
         if(ui->pushButton_2->isChecked())
         {
-            if(marg_filt->is_initialized())
+            if(kalman_quat_filt->is_initialized())
             {
+                QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+
                 double r, p, y;
-                marg_filt->get_rpy(r, p, y);
+                kalman_filt->get_rpy(r, p, y);
                 update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
 
-                NumVector quat = marg_filt->get_orientation_quaternion();
+                NumVector quat = kalman_filt->get_orientation_quaternion();
                 QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
 
                 body_transform->setRotation(qquat);
@@ -210,7 +214,7 @@ void MainWindow::process_data(const QByteArray & data)
                 m.translate(QVector3D(0, 5, 0));
                 sphere_transform->setMatrix(m);
 
-                NumVector vel = marg_filt->get_velocity();
+                NumVector vel = kalman_filt->get_velocity();
                 update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
 
                 roll_ctrl.update(qRadiansToDegrees(r));
@@ -567,7 +571,7 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
 {
     if(checked)
     {
-        marg_filt->reset();
+        kalman_quat_filt->reset();
     }
 }
 
@@ -578,62 +582,74 @@ void MainWindow::on_pushButton_3_clicked()
 
 void MainWindow::on_gyro_process_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_proc_gyro_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_proc_gyro_std(arg1.toDouble());
 }
 
 void MainWindow::on_gyro_bias_process_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_proc_gyro_bias_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_proc_gyro_bias_std(arg1.toDouble());
 }
 
 void MainWindow::on_accel_process_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_proc_accel_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_proc_accel_std(arg1.toDouble());
 }
 
 void MainWindow::on_accel_meas_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_meas_accel_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_meas_accel_std(arg1.toDouble());
 }
 
 void MainWindow::on_magn_meas_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_meas_magn_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_meas_magn_std(arg1.toDouble());
 }
 
 void MainWindow::on_pos_meas_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_meas_pos_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_meas_pos_std(arg1.toDouble());
 }
 
 void MainWindow::on_vel_meas_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_meas_vel_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_meas_vel_std(arg1.toDouble());
 }
 
 void MainWindow::on_quat_init_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_init_quat_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_init_quat_std(arg1.toDouble());
 }
 
 void MainWindow::on_bias_init_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_init_bias_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_init_bias_std(arg1.toDouble());
 }
 
 void MainWindow::on_pos_init_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_init_pos_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = dynamic_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_init_pos_std(arg1.toDouble());
 }
 
 void MainWindow::on_vel_init_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_init_vel_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = reinterpret_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_init_vel_std(arg1.toDouble());
 }
 
 void MainWindow::on_accel_init_le_textEdited(const QString &arg1)
 {
-    marg_filt->set_init_accel_std(arg1.toDouble());
+    QuatKalmanTest * kalman_filt = reinterpret_cast<QuatKalmanTest *>(kalman_quat_filt);
+    kalman_filt->set_init_accel_std(arg1.toDouble());
 }
 
 void MainWindow::on_samples_le_textEdited(const QString &arg1)

@@ -690,6 +690,11 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_5">
+       <attribute name="title">
+        <string>Compl+PosKalman</string>
+       </attribute>
+      </widget>
      </widget>
     </item>
    </layout>
