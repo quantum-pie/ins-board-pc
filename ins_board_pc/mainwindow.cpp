@@ -65,18 +65,18 @@ void MainWindow::setup_quat_kalman()
 
     QuaternionKalman::ProcessNoiseParams proc_params;
     proc_params.gyro_std = 0.001; //!< dps
-    proc_params.gyro_bias_std = 1e-8; //!< assume almost constant bias
+    proc_params.gyro_bias_std = 0; //!< assume almost constant bias
     proc_params.accel_std = 0.00001; //!< m^2/s
 
     QuaternionKalman::MeasurementNoiseParams meas_params;
-    meas_params.accel_std = 0.005; //0.005 //!< g
-    meas_params.magn_std = 1.2;//1.2; //!< uT
+    meas_params.accel_std = 0.007; //0.005 //!< g
+    meas_params.magn_std = 1.5;//1.2; //!< uT
     meas_params.gps_cep = 2.5;//2.5; //!< m
     meas_params.gps_vel_abs_std = 0.2;//0.1; //!< m/s
 
     QuaternionKalman::InitCovParams cov_params;
     cov_params.quat_std = 1e-2;
-    cov_params.bias_std = 1e-10;
+    cov_params.bias_std = 0;
     cov_params.pos_std = 2.5;
     cov_params.vel_std = 0.1;
     cov_params.accel_std = 1;
@@ -106,8 +106,8 @@ void MainWindow::setup_complementary()
     body_transform_compl = new Qt3DCore::QTransform;
     sphere_transform_compl = new Qt3DCore::QTransform;
 
-    double static_accel_gain = 0.9;
-    double static_magn_gain = 0.9;
+    double static_accel_gain = 0.005;
+    double static_magn_gain = 0.00005;
 
     ui->a_gain_le->setText(QString::number(static_accel_gain));
     ui->m_gain_le->setText(QString::number(static_magn_gain));
@@ -133,7 +133,7 @@ AbstractFilter::FilterInput MainWindow::parse_input(const input_t & in) const
     pos <<= in.gps.x, in.gps.y, in.gps.z;
     v <<= in.gps.vx, in.gps.vy, in.gps.vz;
 
-    magn_cal.calibrate(m[0], m[1], m[2]);
+    magn_cal.calibrate(m);
 
     QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
 
@@ -154,15 +154,20 @@ void MainWindow::update_calibration_tab(const input_t & in)
     magnet_data->append(QVector3D(in.m_x, in.m_z, in.m_y));
     magnet_plot->seriesList().at(0)->dataProxy()->resetArray(magnet_data);
 
-    magn_cal.update(in.m_x, in.m_y, in.m_z);
+    NumVector m(3);
+    m <<= in.m_x, in.m_y, in.m_z;
+    magn_cal.update(m);
 
-    ui->xbias_le->setText(QString::number(magn_cal.get_x_bias()));
-    ui->ybias_le->setText(QString::number(magn_cal.get_y_bias()));
-    ui->zbias_le->setText(QString::number(magn_cal.get_z_bias()));
+    NumVector b = magn_cal.get_bias();
+    NumMatrix s = magn_cal.get_scale();
 
-    ui->xspan_le->setText(QString::number(magn_cal.get_x_scale()));
-    ui->yspan_le->setText(QString::number(magn_cal.get_y_scale()));
-    ui->zspan_le->setText(QString::number(magn_cal.get_z_scale()));
+    ui->xbias_le->setText(QString::number(b[0]));
+    ui->ybias_le->setText(QString::number(b[1]));
+    ui->zbias_le->setText(QString::number(b[2]));
+
+    ui->xspan_le->setText(QString::number(s(0, 0)));
+    ui->yspan_le->setText(QString::number(s(1, 1)));
+    ui->zspan_le->setText(QString::number(s(2, 2)));
 }
 
 void MainWindow::update_gps_tab(const input_t & in)
@@ -723,6 +728,7 @@ void MainWindow::on_pushButton_toggled(bool checked)
     }
     else
     {
+        magn_cal.fit();
         magnet_data_cb->resize(magnet_data->size());
         for(int i = 0; i < magnet_data->size(); ++i)
         {
