@@ -11,6 +11,8 @@
 
 #include <QtMath>
 
+#include <QDebug>
+
 QuaternionKalman::QuaternionKalman(const FilterParams & par)
     : AbstractOrientationFilter(par.accum_capacity),
       AbstractPositionFilter(),
@@ -152,6 +154,9 @@ void QuaternionKalman::update(const FilterInput & z)
     NumVector z_meas(measurement_size);
     z_meas <<= z.a, z.m / mag_magn, z.pos, norm_2(z.v);
 
+    //double incl_est = qRadiansToDegrees(qAsin(z.m[2] / mag_magn));
+    //qDebug() << incl_est;
+
     NumVector y = z_meas - z_pr;
 
     NumMatrix R = create_meas_noise_cov_mtx(lat, lon, mag_magn);
@@ -272,6 +277,7 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     double height_adjust = WrapperWMM::instance().expected_gravity_accel(lat, alt) / phconst::standard_gravity;
 
     NumVector a = get_acceleration() / phconst::standard_gravity;
+
     NumVector q = get_orientation_quaternion();
 
     NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
