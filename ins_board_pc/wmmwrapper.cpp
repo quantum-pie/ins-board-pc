@@ -68,7 +68,7 @@ NumMatrix WrapperWMM::geodetic_to_dcm(double lat, double lon) const
 
     NumMatrix DCM(3, 3);
 
-    DCM <<= -slon, clon, 0,
+    DCM << -slon, clon, 0,
             -clon * slat, -slon * slat, clat,
             clon * clat, slon * clat, slat;
 
@@ -86,7 +86,7 @@ NumVector WrapperWMM::expected_mag(double lat, double lon, double alt, QDate day
     double cincl = qCos(inclination);
 
     NumVector RES(3);
-    RES <<= sdecl * cincl, cdecl * cincl, -sincl;
+    RES << sdecl * cincl, cdecl * cincl, -sincl;
     return RES;
 }
 
@@ -117,7 +117,7 @@ NumMatrix WrapperWMM::dcm_lat_partial(double lat, double lon) const
 
     NumMatrix RES(3, 3);
 
-    RES <<= 0, 0, 0,
+    RES << 0, 0, 0,
             -clon * clat, -slon * clat, -slat,
             -clon * slat, -slon * slat, clat;
 
@@ -133,7 +133,7 @@ NumMatrix WrapperWMM::dcm_lon_partial(double lat, double lon) const
 
     NumMatrix RES(3, 3);
 
-    RES <<= -clon, -slon, 0,
+    RES << -clon, -slon, 0,
             slon * slat, -clon * slat, 0,
             -slon * clat, clon * clat, 0;
 

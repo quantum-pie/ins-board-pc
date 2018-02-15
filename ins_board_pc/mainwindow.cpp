@@ -132,12 +132,12 @@ AbstractFilter::FilterInput MainWindow::parse_input(const input_t & in) const
 {
     NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
 
-    w <<= qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
-    a <<= in.a_x, in.a_y, in.a_z;
-    m <<= in.m_x, in.m_y, in.m_z;
-    geo <<= qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
-    pos <<= in.gps.x, in.gps.y, in.gps.z;
-    v <<= in.gps.vx, in.gps.vy, in.gps.vz;
+    w << qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
+    a << in.a_x, in.a_y, in.a_z;
+    m << in.m_x, in.m_y, in.m_z;
+    geo << qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
+    pos << in.gps.x, in.gps.y, in.gps.z;
+    v << in.gps.vx, in.gps.vy, in.gps.vz;
 
     magn_cal.calibrate(m);
 
@@ -161,7 +161,7 @@ void MainWindow::update_calibration_tab(const input_t & in)
     magnet_plot->seriesList().at(0)->dataProxy()->resetArray(magnet_data);
 
     NumVector m(3);
-    m <<= in.m_x, in.m_y, in.m_z;
+    m << in.m_x, in.m_y, in.m_z;
     magn_cal.update(m);
 }
 

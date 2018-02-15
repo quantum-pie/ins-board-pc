@@ -1,12 +1,9 @@
 #include "quatcomplement.h"
 #include "quaternions.h"
 
-#include <boost/numeric/ublas/vector_expression.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/assignment.hpp>
-
 #include <QtMath>
+
+const int QuaternionComplement::state_size = 7;
 
 QuaternionComplement::QuaternionComplement(const FilterParams & par)
     : AbstractOrientationFilter(par.accum_capacity), params(par)
@@ -21,10 +18,12 @@ QuaternionComplement::~QuaternionComplement()
 
 void QuaternionComplement::initialize(const FilterInput & z)
 {
+    AbstractOrientationFilter::initialize(z);
+
     NumVector qacc = qutils::acceleration_quat(z.a);
 
     NumMatrix accel_rotator = qutils::quaternion_to_dcm_tr(qacc);
-    NumVector l = prod(accel_rotator, z.m);
+    NumVector l = accel_rotator * z.m;
 
     NumVector qmag = qutils::magnetometer_quat(l);
 
@@ -63,22 +62,22 @@ void QuaternionComplement::update(const FilterInput & z)
     NumMatrix V = qutils::skew_symmetric(z.w);
 
     V *= dt_2;
-    V += IdentityMatrix(4);
+    V += NumMatrix::Identity(4, 4);
 
     NumMatrix K = qutils::quat_delta_mtx(get_orientation_quaternion(), dt_2);
 
     NumMatrix F(state_size, state_size);
 
-    F <<= V, K,
-          ZeroMatrix(3, 4), IdentityMatrix(3);
+    F <<  V, K,
+          NumMatrix::Zero(3, 4), NumMatrix::Identity(3, 3);
 
     /* propagate quaternion */
-    x = prod(F, x);
+    x = F * x;
 
     /* update biases */
-    x[4] = bias_x_ctrl.get_mean();
-    x[5] = bias_y_ctrl.get_mean();
-    x[6] = bias_z_ctrl.get_mean();
+    //x[4] = bias_x_ctrl.get_mean();
+    //x[5] = bias_y_ctrl.get_mean();
+    //x[6] = bias_z_ctrl.get_mean();
 
     normalize_state();
 
@@ -87,16 +86,16 @@ void QuaternionComplement::update(const FilterInput & z)
     /* extract predicted quaternion */
     NumVector q_pred = get_orientation_quaternion();
 
-    NumVector a_norm = z.a / norm_2(z.a);
+    NumVector a_norm = z.a / z.a.norm();
 
     /* predict gravity */
-    NumVector g_pred = prod(qutils::quaternion_to_dcm(q_pred), a_norm);
+    NumVector g_pred = qutils::quaternion_to_dcm(q_pred) * a_norm;
     NumVector qacc_delta = qutils::quat_conjugate(qutils::acceleration_quat(g_pred));
     NumVector qacc_corr = qutils::lerp(ident_quat, qacc_delta, calculate_gain(z.a));
     NumVector q_corr = qutils::quat_multiply(qacc_corr, q_pred);
 
     /* predict magnetic vector */
-    NumVector mag_pred = prod(qutils::quaternion_to_dcm(q_corr), z.m);
+    NumVector mag_pred = qutils::quaternion_to_dcm(q_corr) * z.m;
     NumVector qmag_delta = qutils::quat_conjugate(qutils::magnetometer_quat(mag_pred));
     NumVector qmag_corr = qutils::lerp(ident_quat, qmag_delta, params.static_magn_gain);
     q_corr = qutils::quat_multiply(qmag_corr, q_corr);
@@ -110,7 +109,7 @@ void QuaternionComplement::update(const FilterInput & z)
 
 void QuaternionComplement::normalize_state()
 {
-    ublas::project(x, ublas::range(0, 4)) = qutils::quat_normalize(get_orientation_quaternion());
+    x.segment(0, 4) = qutils::quat_normalize(get_orientation_quaternion());
 }
 
 double QuaternionComplement::calculate_gain(const NumVector & accel) const
@@ -121,12 +120,12 @@ double QuaternionComplement::calculate_gain(const NumVector & accel) const
 
 NumVector QuaternionComplement::get_orientation_quaternion() const
 {
-    return ublas::project(x, ublas::range(0, 4));
+    return x.segment(0, 4);
 }
 
 NumVector QuaternionComplement::get_gyro_bias() const
 {
-    return ublas::project(x, ublas::range(4, 7));
+    return x.segment(4, 3);
 }
 
 void QuaternionComplement::get_rpy(double & roll, double & pitch, double & yaw) const

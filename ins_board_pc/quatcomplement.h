@@ -39,7 +39,7 @@ protected:
 private:
     double calculate_gain(const NumVector & accel) const;
 
-    static const int state_size = 7;
+    static const int state_size;
 
     FilterParams params;
 };

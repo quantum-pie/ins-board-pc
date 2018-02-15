@@ -1,7 +1,7 @@
 #ifndef CALIBRATOR_H
 #define CALIBRATOR_H
 
-#include "ublasaux.h"
+#include "eigenaux.h"
 
 #include <QVector3D>
 

@@ -1,7 +1,7 @@
 #ifndef QUATERNIONS_H
 #define QUATERNIONS_H
 
-#include "ublasaux.h"
+#include "eigenaux.h"
 
 namespace qutils
 {

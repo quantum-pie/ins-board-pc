@@ -1,7 +1,8 @@
 #ifndef ABSTRACTFILTER_H
 #define ABSTRACTFILTER_H
 
-#include "ublasaux.h"
+//#include "ublasaux.h"
+#include "eigenaux.h"
 
 #include <QDate>
 

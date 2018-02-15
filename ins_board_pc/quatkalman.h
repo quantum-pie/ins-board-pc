@@ -102,8 +102,8 @@ private:
 
     void calculate_velocity(const NumVector & velocity, double & vel) const;
 
-    static const int state_size = 16;
-    static const int measurement_size = 10;
+    static const int state_size;
+    static const int measurement_size;
 
     NumMatrix P;
     FilterParams params;

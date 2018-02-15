@@ -21,8 +21,8 @@ Calibrator::Calibrator()
 
 void Calibrator::reset()
 {
-    bias = ZeroVector(3);
-    scale = IdentityMatrix(3);
+    bias = NumVector::Zero(3);
+    scale = NumMatrix::Identity(3, 3);
 }
 
 void Calibrator::update(const NumVector & m)
@@ -129,24 +129,24 @@ void Calibrator::fit()
 
     meas.clear();
 
-    uaux::debug_matrix(scale, "scale");
-    uaux::debug_vector(bias, "bias");
+    //uaux::debug_matrix(scale, "scale");
+    //uaux::debug_vector(bias, "bias");
 }
 
 void Calibrator::calibrate(NumVector & m) const
 {
-    m = prod(scale, m - bias);
+    m = scale * (m - bias);
 }
 
 NumVector Calibrator::calibrate(const NumVector & m) const
 {
-    return prod(scale, m - bias);
+    return scale * (m - bias);
 }
 
 QVector3D Calibrator::calibrate(const QVector3D & vec) const
 {
     NumVector m(3);
-    m <<= vec.x(), vec.y(), vec.z();
+    m << vec.x(), vec.y(), vec.z();
     calibrate(m);
     return QVector3D(m[0], m[1], m[2]);
 }

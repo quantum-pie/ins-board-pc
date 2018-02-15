@@ -5,7 +5,7 @@ extern "C" {
     #include "wmm/GeomagnetismHeader.h"
 }
 
-#include "ublasaux.h"
+#include "eigenaux.h"
 
 #include <QDate>
 

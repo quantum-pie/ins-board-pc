@@ -1,17 +1,15 @@
 #include "quatkalman.h"
-
 #include "wmmwrapper.h"
 #include "physconst.h"
 #include "quaternions.h"
 
-#include <boost/numeric/ublas/vector_expression.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/assignment.hpp>
+#include <Eigen/Dense>
 
 #include <QtMath>
-
 #include <QDebug>
+
+const int QuaternionKalman::state_size = 16;
+const int QuaternionKalman::measurement_size = 10;
 
 QuaternionKalman::QuaternionKalman(const FilterParams & par)
     : AbstractOrientationFilter(par.accum_capacity),
@@ -47,7 +45,7 @@ void QuaternionKalman::initialize(const FilterInput & z)
     NumVector qacc = qutils::acceleration_quat(z.a);
 
     NumMatrix accel_rotator = qutils::quaternion_to_dcm_tr(qacc);
-    NumVector l = prod(accel_rotator, z.m);
+    NumVector l = accel_rotator * z.m;
 
     NumVector qmag = qutils::magnetometer_quat(l);
 
@@ -81,7 +79,7 @@ void QuaternionKalman::initialize(const FilterInput & z)
     x[14] = 0;
     x[15] = 0;
 
-    P = IdentityMatrix(state_size, state_size);
+    P = NumMatrix::Zero(state_size, state_size);
     P(0, 0) = params.init_params.qs_std * params.init_params.qs_std;
     P(1, 1) = params.init_params.qx_std * params.init_params.qx_std;
     P(2, 2) = params.init_params.qy_std * params.init_params.qy_std;
@@ -129,11 +127,10 @@ void QuaternionKalman::update(const FilterInput & z)
     NumMatrix F = create_transition_mtx(z);
     NumMatrix Q = create_proc_noise_cov_mtx(z.dt);
 
-    x = prod(F, x);
+    x = F * x;
     normalize_state();
 
-    NumMatrix tmp = prod(F, P);
-    P = prod(tmp, trans(F)) + Q;
+    P = F * P * F.transpose() + Q;
 
     NumVector z_pr(measurement_size);
 
@@ -154,34 +151,26 @@ void QuaternionKalman::update(const FilterInput & z)
     calculate_velocity(predicted_v, z_pr(9));
 
     NumVector z_meas(measurement_size);
-    z_meas <<= z.a, z.m, z.pos, norm_2(z.v);
+    z_meas << z.a, z.m, z.pos, z.v.norm();
 
     NumVector y = z_meas - z_pr;
 
     NumMatrix R = create_meas_noise_cov_mtx(lat, lon, alt, z.day);
     NumMatrix H = create_meas_proj_mtx(lat, lon, alt, z.day, predicted_v);
 
-    tmp = prod(H, P);
-    NumMatrix S = prod(tmp, trans(H)) + R;
+    NumMatrix S = H * P * H.transpose() + R;
+    NumMatrix K = P * H.transpose() * S.inverse();
 
-    NumMatrix S_inv(S.size1(), S.size2());
+    x += K * y;
+    normalize_state();
 
-    if(uaux::invert_matrix(S, S_inv))
-    {
-        tmp = prod(P, trans(H));
-        NumMatrix K = prod(tmp, S_inv);
-
-        x += prod(K, y);
-        normalize_state();
-
-        tmp = IdentityMatrix(x.size()) - prod(K, H);
-        P = prod(tmp, P);
-    }
+    // TODO: Implement optimal formula
+    P = (NumMatrix::Identity(x.size(), x.size()) - K * H) * P;
 }
 
 void QuaternionKalman::normalize_state()
 {
-    ublas::project(x, ublas::range(0, 4)) = qutils::quat_normalize(get_orientation_quaternion());
+    x.segment(0, 4) = qutils::quat_normalize(get_orientation_quaternion());
 }
 
 NumMatrix QuaternionKalman::create_transition_mtx(const FilterInput & z) const
@@ -196,17 +185,17 @@ NumMatrix QuaternionKalman::create_transition_mtx(const FilterInput & z) const
     NumMatrix V = qutils::skew_symmetric(z.w);
 
     V *= dt_2;
-    V += IdentityMatrix(4);
+    V += NumMatrix::Identity(4, 4);
 
     NumMatrix K = qutils::quat_delta_mtx(get_orientation_quaternion(), dt_2);
 
     NumMatrix F(state_size, state_size);
 
-    F <<= V, K, ZeroMatrix(4, 9),
-            ZeroMatrix(3, 4), IdentityMatrix(3), ZeroMatrix(3, 9),
-            ZeroMatrix(3, 7), IdentityMatrix(3), dt * IdentityMatrix(3), dt_sq_2 * IdentityMatrix(3),
-            ZeroMatrix(3, 10), IdentityMatrix(3), dt * IdentityMatrix(3),
-            ZeroMatrix(3, 13), IdentityMatrix(3);
+    F << V, K, NumMatrix::Zero(4, 9),
+            NumMatrix::Zero(3, 4), NumMatrix::Identity(3, 3), NumMatrix::Zero(3, 9),
+            NumMatrix::Zero(3, 7), NumMatrix::Identity(3, 3), dt * NumMatrix::Identity(3, 3), dt_sq_2 * NumMatrix::Identity(3, 3),
+            NumMatrix::Zero(3, 10), NumMatrix::Identity(3, 3), dt * NumMatrix::Identity(3, 3),
+            NumMatrix::Zero(3, 13), NumMatrix::Identity(3, 3);
 
     return F;
 }
@@ -220,51 +209,50 @@ NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt) const
 
     NumMatrix K = qutils::quat_delta_mtx(get_orientation_quaternion(), dt_2);
 
-    NumMatrix Qq = params.proc_params.gyro_std * params.proc_params.gyro_std * prod(K, trans(K));
-    NumMatrix Qb = params.proc_params.gyro_bias_std * params.proc_params.gyro_bias_std * IdentityMatrix(3);
+    NumMatrix Qq = params.proc_params.gyro_std * params.proc_params.gyro_std * K * K.transpose();
+    NumMatrix Qb = params.proc_params.gyro_bias_std * params.proc_params.gyro_bias_std * NumMatrix::Identity(3, 3);
 
     NumMatrix G(9, 3);
-    G <<= IdentityMatrix(3) * dt_sq_2,
-            IdentityMatrix(3) * dt,
-            IdentityMatrix(3);
+    G << NumMatrix::Identity(3, 3) * dt_sq_2,
+            NumMatrix::Identity(3, 3) * dt,
+            NumMatrix::Identity(3, 3);
 
-    NumMatrix Qp = params.proc_params.accel_std * params.proc_params.accel_std * prod(G, trans(G));
+    NumMatrix Qp = params.proc_params.accel_std * params.proc_params.accel_std * G * G.transpose();
 
     NumMatrix Q(state_size, state_size);
 
-    Q <<= Qq, ZeroMatrix(4, 12),
-            ZeroMatrix(3, 4), Qb, ZeroMatrix(3, 9),
-            ZeroMatrix(9, 7), Qp;
+    Q << Qq, NumMatrix::Zero(4, 12),
+            NumMatrix::Zero(3, 4), Qb, NumMatrix::Zero(3, 9),
+            NumMatrix::Zero(9, 7), Qp;
 
     return Q;
 }
 
 NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon, double alt, QDate day) const
 {
-    NumMatrix Ra = params.meas_params.accel_std * params.meas_params.accel_std * IdentityMatrix(3);
+    NumMatrix Ra = params.meas_params.accel_std * params.meas_params.accel_std * NumMatrix::Identity(3, 3);
 
     double mag_magn = WrapperWMM::instance().expected_mag_magnitude(lat, lon, alt, day);
     double normalized_magn_std = params.meas_params.magn_std / mag_magn;
-    NumMatrix Rm = normalized_magn_std * normalized_magn_std * IdentityMatrix(3);
+    NumMatrix Rm = normalized_magn_std * normalized_magn_std * NumMatrix::Identity(3, 3);
 
     double horizontal_linear_std = params.meas_params.gps_cep * 1.2;
     double altitude_std = horizontal_linear_std / 0.53;
 
     NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
-    NumMatrix local_cov = IdentityMatrix(3);
+    NumMatrix local_cov = NumMatrix::Identity(3, 3);
     local_cov(0, 0) = horizontal_linear_std * horizontal_linear_std;
     local_cov(1, 1) = horizontal_linear_std * horizontal_linear_std;
     local_cov(2, 2) = altitude_std * altitude_std;
 
-    NumMatrix tmp = prod(trans(Cel), local_cov);
-    NumMatrix Rp = prod(tmp, Cel);
+    NumMatrix Rp = Cel.transpose() * local_cov * Cel;
 
     NumMatrix R(measurement_size, measurement_size);
 
-    R <<= Ra, ZeroMatrix(3, 7),
-            ZeroMatrix(3, 3), Rm, ZeroMatrix(3, 4),
-            ZeroMatrix(3, 6), Rp, ZeroMatrix(3, 1),
-            ZeroMatrix(1, 9), params.meas_params.gps_vel_abs_std * params.meas_params.gps_vel_abs_std;
+    R << Ra, NumMatrix::Zero(3, 7),
+            NumMatrix::Zero(3, 3), Rm, NumMatrix::Zero(3, 4),
+            NumMatrix::Zero(3, 6), Rp, NumMatrix::Zero(3, 1),
+            NumMatrix::Zero(1, 9), params.meas_params.gps_vel_abs_std * params.meas_params.gps_vel_abs_std;
 
     return R;
 }
@@ -281,21 +269,21 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
 
     NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
     NumMatrix Clb = qutils::quaternion_to_dcm_tr(q);
-    NumMatrix Ceb = prod(Clb, Cel);
+    NumMatrix Ceb = Clb * Cel;
 
     NumMatrix Ddcm_Dqs = qutils::ddcm_dqs_tr(q);
     NumMatrix Ddcm_Dqx = qutils::ddcm_dqx_tr(q);
     NumMatrix Ddcm_Dqy = qutils::ddcm_dqy_tr(q);
     NumMatrix Ddcm_Dqz = qutils::ddcm_dqz_tr(q);
 
-    NumVector tmp = prod(Cel, a);
+    NumVector tmp = Cel * a;
 
-    NumVector col_s = column(Ddcm_Dqs, 2) * height_adjust + prod(Ddcm_Dqs, tmp);
-    NumVector col_x = column(Ddcm_Dqx, 2) * height_adjust + prod(Ddcm_Dqx, tmp);
-    NumVector col_y = column(Ddcm_Dqy, 2) * height_adjust + prod(Ddcm_Dqy, tmp);
-    NumVector col_z = column(Ddcm_Dqz, 2) * height_adjust + prod(Ddcm_Dqz, tmp);
+    NumVector col_s = Ddcm_Dqs.col(2) * height_adjust + Ddcm_Dqs * tmp;
+    NumVector col_x = Ddcm_Dqx.col(2) * height_adjust + Ddcm_Dqx * tmp;
+    NumVector col_y = Ddcm_Dqy.col(2) * height_adjust + Ddcm_Dqy * tmp;
+    NumVector col_z = Ddcm_Dqz.col(2) * height_adjust + Ddcm_Dqz * tmp;
 
-    Dac_Dq <<= ublas::traverse_policy::by_column(), col_s, col_x, col_y, col_z;
+    Dac_Dq << col_s, col_x, col_y, col_z;
 
     // 2
     NumMatrix Dac_Dpos(3, 3);
@@ -308,14 +296,11 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     NumMatrix Dcel_Dy = Dgeo_Dpos(0, 1) * Ddcm_Dlat + Dgeo_Dpos(1, 1) * Ddcm_Dlon;
     NumMatrix Dcel_Dz = Dgeo_Dpos(0, 2) * Ddcm_Dlat + Dgeo_Dpos(1, 2) * Ddcm_Dlon;
 
-    tmp = prod(Dcel_Dx, a);
-    col_x = prod(Clb, tmp);
-    tmp = prod(Dcel_Dy, a);
-    col_y = prod(Clb, tmp);
-    tmp = prod(Dcel_Dz, a);
-    col_z = prod(Clb, tmp);
+    col_x = Clb * Dcel_Dx * a;
+    col_y = Clb * Dcel_Dy * a;
+    col_z = Clb * Dcel_Dz * a;
 
-    Dac_Dpos <<= ublas::traverse_policy::by_column(), col_x, col_y, col_z;
+    Dac_Dpos << col_x, col_y, col_z;
 
     // 3
     NumMatrix Dac_Da = Ceb / phconst::standard_gravity;
@@ -325,35 +310,35 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
 
     NumVector earth_mag = WrapperWMM::instance().expected_mag(lat, lon, alt, day);
 
-    col_s = prod(Ddcm_Dqs, earth_mag);
-    col_x = prod(Ddcm_Dqx, earth_mag);
-    col_y = prod(Ddcm_Dqy, earth_mag);
-    col_z = prod(Ddcm_Dqz, earth_mag);
+    col_s = Ddcm_Dqs * earth_mag;
+    col_x = Ddcm_Dqx * earth_mag;
+    col_y = Ddcm_Dqy * earth_mag;
+    col_z = Ddcm_Dqz * earth_mag;
 
-    Dm_Dq <<= ublas::traverse_policy::by_column(), col_s, col_x, col_y, col_z;
+    Dm_Dq << col_s, col_x, col_y, col_z;
 
     // 5
-    NumMatrix Dpos_Dpos = IdentityMatrix(3);
+    NumMatrix Dpos_Dpos = NumMatrix::Identity(3, 3);
 
     // 6
     NumMatrix Dv_Dv(1, 3);
-    double v_abs = norm_2(v);
+    double v_abs = v.norm();
 
     if(v_abs > 0)
     {
-        Dv_Dv <<= v[0] / v_abs, v[1] / v_abs, v[2] / v_abs;
+        Dv_Dv << v[0] / v_abs, v[1] / v_abs, v[2] / v_abs;
     }
     else
     {
-        Dv_Dv <<= 0, 0, 0;
+        Dv_Dv << 0, 0, 0;
     }
 
     // Combine
     NumMatrix H(measurement_size, state_size);
-    H <<= Dac_Dq, ZeroMatrix(3, 3), Dac_Dpos, ZeroMatrix(3, 3), Dac_Da,
-            Dm_Dq, ZeroMatrix(3, 12),
-            ZeroMatrix(3, 7), Dpos_Dpos, ZeroMatrix(3, 6),
-            ZeroMatrix(1, 10), Dv_Dv, ZeroMatrix(1, 3);
+    H <<    Dac_Dq, NumMatrix::Zero(3, 3), Dac_Dpos, NumMatrix::Zero(3, 3), Dac_Da,
+            Dm_Dq, NumMatrix::Zero(3, 12),
+            NumMatrix::Zero(3, 7), Dpos_Dpos, NumMatrix::Zero(3, 6),
+            NumMatrix::Zero(1, 10), Dv_Dv, NumMatrix::Zero(1, 3);
 
     return H;
 }
@@ -372,12 +357,12 @@ void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_qua
 
     NumMatrix Clb = qutils::quaternion_to_dcm_tr(orientation_quat);
     NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
-    NumMatrix tmp = prod(Clb, Cel);
-    NumVector movement_component = prod(tmp, acceleration / phconst::standard_gravity);
-    NumVector g(3);
-    g <<= 0, 0, height_adjust;
 
-    NumVector gravity_component = prod(Clb, g);
+    NumVector movement_component = Clb * Cel * acceleration / phconst::standard_gravity;
+    NumVector g(3);
+    g << 0, 0, height_adjust;
+
+    NumVector gravity_component = Clb * g;
 
     NumVector rot_accel = gravity_component + movement_component;
 
@@ -390,8 +375,8 @@ void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat
                                               double lat, double lon, double alt, QDate day,
                                               double & mx, double & my, double & mz) const
 {
-    NumVector rot_magn = prod(qutils::quaternion_to_dcm_tr(orientation_quat),
-                                          WrapperWMM::instance().expected_mag(lat, lon, alt, day));
+    NumVector rot_magn = qutils::quaternion_to_dcm_tr(orientation_quat) *
+                            WrapperWMM::instance().expected_mag(lat, lon, alt, day);
 
     mx = rot_magn(0);
     my = rot_magn(1);
@@ -400,32 +385,32 @@ void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat
 
 void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & vel) const
 {
-    vel = norm_2(velocity);
+    vel = velocity.norm();
 }
 
 NumVector QuaternionKalman::get_orientation_quaternion() const
 {
-    return ublas::project(x, ublas::range(0, 4));
+    return x.segment(0, 4);
 }
 
 NumVector QuaternionKalman::get_gyro_bias() const
 {
-    return ublas::project(x, ublas::range(4, 7));
+    return x.segment(4, 3);
 }
 
 NumVector QuaternionKalman::get_position() const
 {
-    return ublas::project(x, ublas::range(7, 10));
+    return x.segment(7, 3);
 }
 
 NumVector QuaternionKalman::get_velocity() const
 {
-    return ublas::project(x, ublas::range(10, 13));
+    return x.segment(10, 3);
 }
 
 NumVector QuaternionKalman::get_acceleration() const
 {
-    return ublas::project(x, ublas::range(13, 16));
+    return x.segment(13, 3);
 }
 
 void QuaternionKalman::get_rpy(double & roll, double & pitch, double & yaw) const

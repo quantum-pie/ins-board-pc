@@ -172,7 +172,7 @@ NumMatrix quat_delta_mtx(const NumVector & quaternion, double dt_2)
     double q_z = quaternion[3];
 
     NumMatrix K(4, 3);
-    K <<= q_x,  q_y,  q_z,
+    K <<    q_x,  q_y,  q_z,
            -q_s,  q_z, -q_y,
            -q_z, -q_s,  q_x,
             q_y, -q_x, -q_s;
@@ -185,7 +185,7 @@ NumMatrix quat_delta_mtx(const NumVector & quaternion, double dt_2)
 NumMatrix skew_symmetric(const NumVector & v)
 {
     NumMatrix V(4, 4);
-    V <<=    0,    -v[0], -v[1], -v[2],
+    V <<     0,    -v[0], -v[1], -v[2],
              v[0],  0,     v[2], -v[1],
              v[1], -v[2],  0,     v[0],
              v[2],  v[1], -v[0],  0;
@@ -202,7 +202,7 @@ NumMatrix ddcm_dqs_tr(const NumVector & quaternion)
 
     NumMatrix RES(3, 3);
 
-    RES <<= qs, qz, -qy,
+    RES <<   qs, qz, -qy,
             -qz, qs, qx,
              qy, -qx, qs;
 
@@ -220,7 +220,7 @@ NumMatrix ddcm_dqx_tr(const NumVector & quaternion)
 
     NumMatrix RES(3, 3);
 
-    RES <<= qx, qy, qz,
+    RES <<  qx, qy, qz,
             qy, -qx, qs,
             qz, -qs, -qx;
 
@@ -238,7 +238,7 @@ NumMatrix ddcm_dqy_tr(const NumVector & quaternion)
 
     NumMatrix RES(3, 3);
 
-    RES <<= -qy, qx, -qs,
+    RES << -qy, qx, -qs,
             qx, qy, qz,
             qs, qz, -qy;
 
@@ -256,7 +256,7 @@ NumMatrix ddcm_dqz_tr(const NumVector & quaternion)
 
     NumMatrix RES(3, 3);
 
-    RES <<= -qz, qs, qx,
+    RES << -qz, qs, qx,
             -qs, -qz, qy,
             qx, qy, qz;
 
@@ -267,7 +267,7 @@ NumMatrix ddcm_dqz_tr(const NumVector & quaternion)
 
 NumVector acceleration_quat(const NumVector & a)
 {
-    NumVector a_norm = a / norm_2(a);
+    NumVector a_norm = a / a.norm();
 
     double ax = a_norm[0];
     double ay = a_norm[1];
