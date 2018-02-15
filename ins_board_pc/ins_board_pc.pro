@@ -40,7 +40,8 @@ SOURCES += main.cpp\
     quaternions.cpp \
     quatkalman.cpp \
     poskalman.cpp \
-    eigenaux.cpp
+    eigenaux.cpp \
+    quatorientkalman.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -56,6 +57,7 @@ HEADERS  += mainwindow.h \
     abstractpositionfilter.h \
     quatkalman.h \
     poskalman.h \
-    eigenaux.h
+    eigenaux.h \
+    quatorientkalman.h
 
 FORMS    += mainwindow.ui
