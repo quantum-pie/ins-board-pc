@@ -48,7 +48,6 @@ private slots:
     void on_magn_meas_le_textEdited(const QString &arg1);
     void on_pos_meas_le_textEdited(const QString &arg1);
     void on_vel_meas_le_textEdited(const QString &arg1);
-    void on_quat_init_le_textEdited(const QString &arg1);
     void on_bias_init_le_textEdited(const QString &arg1);
     void on_pos_init_le_textEdited(const QString &arg1);
     void on_vel_init_le_textEdited(const QString &arg1);
@@ -59,6 +58,14 @@ private slots:
     void on_m_gain_le_textEdited(const QString &arg1);
     void on_samples_le_2_textEdited(const QString &arg1);
     void on_pushButton_4_toggled(bool checked);
+
+    void on_qs_init_le_textEdited(const QString &arg1);
+
+    void on_qx_init_le_textEdited(const QString &arg1);
+
+    void on_qy_init_le_textEdited(const QString &arg1);
+
+    void on_qz_init_le_textEdited(const QString &arg1);
 
 private:
     struct gps_time_t

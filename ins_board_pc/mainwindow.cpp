@@ -64,18 +64,21 @@ void MainWindow::setup_quat_kalman()
     sphere_transform_kalman = new Qt3DCore::QTransform;
 
     QuaternionKalman::ProcessNoiseParams proc_params;
-    proc_params.gyro_std = 0.001; //!< dps
+    proc_params.gyro_std = 0.0001; //!< dps
     proc_params.gyro_bias_std = 0; //!< assume almost constant bias
     proc_params.accel_std = 0.00001; //!< m^2/s
 
     QuaternionKalman::MeasurementNoiseParams meas_params;
-    meas_params.accel_std = 0.007; //0.005 //!< g
-    meas_params.magn_std = 1.5;//1.2; //!< uT
+    meas_params.accel_std = 0.005; //0.005 //!< g
+    meas_params.magn_std = 0.5;//1.2; //!< uT
     meas_params.gps_cep = 2.5;//2.5; //!< m
-    meas_params.gps_vel_abs_std = 0.2;//0.1; //!< m/s
+    meas_params.gps_vel_abs_std = 0.1;//0.1; //!< m/s
 
     QuaternionKalman::InitCovParams cov_params;
-    cov_params.quat_std = 1e-2;
+    cov_params.qs_std = 0.015;
+    cov_params.qx_std = 0.0015;
+    cov_params.qy_std = 0.0015;
+    cov_params.qz_std = 0.06;
     cov_params.bias_std = 0;
     cov_params.pos_std = 2.5;
     cov_params.vel_std = 0.1;
@@ -90,7 +93,10 @@ void MainWindow::setup_quat_kalman()
     ui->pos_meas_le->setText(QString::number(meas_params.gps_cep));
     ui->vel_meas_le->setText(QString::number(meas_params.gps_vel_abs_std));
 
-    ui->quat_init_le->setText(QString::number(cov_params.quat_std));
+    ui->qs_init_le->setText(QString::number(cov_params.qs_std));
+    ui->qx_init_le->setText(QString::number(cov_params.qx_std));
+    ui->qy_init_le->setText(QString::number(cov_params.qy_std));
+    ui->qz_init_le->setText(QString::number(cov_params.qz_std));
     ui->bias_init_le->setText(QString::number(cov_params.bias_std));
     ui->pos_init_le->setText(QString::number(cov_params.pos_std));
     ui->vel_init_le->setText(QString::number(cov_params.vel_std));
@@ -106,8 +112,8 @@ void MainWindow::setup_complementary()
     body_transform_compl = new Qt3DCore::QTransform;
     sphere_transform_compl = new Qt3DCore::QTransform;
 
-    double static_accel_gain = 0.005;
-    double static_magn_gain = 0.00005;
+    double static_accel_gain = 0.05;
+    double static_magn_gain = 0.0005;
 
     ui->a_gain_le->setText(QString::number(static_accel_gain));
     ui->m_gain_le->setText(QString::number(static_magn_gain));
@@ -157,17 +163,6 @@ void MainWindow::update_calibration_tab(const input_t & in)
     NumVector m(3);
     m <<= in.m_x, in.m_y, in.m_z;
     magn_cal.update(m);
-
-    NumVector b = magn_cal.get_bias();
-    NumMatrix s = magn_cal.get_scale();
-
-    ui->xbias_le->setText(QString::number(b[0]));
-    ui->ybias_le->setText(QString::number(b[1]));
-    ui->zbias_le->setText(QString::number(b[2]));
-
-    ui->xspan_le->setText(QString::number(s(0, 0)));
-    ui->yspan_le->setText(QString::number(s(1, 1)));
-    ui->zspan_le->setText(QString::number(s(2, 2)));
 }
 
 void MainWindow::update_gps_tab(const input_t & in)
@@ -196,6 +191,7 @@ void MainWindow::update_kalman_tab()
 
     double r, p, y;
     kalman_filt->get_rpy(r, p, y);
+
     update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
 
     NumVector quat = kalman_filt->get_orientation_quaternion();
@@ -224,6 +220,7 @@ void MainWindow::update_comp_pos_tab()
 
     double r, p, y;
     complem->get_rpy(r, p, y);
+
     update_plot(ui->plot6, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
 
     NumVector quat = complem->get_orientation_quaternion();
@@ -291,7 +288,7 @@ void MainWindow::process_data(const QByteArray & data)
                 in.gps.vx >> in.gps.vy >> in.gps.vz;
 
         AbstractFilter::FilterInput z = parse_input(in);
-        if(ui->pushButton_2->isChecked())
+        if(ui->pushButton_2->isChecked() && in.gps.fix)
         {
             filters.at(0)->step(z);
         }
@@ -591,7 +588,7 @@ void MainWindow::init_magnet_plot(QWidget * dummy_container, QScatterDataArray *
 
     plot->setAspectRatio(1);
 
-    data->reserve(1000);
+    data->reserve(5000);
 }
 
 void MainWindow::init_orient_plot(QWidget * dummy_container, QGridLayout * layout_container,
@@ -728,13 +725,27 @@ void MainWindow::on_pushButton_toggled(bool checked)
     }
     else
     {
+        /* fit ellips to sphere */
         magn_cal.fit();
+
+        /* draw fitted sphere */
         magnet_data_cb->resize(magnet_data->size());
         for(int i = 0; i < magnet_data->size(); ++i)
         {
             (*magnet_data_cb)[i].setPosition(magn_cal.calibrate((*magnet_data)[i].position()));
         }
         magnet_plot_cb->seriesList().at(0)->dataProxy()->resetArray(magnet_data_cb);
+
+        NumVector b = magn_cal.get_bias();
+        NumMatrix s = magn_cal.get_scale();
+
+        ui->xbias_le->setText(QString::number(b[0]));
+        ui->ybias_le->setText(QString::number(b[1]));
+        ui->zbias_le->setText(QString::number(b[2]));
+
+        ui->xspan_le->setText(QString::number(s(0, 0)));
+        ui->yspan_le->setText(QString::number(s(1, 1)));
+        ui->zspan_le->setText(QString::number(s(2, 2)));
     }
 }
 
@@ -802,11 +813,13 @@ void MainWindow::on_vel_meas_le_textEdited(const QString &arg1)
     kalman_filt->set_meas_vel_std(arg1.toDouble());
 }
 
+/*
 void MainWindow::on_quat_init_le_textEdited(const QString &arg1)
 {
     QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
     kalman_filt->set_init_quat_std(arg1.toDouble());
 }
+*/
 
 void MainWindow::on_bias_init_le_textEdited(const QString &arg1)
 {
@@ -858,4 +871,28 @@ void MainWindow::on_samples_le_2_textEdited(const QString &arg1)
     roll_ctrl_compl.set_sampling(samples);
     pitch_ctrl_compl.set_sampling(samples);
     yaw_ctrl_compl.set_sampling(samples);
+}
+
+void MainWindow::on_qs_init_le_textEdited(const QString &arg1)
+{
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
+    kalman_filt->set_init_qs_std(arg1.toDouble());
+}
+
+void MainWindow::on_qx_init_le_textEdited(const QString &arg1)
+{
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
+    kalman_filt->set_init_qx_std(arg1.toDouble());
+}
+
+void MainWindow::on_qy_init_le_textEdited(const QString &arg1)
+{
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
+    kalman_filt->set_init_qy_std(arg1.toDouble());
+}
+
+void MainWindow::on_qz_init_le_textEdited(const QString &arg1)
+{
+    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
+    kalman_filt->set_init_qz_std(arg1.toDouble());
 }
