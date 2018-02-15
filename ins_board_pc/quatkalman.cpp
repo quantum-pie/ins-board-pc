@@ -51,8 +51,8 @@ void QuaternionKalman::initialize(const FilterInput & z)
 
     NumVector qmag = qutils::magnetometer_quat(l);
 
-    double declination, inclination;
-    WrapperWMM::instance().measure(z.geo[0], z.geo[1], z.geo[2], z.day, declination, inclination);
+    double declination, inclination, magn;
+    WrapperWMM::instance().measure(z.geo[0], z.geo[1], z.geo[2], z.day, declination, inclination, magn);
 
     NumVector qdecl = qutils::declinator_quat(declination);
 
@@ -81,7 +81,11 @@ void QuaternionKalman::initialize(const FilterInput & z)
     x[14] = 0;
     x[15] = 0;
 
-    P = IdentityMatrix(state_size, state_size) * params.init_params.quat_std * params.init_params.quat_std;
+    P = IdentityMatrix(state_size, state_size);
+    P(0, 0) = params.init_params.qs_std * params.init_params.qs_std;
+    P(1, 1) = params.init_params.qx_std * params.init_params.qx_std;
+    P(2, 2) = params.init_params.qy_std * params.init_params.qy_std;
+    P(3, 3) = params.init_params.qz_std * params.init_params.qz_std;
 
     double bias_var = params.init_params.bias_std * params.init_params.bias_std;
     P(4, 4) = bias_var;
@@ -139,8 +143,6 @@ void QuaternionKalman::update(const FilterInput & z)
 
     calculate_geodetic(predicted_pos, lat, lon, alt);
 
-    double mag_magn = norm_2(z.m);
-
     calculate_accelerometer(predicted_orientation, get_acceleration(), lat, lon, alt, z_pr(0), z_pr(1), z_pr(2));
     calculate_magnetometer(predicted_orientation, lat, lon, alt, z.day, z_pr(3), z_pr(4), z_pr(5));
 
@@ -152,14 +154,11 @@ void QuaternionKalman::update(const FilterInput & z)
     calculate_velocity(predicted_v, z_pr(9));
 
     NumVector z_meas(measurement_size);
-    z_meas <<= z.a, z.m / mag_magn, z.pos, norm_2(z.v);
-
-    //double incl_est = qRadiansToDegrees(qAsin(z.m[2] / mag_magn));
-    //qDebug() << incl_est;
+    z_meas <<= z.a, z.m, z.pos, norm_2(z.v);
 
     NumVector y = z_meas - z_pr;
 
-    NumMatrix R = create_meas_noise_cov_mtx(lat, lon, mag_magn);
+    NumMatrix R = create_meas_noise_cov_mtx(lat, lon, alt, z.day);
     NumMatrix H = create_meas_proj_mtx(lat, lon, alt, z.day, predicted_v);
 
     tmp = prod(H, P);
@@ -240,11 +239,12 @@ NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt) const
     return Q;
 }
 
-NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon, double magn_mag) const
+NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon, double alt, QDate day) const
 {
     NumMatrix Ra = params.meas_params.accel_std * params.meas_params.accel_std * IdentityMatrix(3);
 
-    double normalized_magn_std = params.meas_params.magn_std / magn_mag;
+    double mag_magn = WrapperWMM::instance().expected_mag_magnitude(lat, lon, alt, day);
+    double normalized_magn_std = params.meas_params.magn_std / mag_magn;
     NumMatrix Rm = normalized_magn_std * normalized_magn_std * IdentityMatrix(3);
 
     double horizontal_linear_std = params.meas_params.gps_cep * 1.2;
@@ -277,7 +277,6 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     double height_adjust = WrapperWMM::instance().expected_gravity_accel(lat, alt) / phconst::standard_gravity;
 
     NumVector a = get_acceleration() / phconst::standard_gravity;
-
     NumVector q = get_orientation_quaternion();
 
     NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
@@ -474,9 +473,24 @@ void QuaternionKalman::set_meas_vel_std(double std)
     params.meas_params.gps_vel_abs_std = std;
 }
 
-void QuaternionKalman::set_init_quat_std(double std)
+void QuaternionKalman::set_init_qs_std(double std)
 {
-    params.init_params.quat_std = std;
+    params.init_params.qs_std = std;
+}
+
+void QuaternionKalman::set_init_qx_std(double std)
+{
+    params.init_params.qx_std = std;
+}
+
+void QuaternionKalman::set_init_qy_std(double std)
+{
+    params.init_params.qy_std = std;
+}
+
+void QuaternionKalman::set_init_qz_std(double std)
+{
+    params.init_params.qz_std = std;
 }
 
 void QuaternionKalman::set_init_bias_std(double std)

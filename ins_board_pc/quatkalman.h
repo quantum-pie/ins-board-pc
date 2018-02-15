@@ -24,7 +24,10 @@ public:
 
     struct InitCovParams
     {
-        double quat_std;
+        double qs_std;
+        double qx_std;
+        double qy_std;
+        double qz_std;
         double bias_std;
         double pos_std;
         double vel_std;
@@ -63,7 +66,10 @@ public:
     void set_meas_pos_std(double std);
     void set_meas_vel_std(double std);
 
-    void set_init_quat_std(double std);
+    void set_init_qs_std(double std);
+    void set_init_qx_std(double std);
+    void set_init_qy_std(double std);
+    void set_init_qz_std(double std);
     void set_init_bias_std(double std);
     void set_init_pos_std(double std);
     void set_init_vel_std(double std);
@@ -79,7 +85,7 @@ private:
     /* create Kalman matrices */
     NumMatrix create_transition_mtx(const FilterInput & z) const;
     NumMatrix create_proc_noise_cov_mtx(double dt) const;
-    NumMatrix create_meas_noise_cov_mtx(double lat, double lon, double magn_mag) const;
+    NumMatrix create_meas_noise_cov_mtx(double lat, double lon, double alt, QDate day) const;
     NumMatrix create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v) const;
 
     /* from state to measurements */
