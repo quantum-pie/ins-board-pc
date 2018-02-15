@@ -36,8 +36,6 @@ void Calibrator::fit()
 
     MatrixXd D(10, meas.size());
 
-    qDebug() << meas.size();
-
     for(size_t i = 0; i < meas.size(); ++i)
     {
         calibrate(meas[i]);
@@ -113,24 +111,12 @@ void Calibrator::fit()
 
     Matrix3d M_inv = M.inverse();
 
-    Vector3d bias_eig = -M_inv * n / 2;
+    bias = -M_inv * n / 2;
 
     Matrix3d tmp = M.llt().matrixU();
-    Matrix3d scale_eig = tmp / qSqrt(0.25 * n.transpose() * M_inv * n - d);
-
-    for(int i = 0; i < 3; ++i)
-    {
-        bias[i] = bias_eig[i];
-        for(int j = 0; j < 3; ++j)
-        {
-            scale(i, j) = scale_eig(i, j);
-        }
-    }
+    scale = tmp / qSqrt(0.25 * n.transpose() * M_inv * n - d);
 
     meas.clear();
-
-    //uaux::debug_matrix(scale, "scale");
-    //uaux::debug_vector(bias, "bias");
 }
 
 void Calibrator::calibrate(NumVector & m) const
