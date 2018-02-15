@@ -11,6 +11,7 @@ public:
     Calibrator();
     void reset();
     void update(const NumVector & m);
+    void calibrate(NumVector & m) const;
     NumVector calibrate(const NumVector & m) const;
     QVector3D calibrate(const QVector3D & vec) const;
     void save() const;

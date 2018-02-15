@@ -23,7 +23,7 @@ WrapperWMM::WrapperWMM()
     MAG_SetDefaults(&ellip, &geoid);
 }
 
-void WrapperWMM::measure(double lat, double lon, double alt, QDate day, double & declination, double & inclination)
+void WrapperWMM::measure(double lat, double lon, double alt, QDate day, double & declination, double & inclination, double & magnitude)
 {
     MAGtype_CoordGeodetic geodetic_coord;
     geodetic_coord.UseGeoid = 0;
@@ -47,6 +47,7 @@ void WrapperWMM::measure(double lat, double lon, double alt, QDate day, double &
 
     declination = qDegreesToRadians(result.Decl);
     inclination = qDegreesToRadians(result.Incl);
+    magnitude = result.F * 1e-3;
 }
 
 void WrapperWMM::cartesian_to_geodetic(const NumVector & pos, double & lat, double & lon, double & alt) const
@@ -76,8 +77,8 @@ NumMatrix WrapperWMM::geodetic_to_dcm(double lat, double lon) const
 
 NumVector WrapperWMM::expected_mag(double lat, double lon, double alt, QDate day)
 {
-    double declination, inclination;
-    measure(lat, lon, alt, day, declination, inclination);
+    double declination, inclination, magn;
+    measure(lat, lon, alt, day, declination, inclination, magn);
 
     double sdecl = qSin(declination);
     double cdecl = qCos(declination);
@@ -87,6 +88,13 @@ NumVector WrapperWMM::expected_mag(double lat, double lon, double alt, QDate day
     NumVector RES(3);
     RES <<= sdecl * cincl, cdecl * cincl, -sincl;
     return RES;
+}
+
+double WrapperWMM::expected_mag_magnitude(double lat, double lon, double alt, QDate day)
+{
+    double declination, inclination, magn;
+    measure(lat, lon, alt, day, declination, inclination, magn);
+    return magn;
 }
 
 double WrapperWMM::expected_gravity_accel(double lat, double alt) const

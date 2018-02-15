@@ -40,7 +40,7 @@ void Calibrator::fit()
 
     for(size_t i = 0; i < meas.size(); ++i)
     {
-        calibrate(meas[i]);
+        meas[i] = calibrate(meas[i]);
 
         double x = meas.at(i)[0];
         double y = meas.at(i)[1];
@@ -114,9 +114,9 @@ void Calibrator::fit()
     Matrix3d M_inv = M.inverse();
 
     Vector3d bias_eig = -M_inv * n / 2;
-
+    //Matrix3d scale_eig = M.sqrt() / qSqrt(0.25 * n.transpose() * M_inv * n - d);
     Matrix3d tmp = M.llt().matrixU();
-    Matrix3d scale_eig = tmp / qSqrt(0.25 * n.transpose() * M_inv * n - d);
+    Matrix3d scale_eig = tmp / (0.25 * n.transpose() * M_inv * n - d);
 
     for(int i = 0; i < 3; ++i)
     {
@@ -133,11 +133,6 @@ void Calibrator::fit()
     uaux::debug_vector(bias, "bias");
 }
 
-void Calibrator::calibrate(NumVector & m) const
-{
-    m = prod(scale, m - bias);
-}
-
 NumVector Calibrator::calibrate(const NumVector & m) const
 {
     return prod(scale, m - bias);
@@ -147,7 +142,7 @@ QVector3D Calibrator::calibrate(const QVector3D & vec) const
 {
     NumVector m(3);
     m <<= vec.x(), vec.y(), vec.z();
-    calibrate(m);
+    m = calibrate(m);
     return QVector3D(m[0], m[1], m[2]);
 }
 

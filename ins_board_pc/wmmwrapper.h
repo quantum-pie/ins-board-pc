@@ -18,7 +18,7 @@ public:
          return wmm;
     }
 
-    void measure(double lat, double lon, double alt, QDate day, double & declination, double & inclination);
+    void measure(double lat, double lon, double alt, QDate day, double & declination, double & inclination, double & magnitude);
     double ellip_a() const;
     double ellip_epssq() const;
     double earth_rad() const;
@@ -28,6 +28,7 @@ public:
 
     NumMatrix geodetic_to_dcm(double lat, double lon) const;
     NumVector expected_mag(double lat, double lon, double alt, QDate day);
+    double expected_mag_magnitude(double lat, double lon, double alt, QDate day);
     double expected_gravity_accel(double lat, double alt) const;
 
     /* auxiliary derivatives */
