@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     setup_kalman_p();
     setup_complementary();
 
+    cast_filters();
+
     udp_socket = new QUdpSocket(this);
     udp_socket->bind(QHostAddress("192.168.4.1"), 65000);
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
@@ -351,19 +353,12 @@ void MainWindow::process_data(const QByteArray & data)
                 in.gps.vx >> in.gps.vy >> in.gps.vz;
 
         AbstractFilter::FilterInput z = parse_input(in);
-        if(ui->pushButton_2->isChecked())
+        if(ui->pushButton_2->isChecked() && in.gps.fix)
         {
+            curr_of->step(z);
             if(ui->comboBox->currentIndex() == 0)
             {
-                curr_of->step(z);
-                if(in.gps.fix)
-                {
-                    curr_pf->step(z);
-                }
-            }
-            else if(in.gps.fix)
-            {
-                curr_of->step(z);
+                curr_pf->step(z);
             }
         }
         else if(ui->pushButton_4->isChecked())
