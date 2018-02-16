@@ -67,15 +67,10 @@ private slots:
     void on_pushButton_4_toggled(bool checked);
 
     void on_accel2_proc_le_textEdited(const QString &arg1);
-
     void on_pos2_meas_le_textEdited(const QString &arg1);
-
     void on_vel2_meas_le_textEdited(const QString &arg1);
-
     void on_pos2_init_le_textEdited(const QString &arg1);
-
     void on_vel2_init_le_textEdited(const QString &arg1);
-
     void on_accel2_init_le_textEdited(const QString &arg1);
 
 private:
