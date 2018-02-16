@@ -117,8 +117,8 @@ void QuaternionOrientationKalman::update(const FilterInput & z)
     x += K * y;
     normalize_state();
 
-    // TODO: Implement optimal formula
-    P = (NumMatrix::Identity(x.size(), x.size()) - K * H) * P;
+    NumMatrix tmp = NumMatrix::Identity(x.size(), x.size()) - K * H;
+    P = tmp * P * tmp.transpose() + K * R * K.transpose();
 }
 
 void QuaternionOrientationKalman::normalize_state()

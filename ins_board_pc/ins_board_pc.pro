@@ -11,6 +11,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport datavisualization
 TARGET = ins_board_pc
 TEMPLATE = app
 
+OBJECTS_DIR = obj
+MOC_DIR = moc
+
 CONFIG += c++14 #console
 #CONFIG -= app_bundle
 
