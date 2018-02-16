@@ -1,9 +1,9 @@
 #ifndef QUATORIENTKALMAN_H
 #define QUATORIENTKALMAN_H
 
-#include "abstractorientationfilter.h"
+#include "abstractkalmanorientationfilter.h"
 
-class QuaternionOrientationKalman final : public AbstractOrientationFilter
+class QuaternionOrientationKalman final : public AbstractKalmanOrientationFilter
 {
 public:
     struct ProcessNoiseParams
@@ -39,28 +39,26 @@ public:
     ~QuaternionOrientationKalman() override;
 
     void step(const FilterInput & z) override;
-    void reset() override;
 
     NumVector get_orientation_quaternion() const override;
     NumVector get_gyro_bias() const override;
 
     void get_rpy(double & roll, double & pitch, double & yaw) const override;
 
-    void set_proc_gyro_std(double std);
-    void set_proc_gyro_bias_std(double std);
+    void set_proc_gyro_std(double std) override;
+    void set_proc_gyro_bias_std(double std) override;
 
-    void set_meas_accel_std(double std);
-    void set_meas_magn_std(double std);
+    void set_meas_accel_std(double std) override;
+    void set_meas_magn_std(double std) override;
 
-    void set_init_qs_std(double std);
-    void set_init_qx_std(double std);
-    void set_init_qy_std(double std);
-    void set_init_qz_std(double std);
-    void set_init_bias_std(double std);
+    void set_init_qs_std(double std) override;
+    void set_init_qx_std(double std) override;
+    void set_init_qy_std(double std) override;
+    void set_init_qz_std(double std) override;
+    void set_init_bias_std(double std) override;
 
 protected:
     void update(const FilterInput & z) override;
-    void accumulate(const FilterInput & z) override;
     void initialize(const FilterInput & z) override;
     void normalize_state() override;
 
