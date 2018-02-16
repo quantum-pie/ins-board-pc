@@ -24,8 +24,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
-
     setup_ui();
 
     setup_kalman_op();
@@ -122,6 +120,8 @@ void MainWindow::setup_complementary()
 
 void MainWindow::setup_ui()
 {
+    ui->setupUi(this);
+
     init_graphs();
 
     magnet_plot = new Q3DScatter;
@@ -161,6 +161,14 @@ void MainWindow::setup_ui()
 
     ui->a_gain_le->setText(QString::number(static_accel_gain));
     ui->m_gain_le->setText(QString::number(static_magn_gain));
+
+    ui->accel2_proc_le->setText(QString::number(proc_accel_std));
+    ui->pos2_meas_le->setText(QString::number(meas_gps_cep));
+    ui->vel2_meas_le->setText(QString::number(meas_gps_vel_abs_std));
+
+    ui->pos2_init_le->setText(QString::number(cov_pos_std));
+    ui->vel2_init_le->setText(QString::number(cov_vel_std));
+    ui->accel2_init_le->setText(QString::number(cov_accel_std));
 
     ui->samples_le_2->setText(QString::number(roll_ctrl_compl.get_sampling()));
 }
@@ -943,4 +951,34 @@ void MainWindow::on_qy_init_le_textEdited(const QString &arg1)
 void MainWindow::on_qz_init_le_textEdited(const QString &arg1)
 {
     curr_of->set_init_qz_std(arg1.toDouble());
+}
+
+void MainWindow::on_accel2_proc_le_textEdited(const QString &arg1)
+{
+    compl_pf->set_proc_accel_std(arg1.toDouble());
+}
+
+void MainWindow::on_pos2_meas_le_textEdited(const QString &arg1)
+{
+    compl_pf->set_meas_pos_std(arg1.toDouble());
+}
+
+void MainWindow::on_vel2_meas_le_textEdited(const QString &arg1)
+{
+    compl_pf->set_meas_vel_std(arg1.toDouble());
+}
+
+void MainWindow::on_pos2_init_le_textEdited(const QString &arg1)
+{
+    compl_pf->set_init_pos_std(arg1.toDouble());
+}
+
+void MainWindow::on_vel2_init_le_textEdited(const QString &arg1)
+{
+    compl_pf->set_init_vel_std(arg1.toDouble());
+}
+
+void MainWindow::on_accel2_init_le_textEdited(const QString &arg1)
+{
+    compl_pf->set_init_accel_std(arg1.toDouble());
 }
