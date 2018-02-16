@@ -282,7 +282,8 @@ void MainWindow::update_comp_pos_tab()
 
     if(compl_pf->is_initialized())
     {
-        // TODO
+        NumVector vel = compl_pf->get_velocity();
+        update_plot(ui->plot7, QVector3D(vel[0], vel[1], vel[2]));
     }
 }
 
