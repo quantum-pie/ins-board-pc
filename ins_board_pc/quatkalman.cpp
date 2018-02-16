@@ -12,8 +12,8 @@ const int QuaternionKalman::state_size = 16;
 const int QuaternionKalman::measurement_size = 10;
 
 QuaternionKalman::QuaternionKalman(const FilterParams & par)
-    : AbstractOrientationFilter(par.accum_capacity),
-      AbstractPositionFilter(),
+    : AbstractKalmanOrientationFilter(par.accum_capacity),
+      AbstractKalmanPositionFilter(),
       params(par)
 {
     x = NumVector(state_size);
@@ -27,20 +27,20 @@ QuaternionKalman::~QuaternionKalman()
 
 void QuaternionKalman::accumulate(const FilterInput & z)
 {
-    AbstractOrientationFilter::accumulate(z);
-    AbstractPositionFilter::accumulate(z);
+    AbstractKalmanOrientationFilter::accumulate(z);
+    AbstractKalmanPositionFilter::accumulate(z);
 }
 
 void QuaternionKalman::reset()
 {
-    AbstractOrientationFilter::reset();
-    AbstractPositionFilter::reset();
+    AbstractKalmanOrientationFilter::reset();
+    AbstractKalmanPositionFilter::reset();
 }
 
 void QuaternionKalman::initialize(const FilterInput & z)
 {
-    AbstractOrientationFilter::initialize(z);
-    AbstractPositionFilter::initialize(z);
+    AbstractKalmanOrientationFilter::initialize(z);
+    AbstractKalmanPositionFilter::initialize(z);
 
     NumVector qacc = qutils::acceleration_quat(z.a);
 

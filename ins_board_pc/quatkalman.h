@@ -1,10 +1,10 @@
 #ifndef QUATKALMAN_TEST_H
 #define QUATKALMAN_TEST_H
 
-#include "abstractorientationfilter.h"
-#include "abstractpositionfilter.h"
+#include "abstractkalmanorientationfilter.h"
+#include "abstractkalmanpositionfilter.h"
 
-class QuaternionKalman final : public AbstractOrientationFilter, public AbstractPositionFilter
+class QuaternionKalman final : public AbstractKalmanOrientationFilter, public AbstractKalmanPositionFilter
 {
 public:
     struct ProcessNoiseParams
@@ -57,23 +57,23 @@ public:
     void get_rpy(double & roll, double & pitch, double & yaw) const override;
     void get_geodetic(double & lat, double & lon, double & alt) const override;
 
-    void set_proc_gyro_std(double std);
-    void set_proc_gyro_bias_std(double std);
-    void set_proc_accel_std(double std);
+    void set_proc_gyro_std(double std) override;
+    void set_proc_gyro_bias_std(double std) override;
+    void set_proc_accel_std(double std) override;
 
-    void set_meas_accel_std(double std);
-    void set_meas_magn_std(double std);
-    void set_meas_pos_std(double std);
-    void set_meas_vel_std(double std);
+    void set_meas_accel_std(double std) override;
+    void set_meas_magn_std(double std) override;
+    void set_meas_pos_std(double std) override;
+    void set_meas_vel_std(double std) override;
 
-    void set_init_qs_std(double std);
-    void set_init_qx_std(double std);
-    void set_init_qy_std(double std);
-    void set_init_qz_std(double std);
-    void set_init_bias_std(double std);
-    void set_init_pos_std(double std);
-    void set_init_vel_std(double std);
-    void set_init_accel_std(double std);
+    void set_init_qs_std(double std) override;
+    void set_init_qx_std(double std) override;
+    void set_init_qy_std(double std) override;
+    void set_init_qz_std(double std) override;
+    void set_init_bias_std(double std) override;
+    void set_init_pos_std(double std) override;
+    void set_init_vel_std(double std) override;
+    void set_init_accel_std(double std) override;
 
 protected:
     void update(const FilterInput & z) override;
