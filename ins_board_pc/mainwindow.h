@@ -2,13 +2,16 @@
 #define MAINWINDOW_H
 
 #include "calibrator.h"
-#include "abstractfilter.h"
+#include "abstractkalmanorientationfilter.h"
+#include "abstractkalmanpositionfilter.h"
+#include "quatcomplement.h"
 #include "qualitycontrol.h"
 
 #include <QMainWindow>
 #include <QVector3D>
 #include <QtDataVisualization>
 #include <QGridLayout>
+#include <QHash>
 
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/Qt3DWindow>
@@ -51,7 +54,11 @@ private slots:
     void on_bias_init_le_textEdited(const QString &arg1);
     void on_pos_init_le_textEdited(const QString &arg1);
     void on_vel_init_le_textEdited(const QString &arg1);
-    void on_accel_init_le_textEdited(const QString &arg1);
+    void on_accel_init_le_textEdited(const QString &arg1);    
+    void on_qs_init_le_textEdited(const QString &arg1);
+    void on_qx_init_le_textEdited(const QString &arg1);
+    void on_qy_init_le_textEdited(const QString &arg1);
+    void on_qz_init_le_textEdited(const QString &arg1);
 
     void on_samples_le_textEdited(const QString &arg1);
     void on_a_gain_le_textEdited(const QString &arg1);
@@ -59,13 +66,6 @@ private slots:
     void on_samples_le_2_textEdited(const QString &arg1);
     void on_pushButton_4_toggled(bool checked);
 
-    void on_qs_init_le_textEdited(const QString &arg1);
-
-    void on_qx_init_le_textEdited(const QString &arg1);
-
-    void on_qy_init_le_textEdited(const QString &arg1);
-
-    void on_qz_init_le_textEdited(const QString &arg1);
 
 private:
     struct gps_time_t
@@ -112,9 +112,14 @@ private:
 
     void process_data(const QByteArray & data);
 
-    void setup_quat_kalman();
+    void setup_kalman_op();
+    void setup_kalman_o();
+    void setup_kalman_p();
     void setup_complementary();
-    void setup_pos_kalman();
+
+    void setup_ui();
+
+    void cast_filters();
 
     AbstractFilter::FilterInput parse_input(const input_t & in) const;
 
@@ -138,8 +143,6 @@ private:
 
     Calibrator magn_cal;
 
-    QVector<AbstractFilter *> filters;
-
     QualityControl roll_ctrl_kalman, pitch_ctrl_kalman, yaw_ctrl_kalman;
     QualityControl roll_ctrl_compl, pitch_ctrl_compl, yaw_ctrl_compl;
 
@@ -149,8 +152,36 @@ private:
     Qt3DExtras::Qt3DWindow * orient_window_compl = 0;
     Qt3DCore::QTransform * body_transform_compl, * sphere_transform_compl;
 
+    QHash<QString, AbstractFilter *> filters;
+
+    AbstractKalmanOrientationFilter * curr_of;
+    AbstractKalmanPositionFilter * curr_pf;
+    QuaternionComplement * compl_of;
+    AbstractKalmanPositionFilter * compl_pf;
+
     const size_t pkt_header_size = 4;
     const size_t sample_size = 169;
+
+    const double proc_gyro_std = 0.0001;
+    const double proc_gyro_bias_std = 0;
+    const double proc_accel_std = 0.00001;
+
+    const double meas_accel_std = 0.005;
+    const double meas_magn_std = 0.5;
+    const double meas_gps_cep = 2.5;
+    const double meas_gps_vel_abs_std = 0.1;
+
+    const double cov_qs_std = 0.015;
+    const double cov_qx_std = 0.0015;
+    const double cov_qy_std = 0.0015;
+    const double cov_qz_std = 0.06;
+    const double cov_bias_std = 0;
+    const double cov_pos_std = 2.5;
+    const double cov_vel_std = 0.1;
+    const double cov_accel_std = 1;
+
+    const double static_accel_gain = 0.05;
+    const double static_magn_gain = 0.0005;
 };
 
 #endif // MAINWINDOW_H

@@ -2,9 +2,9 @@
 #include "ui_mainwindow.h"
 
 #include "quatkalman.h"
+#include "quatorientkalman.h"
 #include "quatcomplement.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
+#include "poskalman.h"
 
 #include <QDataStream>
 #include <QDebug>
@@ -26,20 +26,12 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    init_graphs();
+    setup_ui();
 
-    magnet_plot = new Q3DScatter;
-    magnet_data = new QScatterDataArray;
-
-    magnet_plot_cb = new Q3DScatter;
-    magnet_data_cb = new QScatterDataArray;
-
-    init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
-    init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
-
-    setup_quat_kalman();
+    setup_kalman_op();
+    setup_kalman_o();
+    setup_kalman_p();
     setup_complementary();
-    setup_pos_kalman();
 
     udp_socket = new QUdpSocket(this);
     udp_socket->bind(QHostAddress("192.168.4.1"), 65000);
@@ -52,80 +44,123 @@ MainWindow::~MainWindow()
 {
     delete udp_socket;
 
-    for(auto * ptr : filters)
+    for(auto * ptr : filters.values())
         delete ptr;
 
     delete ui;
 }
 
-void MainWindow::setup_quat_kalman()
+void MainWindow::setup_kalman_op()
 {
-    body_transform_kalman = new Qt3DCore::QTransform;
-    sphere_transform_kalman = new Qt3DCore::QTransform;
-
     QuaternionKalman::ProcessNoiseParams proc_params;
-    proc_params.gyro_std = 0.0001; //!< dps
-    proc_params.gyro_bias_std = 0; //!< assume almost constant bias
-    proc_params.accel_std = 0.00001; //!< m^2/s
+    proc_params.gyro_std = proc_gyro_std; //!< dps
+    proc_params.gyro_bias_std = proc_gyro_bias_std; //!< assume almost constant bias
+    proc_params.accel_std = proc_accel_std; //!< m^2/s
 
     QuaternionKalman::MeasurementNoiseParams meas_params;
-    meas_params.accel_std = 0.005; //0.005 //!< g
-    meas_params.magn_std = 0.5;//1.2; //!< uT
-    meas_params.gps_cep = 2.5;//2.5; //!< m
-    meas_params.gps_vel_abs_std = 0.1;//0.1; //!< m/s
+    meas_params.accel_std = meas_accel_std;  //!< g
+    meas_params.magn_std = meas_magn_std; //!< uT
+    meas_params.gps_cep = meas_gps_cep; //!< m
+    meas_params.gps_vel_abs_std = meas_gps_vel_abs_std; //!< m/s
 
     QuaternionKalman::InitCovParams cov_params;
-    cov_params.qs_std = 0.015;
-    cov_params.qx_std = 0.0015;
-    cov_params.qy_std = 0.0015;
-    cov_params.qz_std = 0.06;
-    cov_params.bias_std = 0;
-    cov_params.pos_std = 2.5;
-    cov_params.vel_std = 0.1;
-    cov_params.accel_std = 1;
+    cov_params.qs_std = cov_qs_std;
+    cov_params.qx_std = cov_qx_std;
+    cov_params.qy_std = cov_qy_std;
+    cov_params.qz_std = cov_qz_std;
+    cov_params.bias_std = cov_bias_std;
+    cov_params.pos_std = cov_pos_std;
+    cov_params.vel_std = cov_vel_std;
+    cov_params.accel_std = cov_accel_std;
 
-    ui->gyro_process_le->setText(QString::number(proc_params.gyro_std));
-    ui->gyro_bias_process_le->setText(QString::number(proc_params.gyro_bias_std));
-    ui->accel_process_le->setText(QString::number(proc_params.accel_std));
+    filters.insert("kalman_op", new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params, 500}));
+}
 
-    ui->accel_meas_le->setText(QString::number(meas_params.accel_std));
-    ui->magn_meas_le->setText(QString::number(meas_params.magn_std));
-    ui->pos_meas_le->setText(QString::number(meas_params.gps_cep));
-    ui->vel_meas_le->setText(QString::number(meas_params.gps_vel_abs_std));
+void MainWindow::setup_kalman_o()
+{
+    QuaternionOrientationKalman::ProcessNoiseParams proc_params;
+    proc_params.gyro_std = proc_gyro_std; //!< dps
+    proc_params.gyro_bias_std = proc_gyro_bias_std; //!< assume almost constant bias
 
-    ui->qs_init_le->setText(QString::number(cov_params.qs_std));
-    ui->qx_init_le->setText(QString::number(cov_params.qx_std));
-    ui->qy_init_le->setText(QString::number(cov_params.qy_std));
-    ui->qz_init_le->setText(QString::number(cov_params.qz_std));
-    ui->bias_init_le->setText(QString::number(cov_params.bias_std));
-    ui->pos_init_le->setText(QString::number(cov_params.pos_std));
-    ui->vel_init_le->setText(QString::number(cov_params.vel_std));
-    ui->accel_init_le->setText(QString::number(cov_params.accel_std));
+    QuaternionOrientationKalman::MeasurementNoiseParams meas_params;
+    meas_params.accel_std = meas_accel_std;  //!< g
+    meas_params.magn_std = meas_magn_std; //!< uT
 
-    ui->samples_le->setText(QString::number(roll_ctrl_kalman.get_sampling()));
+    QuaternionOrientationKalman::InitCovParams cov_params;
+    cov_params.qs_std = cov_qs_std;
+    cov_params.qx_std = cov_qx_std;
+    cov_params.qy_std = cov_qy_std;
+    cov_params.qz_std = cov_qz_std;
+    cov_params.bias_std = cov_bias_std;
 
-    filters.push_back(new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params, 500}));
+    filters.insert("kalman_o", new QuaternionOrientationKalman(QuaternionOrientationKalman::FilterParams{proc_params, meas_params, cov_params, 500}));
+}
+
+void MainWindow::setup_kalman_p()
+{
+    PositionKalman::ProcessNoiseParams proc_params;
+    proc_params.accel_std = proc_accel_std; //!< m^2/s
+
+    PositionKalman::MeasurementNoiseParams meas_params;
+    meas_params.gps_cep = meas_gps_cep; //!< m
+    meas_params.gps_vel_abs_std = meas_gps_vel_abs_std; //!< m/s
+
+    PositionKalman::InitCovParams cov_params;
+    cov_params.pos_std = cov_pos_std;
+    cov_params.vel_std = cov_vel_std;
+    cov_params.accel_std = cov_accel_std;
+
+    filters.insert("kalman_p", new PositionKalman(PositionKalman::FilterParams{proc_params, meas_params, cov_params, 500}));
 }
 
 void MainWindow::setup_complementary()
 {
+    filters.insert("complement", new QuaternionComplement(QuaternionComplement::FilterParams{static_accel_gain, static_magn_gain, 500}));
+}
+
+void MainWindow::setup_ui()
+{
+    init_graphs();
+
+    magnet_plot = new Q3DScatter;
+    magnet_data = new QScatterDataArray;
+
+    magnet_plot_cb = new Q3DScatter;
+    magnet_data_cb = new QScatterDataArray;
+
+    init_magnet_plot(ui->widget, magnet_data, magnet_plot, "Magnetometer Raw Measurements");
+    init_magnet_plot(ui->widget_2, magnet_data_cb, magnet_plot_cb, "Magnetometer Calibrated");
+
+    body_transform_kalman = new Qt3DCore::QTransform;
+    sphere_transform_kalman = new Qt3DCore::QTransform;
+
     body_transform_compl = new Qt3DCore::QTransform;
     sphere_transform_compl = new Qt3DCore::QTransform;
 
-    double static_accel_gain = 0.05;
-    double static_magn_gain = 0.0005;
+    ui->gyro_process_le->setText(QString::number(proc_gyro_std));
+    ui->gyro_bias_process_le->setText(QString::number(proc_gyro_bias_std));
+    ui->accel_process_le->setText(QString::number(proc_accel_std));
+
+    ui->accel_meas_le->setText(QString::number(meas_accel_std));
+    ui->magn_meas_le->setText(QString::number(meas_magn_std));
+    ui->pos_meas_le->setText(QString::number(meas_gps_cep));
+    ui->vel_meas_le->setText(QString::number(meas_gps_vel_abs_std));
+
+    ui->qs_init_le->setText(QString::number(cov_qs_std));
+    ui->qx_init_le->setText(QString::number(cov_qx_std));
+    ui->qy_init_le->setText(QString::number(cov_qy_std));
+    ui->qz_init_le->setText(QString::number(cov_qz_std));
+    ui->bias_init_le->setText(QString::number(cov_bias_std));
+    ui->pos_init_le->setText(QString::number(cov_pos_std));
+    ui->vel_init_le->setText(QString::number(cov_vel_std));
+    ui->accel_init_le->setText(QString::number(cov_accel_std));
+
+    ui->samples_le->setText(QString::number(roll_ctrl_kalman.get_sampling()));
 
     ui->a_gain_le->setText(QString::number(static_accel_gain));
     ui->m_gain_le->setText(QString::number(static_magn_gain));
 
     ui->samples_le_2->setText(QString::number(roll_ctrl_compl.get_sampling()));
-
-    filters.push_back(new QuaternionComplement(QuaternionComplement::FilterParams{static_accel_gain, static_magn_gain, 500}));
-}
-
-void MainWindow::setup_pos_kalman()
-{
-
 }
 
 AbstractFilter::FilterInput MainWindow::parse_input(const input_t & in) const
@@ -135,6 +170,7 @@ AbstractFilter::FilterInput MainWindow::parse_input(const input_t & in) const
     w << qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
     a << in.a_x, in.a_y, in.a_z;
     m << in.m_x, in.m_y, in.m_z;
+
     geo << qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
     pos << in.gps.x, in.gps.y, in.gps.z;
     v << in.gps.vx, in.gps.vy, in.gps.vz;
@@ -187,61 +223,67 @@ void MainWindow::update_gps_tab(const input_t & in)
 
 void MainWindow::update_kalman_tab()
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-
-    double r, p, y;
-    kalman_filt->get_rpy(r, p, y);
-
-    update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
-
-    NumVector quat = kalman_filt->get_orientation_quaternion();
-    QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
-
-    update_body_transform(qquat, body_transform_kalman, sphere_transform_kalman);
-
-    NumVector vel = kalman_filt->get_velocity();
-    update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
-
-    roll_ctrl_kalman.update(qRadiansToDegrees(r));
-    pitch_ctrl_kalman.update(qRadiansToDegrees(p));
-    yaw_ctrl_kalman.update(qRadiansToDegrees(y));
-
-    if(roll_ctrl_kalman.is_saturated())
+    if(curr_of->is_initialized())
     {
-        ui->roll_std_le->setText(QString::number(roll_ctrl_kalman.get_std(), 'f', 2));
-        ui->pitch_std_le->setText(QString::number(pitch_ctrl_kalman.get_std(), 'f', 2));
-        ui->yaw_std_le->setText(QString::number(yaw_ctrl_kalman.get_std(), 'f', 2));
+        double r, p, y;
+        curr_of->get_rpy(r, p, y);
+
+        update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
+
+        NumVector quat = curr_of->get_orientation_quaternion();
+        QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
+
+        update_body_transform(qquat, body_transform_kalman, sphere_transform_kalman);
+
+        roll_ctrl_kalman.update(qRadiansToDegrees(r));
+        pitch_ctrl_kalman.update(qRadiansToDegrees(p));
+        yaw_ctrl_kalman.update(qRadiansToDegrees(y));
+
+        if(roll_ctrl_kalman.is_saturated())
+        {
+            ui->roll_std_le->setText(QString::number(roll_ctrl_kalman.get_std(), 'f', 2));
+            ui->pitch_std_le->setText(QString::number(pitch_ctrl_kalman.get_std(), 'f', 2));
+            ui->yaw_std_le->setText(QString::number(yaw_ctrl_kalman.get_std(), 'f', 2));
+        }
+    }
+
+    if(curr_pf->is_initialized())
+    {
+        NumVector vel = curr_pf->get_velocity();
+        update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
     }
 }
 
 void MainWindow::update_comp_pos_tab()
 {
-    QuaternionComplement * complem = dynamic_cast<QuaternionComplement *>(filters.at(1));
-
-    double r, p, y;
-    complem->get_rpy(r, p, y);
-
-    update_plot(ui->plot6, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
-
-    NumVector quat = complem->get_orientation_quaternion();
-    QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
-
-    update_body_transform(qquat, body_transform_compl, sphere_transform_compl);
-
-    roll_ctrl_compl.update(qRadiansToDegrees(r));
-    pitch_ctrl_compl.update(qRadiansToDegrees(p));
-    yaw_ctrl_compl.update(qRadiansToDegrees(y));
-
-    if(roll_ctrl_compl.is_saturated())
+    if(compl_of->is_initialized())
     {
-        ui->roll_std_le_2->setText(QString::number(roll_ctrl_compl.get_std(), 'f', 2));
-        ui->pitch_std_le_2->setText(QString::number(pitch_ctrl_compl.get_std(), 'f', 2));
-        ui->yaw_std_le_2->setText(QString::number(yaw_ctrl_compl.get_std(), 'f', 2));
+        double r, p, y;
+        compl_of->get_rpy(r, p, y);
+
+        update_plot(ui->plot6, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
+
+        NumVector quat = compl_of->get_orientation_quaternion();
+        QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
+
+        update_body_transform(qquat, body_transform_compl, sphere_transform_compl);
+
+        roll_ctrl_compl.update(qRadiansToDegrees(r));
+        pitch_ctrl_compl.update(qRadiansToDegrees(p));
+        yaw_ctrl_compl.update(qRadiansToDegrees(y));
+
+        if(roll_ctrl_compl.is_saturated())
+        {
+            ui->roll_std_le_2->setText(QString::number(roll_ctrl_compl.get_std(), 'f', 2));
+            ui->pitch_std_le_2->setText(QString::number(pitch_ctrl_compl.get_std(), 'f', 2));
+            ui->yaw_std_le_2->setText(QString::number(yaw_ctrl_compl.get_std(), 'f', 2));
+        }
     }
 
-    /*
-    TODO: Here we will read position filter results
-    */
+    if(compl_pf->is_initialized())
+    {
+        // TODO
+    }
 }
 
 void MainWindow::update_body_transform(const QQuaternion & rotator,
@@ -264,8 +306,28 @@ void MainWindow::read_datagrams()
     }
 }
 
+void MainWindow::cast_filters()
+{
+    if(ui->comboBox->currentIndex() == 0)
+    {
+        curr_of = dynamic_cast<AbstractKalmanOrientationFilter *>(filters["kalman_o"]);
+        curr_pf = dynamic_cast<AbstractKalmanPositionFilter *>(filters["kalman_p"]);
+    }
+    else
+    {
+        curr_of = dynamic_cast<AbstractKalmanOrientationFilter *>(filters["kalman_op"]);
+        curr_pf = dynamic_cast<AbstractKalmanPositionFilter *>(filters["kalman_op"]);
+    }
+
+    compl_of = dynamic_cast<QuaternionComplement *>(filters["complement"]);
+    compl_pf = dynamic_cast<AbstractKalmanPositionFilter *>(filters["kalman_p"]);
+
+}
+
 void MainWindow::process_data(const QByteArray & data)
 {
+    cast_filters();
+
     QDataStream ds(data);
     ds.setByteOrder(QDataStream::LittleEndian);
     size_t samples = (data.size() - pkt_header_size) / sample_size;
@@ -288,14 +350,28 @@ void MainWindow::process_data(const QByteArray & data)
                 in.gps.vx >> in.gps.vy >> in.gps.vz;
 
         AbstractFilter::FilterInput z = parse_input(in);
-        if(ui->pushButton_2->isChecked() && in.gps.fix)
+        if(ui->pushButton_2->isChecked())
         {
-            filters.at(0)->step(z);
+            if(ui->comboBox->currentIndex() == 0)
+            {
+                curr_of->step(z);
+                if(in.gps.fix)
+                {
+                    curr_pf->step(z);
+                }
+            }
+            else if(in.gps.fix)
+            {
+                curr_of->step(z);
+            }
         }
-
-        if(ui->pushButton_4->isChecked())
+        else if(ui->pushButton_4->isChecked())
         {
-            filters.at(1)->step(z);
+            compl_of->step(z);
+            if(in.gps.fix)
+            {
+                compl_pf->step(z);
+            }
         }
     }
 
@@ -323,7 +399,7 @@ void MainWindow::process_data(const QByteArray & data)
                              orient_window_kalman, body_transform_kalman, sphere_transform_kalman);
         }
 
-        if(ui->pushButton_2->isChecked() && filters.at(0)->is_initialized())
+        if(ui->pushButton_2->isChecked())
         {
             update_kalman_tab();
         }
@@ -338,7 +414,7 @@ void MainWindow::process_data(const QByteArray & data)
                              orient_window_compl, body_transform_compl, sphere_transform_compl);
         }
 
-        if(ui->pushButton_4->isChecked() && filters.at(1)->is_initialized())
+        if(ui->pushButton_4->isChecked())
         {
             update_comp_pos_tab();
         }
@@ -753,7 +829,8 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
 {
     if(checked)
     {
-        filters.at(0)->reset();
+        curr_of->reset();
+        curr_pf->reset();
     }
 }
 
@@ -761,8 +838,8 @@ void MainWindow::on_pushButton_4_toggled(bool checked)
 {
     if(checked)
     {
-        filters.at(1)->reset();
-        // and at(2) too
+        compl_of->reset();
+        compl_pf->reset();
     }
 }
 
@@ -773,76 +850,57 @@ void MainWindow::on_pushButton_3_clicked() const
 
 void MainWindow::on_gyro_process_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_proc_gyro_std(arg1.toDouble());
+    curr_of->set_proc_gyro_std(arg1.toDouble());
 }
 
 void MainWindow::on_gyro_bias_process_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_proc_gyro_bias_std(arg1.toDouble());
+    curr_of->set_proc_gyro_bias_std(arg1.toDouble());
 }
 
 void MainWindow::on_accel_process_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_proc_accel_std(arg1.toDouble());
+    curr_pf->set_proc_accel_std(arg1.toDouble());
 }
 
 void MainWindow::on_accel_meas_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_meas_accel_std(arg1.toDouble());
+    curr_of->set_meas_accel_std(arg1.toDouble());
 }
 
 void MainWindow::on_magn_meas_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_meas_magn_std(arg1.toDouble());
+    curr_of->set_meas_magn_std(arg1.toDouble());
 }
 
 void MainWindow::on_pos_meas_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_meas_pos_std(arg1.toDouble());
+    curr_pf->set_meas_pos_std(arg1.toDouble());
 }
 
 void MainWindow::on_vel_meas_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_meas_vel_std(arg1.toDouble());
+    curr_pf->set_meas_vel_std(arg1.toDouble());
 }
-
-/*
-void MainWindow::on_quat_init_le_textEdited(const QString &arg1)
-{
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_init_quat_std(arg1.toDouble());
-}
-*/
 
 void MainWindow::on_bias_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_init_bias_std(arg1.toDouble());
+    curr_of->set_init_bias_std(arg1.toDouble());
 }
 
 void MainWindow::on_pos_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_init_pos_std(arg1.toDouble());
+    curr_pf->set_init_pos_std(arg1.toDouble());
 }
 
 void MainWindow::on_vel_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_init_vel_std(arg1.toDouble());
+    curr_pf->set_init_vel_std(arg1.toDouble());
 }
 
 void MainWindow::on_accel_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_init_accel_std(arg1.toDouble());
+    curr_pf->set_init_accel_std(arg1.toDouble());
 }
 
 void MainWindow::on_samples_le_textEdited(const QString &arg1)
@@ -855,14 +913,12 @@ void MainWindow::on_samples_le_textEdited(const QString &arg1)
 
 void MainWindow::on_a_gain_le_textEdited(const QString &arg1)
 {
-    QuaternionComplement * compl_filt = dynamic_cast<QuaternionComplement *>(filters.at(1));
-    compl_filt->set_static_accel_gain(arg1.toDouble());
+    compl_of->set_static_accel_gain(arg1.toDouble());
 }
 
 void MainWindow::on_m_gain_le_textEdited(const QString &arg1)
 {
-    QuaternionComplement * compl_filt = dynamic_cast<QuaternionComplement *>(filters.at(1));
-    compl_filt->set_static_magn_gain(arg1.toDouble());
+    compl_of->set_static_magn_gain(arg1.toDouble());
 }
 
 void MainWindow::on_samples_le_2_textEdited(const QString &arg1)
@@ -875,24 +931,20 @@ void MainWindow::on_samples_le_2_textEdited(const QString &arg1)
 
 void MainWindow::on_qs_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_init_qs_std(arg1.toDouble());
+    curr_of->set_init_qs_std(arg1.toDouble());
 }
 
 void MainWindow::on_qx_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_init_qx_std(arg1.toDouble());
+    curr_of->set_init_qx_std(arg1.toDouble());
 }
 
 void MainWindow::on_qy_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_init_qy_std(arg1.toDouble());
+    curr_of->set_init_qy_std(arg1.toDouble());
 }
 
 void MainWindow::on_qz_init_le_textEdited(const QString &arg1)
 {
-    QuaternionKalman * kalman_filt = dynamic_cast<QuaternionKalman *>(filters.at(0));
-    kalman_filt->set_init_qz_std(arg1.toDouble());
+    curr_of->set_init_qz_std(arg1.toDouble());
 }
