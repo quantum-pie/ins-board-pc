@@ -7,11 +7,6 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Cholesky>
-#include <unsupported/Eigen/MatrixFunctions>
-
-#include <boost/numeric/ublas/assignment.hpp>
-
-#include <QDebug>
 
 Calibrator::Calibrator()
 {
@@ -166,7 +161,6 @@ void Calibrator::load()
         file.close();
     }
 }
-
 
 NumVector Calibrator::get_bias() const
 {

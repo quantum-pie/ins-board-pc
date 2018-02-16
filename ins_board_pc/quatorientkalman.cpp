@@ -6,7 +6,6 @@
 #include <Eigen/Dense>
 
 #include <QtMath>
-#include <QDebug>
 
 const int QuaternionOrientationKalman::state_size = 7;
 const int QuaternionOrientationKalman::measurement_size = 6;

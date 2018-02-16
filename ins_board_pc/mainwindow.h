@@ -66,7 +66,6 @@ private slots:
     void on_samples_le_2_textEdited(const QString &arg1);
     void on_pushButton_4_toggled(bool checked);
 
-
 private:
     struct gps_time_t
     {

@@ -1,11 +1,5 @@
 #include "quaternions.h"
 
-#include <boost/numeric/ublas/vector_expression.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/assignment.hpp>
-
 #include <QtMath>
 
 namespace qutils

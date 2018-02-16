@@ -1,12 +1,10 @@
 #include "poskalman.h"
 #include "wmmwrapper.h"
 #include "physconst.h"
-#include "quaternions.h"
 
 #include <Eigen/Dense>
 
 #include <QtMath>
-#include <QDebug>
 
 const int PositionKalman::state_size = 9;
 const int PositionKalman::measurement_size = 4;

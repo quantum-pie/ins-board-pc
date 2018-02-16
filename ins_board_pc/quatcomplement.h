@@ -1,11 +1,6 @@
 #ifndef QUATCOMPLEMENT_H
 #define QUATCOMPLEMENT_H
 
-#include <QString>
-
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-
 #include "abstractorientationfilter.h"
 
 class QuaternionComplement final : public AbstractOrientationFilter

@@ -9,25 +9,15 @@ namespace qutils
 void quat_to_rpy(const NumVector & quaternion, double & roll, double & pitch, double & yaw);
 
 NumMatrix quaternion_to_dcm_tr(const NumVector & quaternion);
-
 NumMatrix quaternion_to_dcm(const NumVector & quaternion);
-
 NumVector quat_multiply(const NumVector & p, const NumVector & q);
-
 NumMatrix skew_symmetric(const NumVector & v);
-
 NumVector quat_normalize(const NumVector & quaternion);
-
 NumMatrix quat_delta_mtx(const NumVector & quaternion, double dt_2);
-
 NumVector acceleration_quat(const NumVector & a);
-
 NumVector magnetometer_quat(const NumVector & l);
-
 NumVector declinator_quat(double declination);
-
 NumVector quat_conjugate(const NumVector & quaternion);
-
 NumVector identity_quaternion();
 
 NumVector lerp(const NumVector & q, const NumVector & p, double alpha);

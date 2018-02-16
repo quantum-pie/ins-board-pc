@@ -1,8 +1,6 @@
 #include "wmmwrapper.h"
 #include "physconst.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 #include <QtMath>
 
 WrapperWMM::WrapperWMM()
