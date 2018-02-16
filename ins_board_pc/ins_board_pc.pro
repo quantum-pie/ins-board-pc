@@ -58,6 +58,8 @@ HEADERS  += mainwindow.h \
     quatkalman.h \
     poskalman.h \
     eigenaux.h \
-    quatorientkalman.h
+    quatorientkalman.h \
+    abstractkalmanorientationfilter.h \
+    abstractkalmanpositionfilter.h
 
 FORMS    += mainwindow.ui
