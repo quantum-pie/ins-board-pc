@@ -80,7 +80,7 @@ protected:
 
     /*!
      * \brief Initialize filter.
-     * \param filter input reference.
+     * \param z filter input reference.
      */
     void initialize(const FilterInput & z);
 

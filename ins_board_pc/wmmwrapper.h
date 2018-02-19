@@ -147,7 +147,6 @@ public:
 private:
     /*!
      * \brief Constructor.
-     * \param params filter parameters.
      */
     WrapperWMM();
 

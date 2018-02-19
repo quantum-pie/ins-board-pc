@@ -153,7 +153,7 @@ protected:
 
     /*!
      * \brief Initialize filter.
-     * \param filter input reference.
+     * \param z filter input reference.
      */
     void initialize(const FilterInput & z) override;
 
@@ -193,7 +193,6 @@ private:
      * \param lon geodetic longitude.
      * \param alt geodetic altitude above ellipsoid.
      * \param day current date.
-     * \param v predicted velocity vector.
      * \return state-to-measurement projection matrix.
      */
     NumMatrix create_meas_proj_mtx(double lat, double lon, double alt, QDate day) const;

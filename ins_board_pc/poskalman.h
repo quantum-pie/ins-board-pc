@@ -137,7 +137,7 @@ protected:
 
     /*!
      * \brief Initialize filter.
-     * \param filter input reference.
+     * \param z filter input reference.
      */
     void initialize(const FilterInput & z) override;
 
@@ -190,7 +190,7 @@ private:
     /*!
      * \brief Calculate velocity vector magnitude.
      * \param velocity velocity vector in cartesian coordinates.
-     * \param[out] velocity magnitude.
+     * \param[out] vel velocity magnitude.
      */
     void calculate_velocity(const NumVector & velocity, double & vel) const;
 

@@ -21,14 +21,14 @@ public:
      */
     struct FilterInput
     {
-        NumVector w;    //!< angular rate vector in \f$ \big[ dps \big] \f$.
-        NumVector a;    //!< accelerometer readings vector in \f$ \big[ g \big] \f$.
+        NumVector w;    //!< angular rate vector in dps.
+        NumVector a;    //!< accelerometer readings vector in g.
         NumVector m;    //!< normalized magnetometer readings vector.
         QDate day;      //!< current date.
-        NumVector geo;  //!< geodetic coordinates vector ( latitude and longitude in \f$ \big[ deg \big] \f$, altitude above ellipsoid in \f$ \big[ m \big] \f$).
-        NumVector pos;  //!< position vector in cartesian coordinates in \f$ \big[ m \big] \f$.
-        NumVector v;    //!< velocity vector in cartesian coordinates in \f$ \big[ \frac{m}{s} \big] \f$.
-        double dt;      //!< elapsed time in \f$ \big[ s \big] \f$.
+        NumVector geo;  //!< geodetic coordinates vector ( latitude and longitude in deg, altitude above ellipsoid in m).
+        NumVector pos;  //!< position vector in cartesian coordinates in m.
+        NumVector v;    //!< velocity vector in cartesian coordinates in m/s.
+        double dt;      //!< elapsed time in s.
     };
 
     /*!
@@ -91,17 +91,16 @@ protected:
 
     /*!
      * \brief Initialize filter.
-     * \param filter input reference.
      */
     virtual void initialize(const FilterInput &)
     {
         initialized = true;
     }
 
-    NumVector x; //!< Filter state vector.
+    NumVector x;        //!< Filter state vector.
 
 private:
-    bool initialized; //!< Filter initialization state.
+    bool initialized;   //!< Filter initialization state.
 
     /*!
      * \brief Reset implemented part.

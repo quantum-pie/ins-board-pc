@@ -16,7 +16,6 @@ class AbstractPositionFilter : public virtual AbstractFilter
 public:
     /*!
      * \brief Constructor.
-     * \param accum_capacity capacity of input accumulator.
      */
     AbstractPositionFilter() : AbstractFilter() {}
 
@@ -54,7 +53,6 @@ public:
 protected:
     /*!
      * \brief Accumulate filter input.
-     * \param filter input reference.
      */
     void accumulate(const FilterInput &) override {}
 };
