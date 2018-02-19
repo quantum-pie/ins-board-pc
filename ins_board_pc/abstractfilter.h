@@ -16,7 +16,9 @@
 class AbstractFilter
 {
 public:
-    //! Filter input type.
+    /*!
+     * \brief Kalman filter input type.
+     */
     struct FilterInput
     {
         NumVector w;    //!< angular rate vector in \f$ \big[ dps \big] \f$.

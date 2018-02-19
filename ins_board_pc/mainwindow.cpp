@@ -110,7 +110,7 @@ void MainWindow::setup_kalman_p()
     cov_params.vel_std = cov_vel_std;
     cov_params.accel_std = cov_accel_std;
 
-    filters.insert("kalman_p", new PositionKalman(PositionKalman::FilterParams{proc_params, meas_params, cov_params, 500}));
+    filters.insert("kalman_p", new PositionKalman(PositionKalman::FilterParams{proc_params, meas_params, cov_params}));
 }
 
 void MainWindow::setup_complementary()
