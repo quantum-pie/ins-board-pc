@@ -136,7 +136,7 @@ void Calibrator::save() const
 {
     QString filename = "res/magnet_calib.dat";
     QFile file(filename);
-    if(file.open(QIODevice::ReadWrite))
+    if(file.open(QIODevice::WriteOnly))
     {
         QDataStream stream(&file);
         stream << bias[0] << bias[1] << bias[2] <<
@@ -151,7 +151,7 @@ void Calibrator::load()
 {
     QString filename = "res/magnet_calib.dat";
     QFile file(filename);
-    if(file.open(QIODevice::ReadWrite))
+    if(file.open(QIODevice::ReadOnly))
     {
         QDataStream stream(&file);
         stream >> bias[0] >> bias[1] >> bias[2] >>
