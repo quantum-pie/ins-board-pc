@@ -8,6 +8,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Cholesky>
 
+#include <QDebug>
+
 Calibrator::Calibrator()
 {
     reset();
@@ -92,6 +94,11 @@ void Calibrator::fit()
         v_1[i] = v(i, idx).real();
     }
 
+    if(v_1[0] < 0)
+    {
+        v_1 = -v_1;
+    }
+
     auto v_2 = - S22_inv * S21 * v_1;
 
     Matrix3d M;
@@ -109,9 +116,62 @@ void Calibrator::fit()
     bias = -M_inv * n / 2;
 
     Matrix3d tmp = M.llt().matrixU();
+
     scale = tmp / qSqrt(0.25 * n.transpose() * M_inv * n - d);
 
     meas.clear();
+}
+
+void Calibrator::fit_simple()
+{
+    double x_min = qInf(), x_max = -qInf();
+    double y_min = qInf(), y_max = -qInf();
+    double z_min = qInf(), z_max = -qInf();
+
+    for(auto & m : meas)
+    {
+        if(m[0] < x_min)
+        {
+            x_min = m[0];
+        }
+
+        if(m[0] > x_max)
+        {
+            x_max = m[0];
+        }
+
+        if(m[1] < y_min)
+        {
+            y_min = m[1];
+        }
+
+        if(m[1] > y_max)
+        {
+            y_max = m[1];
+        }
+
+        if(m[2] < z_min)
+        {
+            z_min = m[2];
+        }
+
+        if(m[2] > z_max)
+        {
+            z_max = m[2];
+        }
+    }
+
+    bias[0] = (x_min + x_max) / 2;
+    bias[1] = (y_min + y_max) / 2;
+    bias[2] = (z_min + z_max) / 2;
+
+    double x_span = x_max - x_min;
+    double y_span = y_max - y_min;
+    double z_span = z_max - z_min;
+
+    scale(0, 0) = 2 / x_span;
+    scale(1, 1) = 2 / y_span;
+    scale(2, 2) = 2 / z_span;
 }
 
 void Calibrator::calibrate(NumVector & m) const

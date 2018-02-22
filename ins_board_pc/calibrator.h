@@ -61,6 +61,11 @@ public:
     void fit();
 
     /*!
+     * \brief Fit calibration parameters to accumulated measurements (simple version).
+     */
+    void fit_simple();
+
+    /*!
      * \brief Get current magnetometer bias.
      * \return magnetometer bias vector.
      */

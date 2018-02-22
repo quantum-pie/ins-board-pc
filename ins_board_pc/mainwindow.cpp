@@ -836,12 +836,23 @@ void MainWindow::on_pushButton_toggled(bool checked)
     {
         /* fit ellips to sphere */
         magn_cal.fit();
+        //magn_cal.fit_simple();
 
         /* draw fitted sphere */
         magnet_data_cb->resize(magnet_data->size());
         for(int i = 0; i < magnet_data->size(); ++i)
         {
-            (*magnet_data_cb)[i].setPosition(magn_cal.calibrate((*magnet_data)[i].position()));
+            QVector3D item = (*magnet_data)[i].position();
+            double tmp = item.y();
+            item.setY(item.z());
+            item.setZ(tmp);
+
+            item = magn_cal.calibrate(item);
+            tmp = item.y();
+            item.setY(item.z());
+            item.setZ(tmp);
+
+            (*magnet_data_cb)[i].setPosition(item);
         }
         magnet_plot_cb->seriesList().at(0)->dataProxy()->resetArray(magnet_data_cb);
 
