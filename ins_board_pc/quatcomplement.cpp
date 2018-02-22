@@ -128,11 +128,6 @@ NumVector QuaternionComplement::get_gyro_bias() const
     return x.segment(4, 3);
 }
 
-void QuaternionComplement::get_rpy(double & roll, double & pitch, double & yaw) const
-{
-    qutils::quat_to_rpy(get_orientation_quaternion(), roll, pitch, yaw);
-}
-
 void QuaternionComplement::set_static_accel_gain(double gain)
 {
     params.static_accel_gain = gain;

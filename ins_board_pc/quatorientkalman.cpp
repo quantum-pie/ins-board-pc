@@ -266,11 +266,6 @@ NumVector QuaternionOrientationKalman::get_gyro_bias() const
     return x.segment(4, 3);
 }
 
-void QuaternionOrientationKalman::get_rpy(double & roll, double & pitch, double & yaw) const
-{
-    qutils::quat_to_rpy(get_orientation_quaternion(), roll, pitch, yaw);
-}
-
 void QuaternionOrientationKalman::set_proc_gyro_std(double std)
 {
     params.proc_params.gyro_std = std;

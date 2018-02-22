@@ -6,6 +6,7 @@
 
 #include "abstractfilter.h"
 #include "qualitycontrol.h"
+#include "quaternions.h"
 
 /*!
  * \brief Abstract body orientation filter.
@@ -58,7 +59,10 @@ public:
      * \param[out] pitch current pitch angle.
      * \param[out] yaw current yaw angle.
      */
-    virtual void get_rpy(double & roll, double & pitch, double & yaw) const = 0;
+     void get_rpy(double & roll, double & pitch, double & yaw) const
+     {
+         qutils::quat_to_rpy(this->get_orientation_quaternion(), roll, pitch, yaw);
+     }
 
 protected:
     /*!

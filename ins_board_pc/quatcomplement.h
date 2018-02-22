@@ -52,14 +52,6 @@ public:
     NumVector get_gyro_bias() const override;
 
     /*!
-     * \brief Get current Euler angles.
-     * \param[out] roll current roll angle.
-     * \param[out] pitch current pitch angle.
-     * \param[out] yaw current yaw angle.
-     */
-    void get_rpy(double & roll, double & pitch, double & yaw) const override;
-
-    /*!
      * \brief Set static accelerometer measurements gain.
      * \param gain static accelerometer measurements gain.
      */

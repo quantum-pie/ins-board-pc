@@ -85,14 +85,6 @@ public:
     NumVector get_acceleration() const override;
 
     /*!
-     * \brief Get current geodetic coordinates.
-     * \param[out] lat current latitude.
-     * \param[out] lon current longitude.
-     * \param[out] alt current altitude.
-     */
-    void get_geodetic(double & lat, double & lon, double & alt) const override;
-
-    /*!
      * \brief Set process noise acceleration standard deviation.
      * \param std standard deviation.
      */
@@ -176,23 +168,6 @@ private:
      * \return state-to-measurement projection matrix.
      */
     NumMatrix create_meas_proj_mtx(const NumVector & v) const;
-
-    /*!
-     * \brief Convert cartesian coordinates to geodetic.
-     * \param position position vector in cartesian coordinates.
-     * \param[out] lat geodetic latitude.
-     * \param[out] lon geodetic longitude.
-     * \param[out] alt geodetic altitude above ellipsoid.
-     */
-    void calculate_geodetic(const NumVector & position,
-                            double & lat, double & lon, double & alt) const;
-
-    /*!
-     * \brief Calculate velocity vector magnitude.
-     * \param velocity velocity vector in cartesian coordinates.
-     * \param[out] vel velocity magnitude.
-     */
-    void calculate_velocity(const NumVector & velocity, double & vel) const;
 
     static const int state_size;        //!< Size of state vector.
     static const int measurement_size;  //!< Size of measurements vector.

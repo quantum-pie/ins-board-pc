@@ -101,6 +101,12 @@ public:
     NumVector get_position() const override;
 
     /*!
+     * \brief Get current position vector in East-North-Up system.
+     * \return position vector.
+     */
+    //NumVector get_position_enu() const override;
+
+    /*!
      * \brief Get current velocity vector.
      * \return velocity vector.
      */
@@ -111,22 +117,6 @@ public:
      * \return acceleration vector.
      */
     NumVector get_acceleration() const override;
-
-    /*!
-     * \brief Get current Euler angles.
-     * \param[out] roll current roll angle.
-     * \param[out] pitch current pitch angle.
-     * \param[out] yaw current yaw angle.
-     */
-    void get_rpy(double & roll, double & pitch, double & yaw) const override;
-
-    /*!
-     * \brief Get current geodetic coordinates.
-     * \param[out] lat current latitude.
-     * \param[out] lon current longitude.
-     * \param[out] alt current altitude.
-     */
-    void get_geodetic(double & lat, double & lon, double & alt) const override;
 
     /*!
      * \brief Set process noise gyroscope standard deviation.
@@ -307,23 +297,6 @@ private:
     void calculate_magnetometer(const NumVector & orientation_quat,
                                 double lat, double lon, double alt, QDate day,
                                 double & mx, double & my, double & mz) const;
-
-    /*!
-     * \brief Convert cartesian coordinates to geodetic.
-     * \param position position vector in cartesian coordinates.
-     * \param[out] lat geodetic latitude.
-     * \param[out] lon geodetic longitude.
-     * \param[out] alt geodetic altitude above ellipsoid.
-     */
-    void calculate_geodetic(const NumVector & position,
-                            double & lat, double & lon, double & alt) const;
-
-    /*!
-     * \brief Calculate velocity vector magnitude.
-     * \param velocity velocity vector in cartesian coordinates.
-     * \param[out] vel velocity magnitude.
-     */
-    void calculate_velocity(const NumVector & velocity, double & vel) const;
 
     static const int state_size;        //!< Size of state vector.
     static const int measurement_size;  //!< Size of measurements vector.

@@ -59,6 +59,17 @@ public:
      * \param std standard deviation.
      */
     virtual void set_init_accel_std(double std) = 0;
+
+protected:
+    /*!
+     * \brief Calculate velocity vector magnitude.
+     * \param velocity velocity vector in cartesian coordinates.
+     * \param[out] vel velocity magnitude.
+     */
+    void calculate_velocity(const NumVector & velocity, double & vel) const
+    {
+        vel = velocity.norm();
+    }
 };
 
 #endif // ABSTRACTKALMANPOSITIONFILTER_H

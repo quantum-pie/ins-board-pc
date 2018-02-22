@@ -189,17 +189,6 @@ NumMatrix PositionKalman::create_meas_proj_mtx(const NumVector & v) const
     return H;
 }
 
-void PositionKalman::calculate_geodetic(const NumVector & position,
-                                          double & lat, double & lon, double & alt) const
-{
-    WrapperWMM::instance().cartesian_to_geodetic(position, lat, lon, alt);
-}
-
-void PositionKalman::calculate_velocity(const NumVector & velocity, double & vel) const
-{
-    vel = velocity.norm();
-}
-
 NumVector PositionKalman::get_position() const
 {
     return x.segment(0, 3);
@@ -213,11 +202,6 @@ NumVector PositionKalman::get_velocity() const
 NumVector PositionKalman::get_acceleration() const
 {
     return x.segment(6, 3);
-}
-
-void PositionKalman::get_geodetic(double & lat, double & lon, double & alt) const
-{
-    calculate_geodetic(get_position(), lat, lon, alt);
 }
 
 void PositionKalman::set_proc_accel_std(double std)

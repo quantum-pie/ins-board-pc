@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 
 #include <QtMath>
+#include <QDebug>
 
 const int QuaternionKalman::state_size = 16;
 const int QuaternionKalman::measurement_size = 10;
@@ -342,12 +343,6 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     return H;
 }
 
-void QuaternionKalman::calculate_geodetic(const NumVector & position,
-                                          double & lat, double & lon, double & alt) const
-{
-    WrapperWMM::instance().cartesian_to_geodetic(position, lat, lon, alt);
-}
-
 void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
                              double lat, double lon, double alt,
                              double & ax, double & ay, double & az) const
@@ -382,11 +377,6 @@ void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat
     mz = rot_magn(2);
 }
 
-void QuaternionKalman::calculate_velocity(const NumVector & velocity, double & vel) const
-{
-    vel = velocity.norm();
-}
-
 NumVector QuaternionKalman::get_orientation_quaternion() const
 {
     return x.segment(0, 4);
@@ -410,16 +400,6 @@ NumVector QuaternionKalman::get_velocity() const
 NumVector QuaternionKalman::get_acceleration() const
 {
     return x.segment(13, 3);
-}
-
-void QuaternionKalman::get_rpy(double & roll, double & pitch, double & yaw) const
-{
-    qutils::quat_to_rpy(get_orientation_quaternion(), roll, pitch, yaw);
-}
-
-void QuaternionKalman::get_geodetic(double & lat, double & lon, double & alt) const
-{
-    calculate_geodetic(get_position(), lat, lon, alt);
 }
 
 void QuaternionKalman::set_proc_gyro_std(double std)
