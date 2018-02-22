@@ -1,7 +1,6 @@
 #include "quatorientkalman.h"
 #include "wmmwrapper.h"
 #include "physconst.h"
-#include "quaternions.h"
 
 #include <Eigen/Dense>
 

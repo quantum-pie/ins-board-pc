@@ -1,5 +1,4 @@
 #include "poskalman.h"
-#include "wmmwrapper.h"
 #include "physconst.h"
 
 #include <Eigen/Dense>

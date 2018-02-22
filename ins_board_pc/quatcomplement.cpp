@@ -1,5 +1,4 @@
 #include "quatcomplement.h"
-#include "quaternions.h"
 
 #include <QtMath>
 

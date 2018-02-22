@@ -6,7 +6,6 @@
 
 #include "abstractfilter.h"
 #include "wmmwrapper.h"
-#include "quaternions.h"
 
 /*!
  * \brief Abstract point position filter.
