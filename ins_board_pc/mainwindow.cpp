@@ -53,15 +53,15 @@ MainWindow::~MainWindow()
 void MainWindow::setup_kalman_op()
 {
     QuaternionKalman::ProcessNoiseParams proc_params;
-    proc_params.gyro_std = proc_gyro_std; //!< dps
-    proc_params.gyro_bias_std = proc_gyro_bias_std; //!< assume almost constant bias
-    proc_params.accel_std = proc_accel_std; //!< m^2/s
+    proc_params.gyro_std = proc_gyro_std;
+    proc_params.gyro_bias_std = proc_gyro_bias_std;
+    proc_params.accel_std = proc_accel_std;
 
     QuaternionKalman::MeasurementNoiseParams meas_params;
-    meas_params.accel_std = meas_accel_std;  //!< g
-    meas_params.magn_std = meas_magn_std; //!< uT
-    meas_params.gps_cep = meas_gps_cep; //!< m
-    meas_params.gps_vel_abs_std = meas_gps_vel_abs_std; //!< m/s
+    meas_params.accel_std = meas_accel_std;
+    meas_params.magn_std = meas_magn_std;
+    meas_params.gps_cep = meas_gps_cep;
+    meas_params.gps_vel_abs_std = meas_gps_vel_abs_std;
 
     QuaternionKalman::InitCovParams cov_params;
     cov_params.qs_std = cov_qs_std;
@@ -79,12 +79,12 @@ void MainWindow::setup_kalman_op()
 void MainWindow::setup_kalman_o()
 {
     QuaternionOrientationKalman::ProcessNoiseParams proc_params;
-    proc_params.gyro_std = proc_gyro_std; //!< dps
-    proc_params.gyro_bias_std = proc_gyro_bias_std; //!< assume almost constant bias
+    proc_params.gyro_std = proc_gyro_std;
+    proc_params.gyro_bias_std = proc_gyro_bias_std;
 
     QuaternionOrientationKalman::MeasurementNoiseParams meas_params;
-    meas_params.accel_std = meas_accel_std;  //!< g
-    meas_params.magn_std = meas_magn_std; //!< uT
+    meas_params.accel_std = meas_accel_std;
+    meas_params.magn_std = meas_magn_std;
 
     QuaternionOrientationKalman::InitCovParams cov_params;
     cov_params.qs_std = cov_qs_std;
@@ -99,11 +99,11 @@ void MainWindow::setup_kalman_o()
 void MainWindow::setup_kalman_p()
 {
     PositionKalman::ProcessNoiseParams proc_params;
-    proc_params.accel_std = proc_accel_std; //!< m^2/s
+    proc_params.accel_std = proc_accel_std;
 
     PositionKalman::MeasurementNoiseParams meas_params;
-    meas_params.gps_cep = meas_gps_cep; //!< m
-    meas_params.gps_vel_abs_std = meas_gps_vel_abs_std; //!< m/s
+    meas_params.gps_cep = meas_gps_cep;
+    meas_params.gps_vel_abs_std = meas_gps_vel_abs_std;
 
     PositionKalman::InitCovParams cov_params;
     cov_params.pos_std = cov_pos_std;
@@ -203,8 +203,7 @@ void MainWindow::update_raw_tab(const input_t & in)
 
 void MainWindow::update_calibration_tab(const input_t & in)
 {
-    magnet_data->append(QVector3D(in.m_x, in.m_z, in.m_y));
-    magnet_plot->seriesList().at(0)->dataProxy()->resetArray(magnet_data);
+    magnet_plot->seriesList().at(0)->dataProxy()->addItem(QVector3D(in.m_x, in.m_z, in.m_y));
 
     NumVector m(3);
     m << in.m_x, in.m_y, in.m_z;
@@ -231,7 +230,7 @@ void MainWindow::update_gps_tab(const input_t & in)
     ui->time_le->setText(dt.toString());
 }
 
-void MainWindow::update_kalman_tab()
+void MainWindow::update_kalman_tab(const input_t & in)
 {
     if(curr_of->is_initialized())
     {
@@ -259,12 +258,20 @@ void MainWindow::update_kalman_tab()
 
     if(curr_pf->is_initialized())
     {
-        NumVector vel = curr_pf->get_velocity();
-        update_plot(ui->plot5, QVector3D(vel[0], vel[1], vel[2]));
+        NumVector enu = curr_pf->get_position_enu();
+
+        NumVector raw_pos(3);
+        raw_pos << in.gps.x, in.gps.y, in.gps.z;
+        NumVector enu_raw = curr_pf->get_position_enu(raw_pos);
+
+        kalman_smooth_track->addData(enu[0], enu[1]);
+        kalman_raw_track->addData(enu_raw[0], enu_raw[1]);
+
+        update_enu_plot(ui->plot5);
     }
 }
 
-void MainWindow::update_comp_pos_tab()
+void MainWindow::update_comp_pos_tab(const input_t & in)
 {
     if(compl_of->is_initialized())
     {
@@ -292,8 +299,16 @@ void MainWindow::update_comp_pos_tab()
 
     if(compl_pf->is_initialized())
     {
-        NumVector vel = compl_pf->get_velocity();
-        update_plot(ui->plot7, QVector3D(vel[0], vel[1], vel[2]));
+        NumVector enu = compl_pf->get_position_enu();
+
+        NumVector raw_pos(3);
+        raw_pos << in.gps.x, in.gps.y, in.gps.z;
+        NumVector enu_raw = compl_pf->get_position_enu(raw_pos);
+
+        compl_smooth_track->addData(enu[0], enu[1]);
+        compl_raw_track->addData(enu_raw[0], enu_raw[1]);
+
+        update_enu_plot(ui->plot7);
     }
 }
 
@@ -405,7 +420,7 @@ void MainWindow::process_data(const QByteArray & data)
 
         if(ui->pushButton_2->isChecked())
         {
-            update_kalman_tab();
+            update_kalman_tab(in);
         }
     }
 
@@ -420,7 +435,7 @@ void MainWindow::process_data(const QByteArray & data)
 
         if(ui->pushButton_4->isChecked())
         {
-            update_comp_pos_tab();
+            update_comp_pos_tab(in);
         }
     }
 }
@@ -539,28 +554,26 @@ void MainWindow::init_graphs()
     ui->plot4->legend->setBrush(Qt::lightGray);
 
     //
+    ui->plot5->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+
     ui->plot5->plotLayout()->insertRow(0);
-    ui->plot5->plotLayout()->addElement(0, 0, new QCPTextElement(ui->plot5, "Speed"));
+    ui->plot5->plotLayout()->addElement(0, 0, new QCPTextElement(ui->plot5, "ENU relative position"));
 
-    ui->plot5->addGraph();
-    ui->plot5->addGraph();
-    ui->plot5->addGraph();
+    kalman_raw_track = new QCPCurve(ui->plot5->xAxis, ui->plot5->yAxis);
+    kalman_raw_track->setName("Raw track");
+    kalman_raw_track->setPen(QPen(Qt::blue));
 
-    ui->plot5->graph(0)->setName("x");
-    ui->plot5->graph(1)->setName("y");
-    ui->plot5->graph(2)->setName("z");
+    kalman_smooth_track = new QCPCurve(ui->plot5->xAxis, ui->plot5->yAxis);
+    kalman_smooth_track->setName("Smoothed track");
+    kalman_smooth_track->setPen(QPen(Qt::red));
 
     ui->plot5->legend->setVisible(true);
 
-    ui->plot5->graph(0)->setPen(QPen(Qt::blue));
-    ui->plot5->graph(1)->setPen(QPen(Qt::red));
-    ui->plot5->graph(2)->setPen(QPen(Qt::cyan));
+    ui->plot5->xAxis->setRange(-10, 10);
+    ui->plot5->xAxis->setLabel("E, m");
 
-    ui->plot5->xAxis->setRange(0, 200);
-    ui->plot5->xAxis->setLabel("packet");
-
-    ui->plot5->yAxis->setRange(-5, 5);
-    ui->plot5->yAxis->setLabel("Velocity, m/s");
+    ui->plot5->yAxis->setRange(-10, 10);
+    ui->plot5->yAxis->setLabel("N, m");
 
     ui->plot5->setBackground(Qt::lightGray);
     ui->plot5->axisRect()->setBackground(Qt::black);
@@ -595,29 +608,26 @@ void MainWindow::init_graphs()
     ui->plot6->legend->setBrush(Qt::lightGray);
 
     //
-    //
+    ui->plot7->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+
     ui->plot7->plotLayout()->insertRow(0);
-    ui->plot7->plotLayout()->addElement(0, 0, new QCPTextElement(ui->plot7, "Speed"));
+    ui->plot7->plotLayout()->addElement(0, 0, new QCPTextElement(ui->plot7, "ENU relative position"));
 
-    ui->plot7->addGraph();
-    ui->plot7->addGraph();
-    ui->plot7->addGraph();
+    compl_raw_track = new QCPCurve(ui->plot7->xAxis, ui->plot7->yAxis);
+    compl_raw_track->setName("Raw track");
+    compl_raw_track->setPen(QPen(Qt::blue));
 
-    ui->plot7->graph(0)->setName("x");
-    ui->plot7->graph(1)->setName("y");
-    ui->plot7->graph(2)->setName("z");
+    compl_smooth_track = new QCPCurve(ui->plot7->xAxis, ui->plot7->yAxis);
+    compl_smooth_track->setName("Smoothed track");
+    compl_smooth_track->setPen(QPen(Qt::red));
 
     ui->plot7->legend->setVisible(true);
 
-    ui->plot7->graph(0)->setPen(QPen(Qt::blue));
-    ui->plot7->graph(1)->setPen(QPen(Qt::red));
-    ui->plot7->graph(2)->setPen(QPen(Qt::cyan));
+    ui->plot7->xAxis->setRange(-10, 10);
+    ui->plot7->xAxis->setLabel("E, m");
 
-    ui->plot7->xAxis->setRange(0, 200);
-    ui->plot7->xAxis->setLabel("packet");
-
-    ui->plot7->yAxis->setRange(-5, 5);
-    ui->plot7->yAxis->setLabel("Velocity, m/s");
+    ui->plot7->yAxis->setRange(-10, 10);
+    ui->plot7->yAxis->setLabel("N, m");
 
     ui->plot7->setBackground(Qt::lightGray);
     ui->plot7->axisRect()->setBackground(Qt::black);
@@ -636,10 +646,28 @@ void MainWindow::update_plot(QCustomPlot * plot, QVector3D vec)
     }
     else
     {
-        plot->graph(0)->setData(QVector<double>(), QVector<double>());
-        plot->graph(1)->setData(QVector<double>(), QVector<double>());
-        plot->graph(2)->setData(QVector<double>(), QVector<double>());
+        plot->graph(0)->data()->clear();
+        plot->graph(1)->data()->clear();
+        plot->graph(2)->data()->clear();
     }
+}
+
+void MainWindow::update_enu_plot(QCustomPlot * plot)
+{
+    plot->rescaleAxes();
+
+    double expected_y_span = plot->xAxis->range().size() * plot->axisRect()->height() / plot->axisRect()->width();
+
+    if(plot->yAxis->range().size() < expected_y_span)
+    {
+        plot->yAxis->setScaleRatio(plot->xAxis, 1);
+    }
+    else
+    {
+        plot->xAxis->setScaleRatio(plot->yAxis, 1);
+    }
+
+    plot->replot();
 }
 
 void MainWindow::init_magnet_plot(QWidget * dummy_container, QScatterDataArray * data, Q3DScatter * plot, QString title)
@@ -669,6 +697,7 @@ void MainWindow::init_magnet_plot(QWidget * dummy_container, QScatterDataArray *
     plot->setAspectRatio(1);
 
     data->reserve(5000);
+    proxy->resetArray(data);
 }
 
 void MainWindow::init_orient_plot(QWidget * dummy_container, QGridLayout * layout_container,
@@ -835,6 +864,9 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
     {
         curr_of->reset();
         curr_pf->reset();
+
+        kalman_raw_track->data()->clear();
+        kalman_smooth_track->data()->clear();
     }
 }
 
@@ -844,6 +876,9 @@ void MainWindow::on_pushButton_4_toggled(bool checked)
     {
         compl_of->reset();
         compl_pf->reset();
+
+        compl_raw_track->data()->clear();
+        compl_smooth_track->data()->clear();
     }
 }
 

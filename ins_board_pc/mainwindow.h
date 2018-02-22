@@ -20,6 +20,7 @@
 #include <Qt3DExtras/Qt3DWindow>
 
 class QCustomPlot;
+class QCPCurve;
 class QUdpSocket;
 
 namespace Ui {
@@ -84,6 +85,14 @@ private slots:
      * \param vec vector of data to visualize.
      */
     void update_plot(QCustomPlot * plot, QVector3D vec);
+
+    /*!
+     * \brief Update position QCustomPlot instance.
+     * \param plot pointer to QCustomPlot instance.
+     * \param x x-coordinate.
+     * \param y y-coordinate.
+     */
+    void update_enu_plot(QCustomPlot * plot);
 
     /*!
      * \brief Calibrate button toggled slot.
@@ -374,12 +383,12 @@ private:
     /*!
      * \brief Update Kalman filtering tab.
      */
-    void update_kalman_tab();
+    void update_kalman_tab(const input_t & in);
 
     /*!
      * \brief Update complementary filtering tab.
      */
-    void update_comp_pos_tab();
+    void update_comp_pos_tab(const input_t & in);
 
     /*!
      * \brief Update rigid body orientation.
@@ -422,6 +431,11 @@ private:
     AbstractKalmanPositionFilter * curr_pf;             //!< Pointer to the filter which is currently used for position estimation in Kalman tab.
     QuaternionComplement * compl_of;                    //!< Pointer to the filter which is currently used for orientation estimation in Complement tab.
     AbstractKalmanPositionFilter * compl_pf;            //!< Pointer to the filter which is currently used for position estimation in Complement tab.
+
+    QCPCurve * kalman_raw_track;
+    QCPCurve * kalman_smooth_track;
+    QCPCurve * compl_raw_track;
+    QCPCurve * compl_smooth_track;
 
     const size_t pkt_header_size = 4;                   //!< Size of input packet header.
     const size_t sample_size = 169;                     //!< Size of one input data sample.
