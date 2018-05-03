@@ -71,6 +71,15 @@ Quaternion Quaternion::magnetometer_quat(const Vector3D & l)
     }
 }
 
+Quaternion Quaternion::accel_magn_quat(const Vector3D & a, const Vector3D & m)
+{
+    Quaternion qacc = acceleration_quat(a);
+    Matrix3D accel_rotator = qacc.dcm_tr();
+    Vector3D l = accel_rotator * m;
+    Quaternion qmag = magnetometer_quat(l);
+    return qacc * qmag;
+}
+
 Quaternion::skew_type Quaternion::skew_symmetric(const Vector3D & v)
 {
 	skew_type V;

@@ -108,14 +108,6 @@ private:
      */
     double calculate_gain(const Vector3D & accel) const;
 
-    /*!
-     * @brief Calculate quaternion from accelerometer and magnetometer readings.
-     * @param accel measured acceleration.
-     * @param accel measured magnetic field.
-     * @return measured quaternion.
-     */
-    Quaternion measured_quaternion(const Vector3D & accel, const Vector3D & magn) const;
-
     bool is_initialized;                    //!< Filter is initialized flag.
     FilterParams params;                    //!< Filter parameters structure.
     QualityControl<Vector3D> bias_ctrl;     //!< Gyroscope bias controller.

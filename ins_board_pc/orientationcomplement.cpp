@@ -9,15 +9,6 @@ OrientationCF::OrientationCF(const FilterParams & par)
 
 OrientationCF::~OrientationCF() = default;
 
-Quaternion OrientationCF::measured_quaternion(const Vector3D & accel, const Vector3D & magn) const
-{
-	Quaternion qacc = Quaternion::acceleration_quat(accel);
-	Matrix3D accel_rotator = qacc.dcm_tr();
-    Vector3D l = accel_rotator * magn;
-    Quaternion qmag = Quaternion::magnetometer_quat(l);
-    return qacc * qmag;
-}
-
 OrientationCF::FInput OrientationCF::adopt_input(const FilterInput & z)
 {
 	Vector3D m_corr = Quaternion::z_rotator(earth_model.magnetic_declination(z.geo, z.day)).dcm_tr() * z.m;
@@ -49,7 +40,7 @@ void OrientationCF::step(const FilterInput & z)
 
 void OrientationCF::initialize(const FInput & z)
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(measured_quaternion(z.a, z.m).conjugate());
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>(Quaternion::accel_magn_quat(z.a, z.m).conjugate());
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     is_initialized = true;
@@ -80,7 +71,7 @@ void OrientationCF::step_initialized(const FInput & z)
           StaticMatrix<3, 4>::Zero(), StaticMatrix<3, 3>::Identity();
 
 	/* residual quaternion */
-	Quaternion qerr = measured_quaternion(z.a, z.m) *  get_orientation_quaternion();
+    Quaternion qerr = Quaternion::accel_magn_quat(z.a, z.m) * get_orientation_quaternion();
 
 	/* error angles */
 	Vector3D rpy_err = qerr.rpy();

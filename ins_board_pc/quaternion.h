@@ -222,6 +222,14 @@ public:
 	 */
 	static Quaternion magnetometer_quat(const Vector3D & l);
 
+    /*!
+     * @brief Calculate quaternion which describes orientation of rigid body with given magnetometer and accelerometer readings.
+     * @param a accelerometer readings.
+     * @param m magnetometer readings.
+     * @return orientation quaternion.
+     */
+    static Quaternion accel_magn_quat(const Vector3D & a, const Vector3D & m);
+
 	/*!
 	 * @brief Get skew-symmetric matrix corresponding to given vector.
 	 * @param v vector.
