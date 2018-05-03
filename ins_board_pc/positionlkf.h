@@ -1,182 +1,141 @@
-/*! \file poskalman.h
-  */
+/*
+ * positionlkf.h
+ *
+ *      Author: Ermakov_P
+ */
 
-#ifndef POSITIONLKF_H
-#define POSITIONLKF_H
+#ifndef INCLUDE_POSITIONLKF_H_
+#define INCLUDE_POSITIONLKF_H_
 
-#include "kalmanpositionfilter.h"
+#include "IKalmanPositionFilter.h"
+#include "earth.h"
 
 /*!
- * \brief Concrete Kalman position estimator.
+ * @brief Concrete Kalman linear position filter.
  */
-class PositionLKF final : public KalmanPositionFilter
+class PositionLKF final : public IKalmanPositionFilter
 {
 public:
     /*!
-     * \brief Kalman filter process noise parameters.
-     */
-    struct ProcessNoiseParams
-    {
-        double accel_std;       //!< Process noise acceleration standard deviation.
-    };
-
-    /*!
-     * \brief Kalman filter measurement noise parameters.
-     */
-    struct MeasurementNoiseParams
-    {
-        double gps_cep;           //!< measured position CEP (GPS).
-        double gps_vel_std;     //!< measured velocity x std.
-    };
-
-    /*!
-     * \brief Kalman filter initial state estimate covariance parameters.
-     */
-    struct InitCovParams
-    {
-        double pos_std;     //!< Initial position estimate standard deviation.
-        double vel_std;     //!< Initial velocity estimate standard deviation.
-        double accel_std;   //!< Initial acceleration estimate standard deviation.
-    };
-
-    /*!
-     * \brief Kalman filter parameters structure.
+     * @brief Kalman filter parameters structure.
      */
     struct FilterParams
     {
         ProcessNoiseParams proc_params;         //!< Process noise parameters instance.
         MeasurementNoiseParams meas_params;     //!< Measurement noise parameters instance.
         InitCovParams init_params;              //!< Initial state estimate covariance parameters instance.
-        int track_history;
+        double const_dt;						//!< Fixed elapsed time for fast calculations.
     };
 
     /*!
-     * \brief Constructor.
-     * \param params filter parameters.
+     * @brief Class constructor.
+     * @param params filter parameters.
      */
-    PositionLKF(const FilterParams & params);
+    explicit PositionLKF(const FilterParams & params);
 
     /*!
-     * \brief Destructor.
+     * @brief Class destructor.
      */
     ~PositionLKF() override;
 
-    /*!
-     * \brief Filter step.
-     * \param z filter input reference.
-     */
+    /* IKalmanPositionFilter interface implementation */
     void step(const FilterInput & z) override;
+    void reset() override;
 
-    void sim_step(const FilterInput & z);
-    void sim_initialize(const FilterInput & z);
-    void sim_update(const FilterInput & z);
+	Vector3D get_cartesian() const override;
+	Vector3D get_geodetic() const override;
+	Vector3D get_velocity() const override;
+	Vector3D get_acceleration() const override;
 
-    void bypass_step(const FilterInput & z);
-
-    /*!
-     * \brief Get current position vector.
-     * \return position vector.
-     */
-    NumVector get_position() const override;
-
-    /*!
-     * \brief Get current velocity vector.
-     * \return velocity vector.
-     */
-    NumVector get_velocity() const override;
-
-    /*!
-     * \brief Get current acceleration vector.
-     * \return acceleration vector.
-     */
-    NumVector get_acceleration() const override;
-
-    /*!
-     * \brief Set process noise acceleration standard deviation.
-     * \param std standard deviation.
-     */
     void set_proc_accel_std(double std) override;
-
-    /*!
-     * \brief Set measured position CEP.
-     * \param std GPS CEP parameter.
-     */
     void set_meas_pos_std(double std) override;
-
-    /*!
-     * \brief Set measured velocity standard deviation.
-     * \param std standard deviation.
-     */
     void set_meas_vel_std(double std) override;
-
-    /*!
-     * \brief Set initial position estimate standard deviation.
-     * \param std standard deviation.
-     */
     void set_init_pos_std(double std) override;
-
-    /*!
-     * \brief Set initial velocity estimate standard deviation.
-     * \param std standard deviation.
-     */
     void set_init_vel_std(double std) override;
-
-    /*!
-     * \brief Set initial acceleration estimate standard deviation.
-     * \param std standard deviation.
-     */
     void set_init_accel_std(double std) override;
 
-protected:
-    /*!
-     * \brief Update filter state.
-     * \param z filter input reference.
-     */
-    void update(const FilterInput & z) override;
-
-    /*!
-     * \brief Initialize filter.
-     * \param z filter input reference.
-     */
-    void initialize(const FilterInput & z) override;
+    double get_proc_accel_std() const override;
+    double get_meas_pos_std() const override;
+    double get_meas_vel_std() const override;
+    double get_init_pos_std() const override;
+    double get_init_vel_std() const override;
+    double get_init_accel_std() const override;
 
 private:
     /*!
-     * \brief Create state transition matrix (F).
-     * \param z filter input reference.
-     * \return state transition matrix.
+     * @brief Step of initialized filter.
+     * @param z filter input.
      */
-    NumMatrix create_transition_mtx(const FilterInput & z) const;
+    void step_initialized(const FilterInput & z);
 
     /*!
-     * \brief Create process noise covariance matrix (Q).
-     * \param dt time elapsed since the last measurement.
-     * \return process noise covariance matrix.
+     * @brief Step of uninitialized filter.
+     * @param z filter input.
      */
-    NumMatrix create_proc_noise_cov_mtx(double dt) const;
+    void step_uninitialized(const FilterInput & z);
+
+    static constexpr int state_size { 9 };        	//!< Size of state vector.
+    static constexpr int measurement_size { 6 };  	//!< Size of measurements vector.
+    static constexpr int process_noise_size { 3 };  //!< Size of process noise vector.
+
+    /* Useful aliases */
+    using state_type = StaticVector<state_size>;
+    using meas_type = StaticVector<measurement_size>;
+
+    using F_type = StaticMatrix<state_size, state_size>;
+    using Q_type = F_type;
+    using P_type = F_type;
+    using R_type = StaticMatrix<measurement_size, measurement_size>;
+    using H_type = StaticMatrix<measurement_size, state_size>;
+    using S_type = R_type;
+    using K_type = StaticMatrix<state_size, measurement_size>;
+    using G_type = StaticMatrix<state_size, process_noise_size>;
 
     /*!
-     * \brief Create measurement noise covariance matrix (R).
-     * \param lat geodetic latitude.
-     * \param lon geodetic longitude.
-     * \return measurement noise covariance matrix.
+     * @brief Create state transition matrix (F).
+     * @param dt time elapsed since the last step.
+     * @return state transition matrix.
      */
-    NumMatrix create_meas_noise_cov_mtx(const NumVector & geo) const;
+    F_type create_transition_mtx(double dt) const;
 
     /*!
-     * \brief Create state-to-measurement projection matrix (H).
-     * \param v predicted velocity vector.
-     * \return state-to-measurement projection matrix.
+     * @brief Create process noise covariance matrix (Q).
+     * @param dt time elapsed since the last step.
+     * @return process noise covariance matrix.
      */
-    NumMatrix create_meas_proj_mtx() const;
+    Q_type create_proc_noise_cov_mtx(double dt) const;
 
-    void initialize_init_covar();
+    /*!
+     * @brief Create measurement noise covariance matrix (R).
+     * @param geo geodetic coordinates vector.
+     * @return measurement noise covariance matrix.
+     */
+    R_type create_meas_noise_cov_mtx(const Vector3D & geo) const;
 
-    static const int state_size;        //!< Size of state vector.
-    static const int measurement_size;  //!< Size of measurements vector.
+    /*!
+     * @brief Create ENU system measurement covariance matrix.
+     * @return local ENU measurement noise covariance matrix.
+     */
+    Matrix3D create_local_cov_mtx() const;
 
-    NumMatrix P;                        //!< state estimate covariance matrix.
+    /*!
+     * @brief Create state-to-measurement projection matrix (H).
+     * @return state-to-measurement projection matrix.
+     */
+    H_type create_meas_proj_mtx() const;
+
+    bool is_initialized;                //!< Filter is initialized flag.
+
+    H_type H;							//!< State-to-measurement projection matrix.
+    F_type F;							//!< State transition matrix.
+    Q_type Q;							//!< Process noise covariance matrix.
+    P_type P;                        	//!< State estimate covariance matrix.
+    Matrix3D local_cov;                 //!< Local ENU measurement noise covariance matrix.
+
     FilterParams params;                //!< Filter parameters instance.
+    state_type x;                       //!< State vector.
+
+    const Earth earth_model;            //!< Reference Earth model.
 };
 
-#endif // POSITIONLKF_H
+#endif /* INCLUDE_POSITIONLKF_H_ */

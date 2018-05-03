@@ -1,131 +1,139 @@
 #include "orientationcomplement.h"
 
-#include <QtMath>
-#include <QDebug>
-
-const int OrientationCF::state_size = 7;
-
 OrientationCF::OrientationCF(const FilterParams & par)
-    : OrientationFilter(par.accum_capacity), params(par)
+    : is_initialized {false},
+	  params{par},
+	  bias_ctrl{ par.accum_capacity, Vector3D::Zero() },
+	  x { state_type::Zero() }
+{}
+
+OrientationCF::~OrientationCF() = default;
+
+Quaternion OrientationCF::measured_quaternion(const Vector3D & accel, const Vector3D & magn) const
 {
-    x = NumVector(state_size);
+	Quaternion qacc = Quaternion::acceleration_quat(accel);
+	Matrix3D accel_rotator = qacc.dcm_tr();
+    Vector3D l = accel_rotator * magn;
+    Quaternion qmag = Quaternion::magnetometer_quat(l);
+    return qacc * qmag;
 }
 
-OrientationCF::~OrientationCF()
+OrientationCF::FInput OrientationCF::adopt_input(const FilterInput & z)
 {
-
+	Vector3D m_corr = Quaternion::z_rotator(earth_model.magnetic_declination(z.geo, z.day)).dcm_tr() * z.m;
+	return {z.w, z.a, m_corr, z.dt};
 }
 
-NumVector OrientationCF::measured_quaternion(const NumVector & accel, const NumVector & magn) const
+void OrientationCF::reset()
 {
-    NumVector qacc = qutils::acceleration_quat(accel);
-    NumMatrix accel_rotator = qutils::quaternion_to_dcm_tr(qacc);
-    NumVector l = accel_rotator * magn;
-    NumVector qmag = qutils::magnetometer_quat(l);
-    return qutils::quat_multiply(qacc, qmag);
-}
-
-void OrientationCF::initialize(const FilterInput & z)
-{
-    OrientationFilter::initialize(z);
-    x.segment(0, 4) = qutils::quat_conjugate(measured_quaternion(z.a, z.m));
-
-    x[4] = bias_x_ctrl.get_mean();
-    x[5] = bias_y_ctrl.get_mean();
-    x[6] = bias_z_ctrl.get_mean();
+	is_initialized = false;
 }
 
 void OrientationCF::step(const FilterInput & z)
 {
-    if(is_initialized())
+	FInput zc = adopt_input(z);
+
+    if(is_initialized)
     {
-        update(z);
+        step_initialized(zc);
     }
-    else if(bias_estimated())
+    else if(bias_ctrl.is_saturated())
     {
-        initialize(z);
+        initialize(zc);
     }
     else
     {
-        accumulate(z);
+    	step_uninitialized(zc);
     }
 }
 
-void OrientationCF::update(const FilterInput & z)
+void OrientationCF::initialize(const FInput & z)
+{
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>(measured_quaternion(z.a, z.m).conjugate());
+    x.segment<3>(4) = bias_ctrl.get_mean();
+
+    is_initialized = true;
+    bias_ctrl.set_sampling(0); // free memory
+}
+
+void OrientationCF::step_uninitialized(const FInput & z)
+{
+    bias_ctrl.update(z.w);
+}
+
+void OrientationCF::step_initialized(const FInput & z)
 {
     /* useful constants */
-    double dt_2 = z.dt / 2;
+    const double dt_2 = z.dt / 2;
 
     /* constructing the quaternion propagation matrix */
-    NumMatrix V = qutils::skew_symmetric(z.w);
+    auto V = Quaternion::skew_symmetric(z.w);
 
     V *= dt_2;
-    V += NumMatrix::Identity(4, 4);
+    V += V_type::Identity();
 
-    NumMatrix K = qutils::quat_delta_mtx(get_orientation_quaternion(), dt_2);
+    auto K = get_orientation_quaternion().delta_mtx(dt_2);
 
-    NumMatrix F(state_size, state_size);
+    F_type F;
 
     F <<  V, K,
-          NumMatrix::Zero(3, 4), NumMatrix::Identity(3, 3);
+          StaticMatrix<3, 4>::Zero(), StaticMatrix<3, 3>::Identity();
 
-    /* residual quaternion */
-    NumVector qerr = qutils::quat_multiply(measured_quaternion(z.a, z.m), get_orientation_quaternion());
+	/* residual quaternion */
+	Quaternion qerr = measured_quaternion(z.a, z.m) *  get_orientation_quaternion();
 
-    /* error angles */
-    NumVector rpy_err = qutils::quat_to_rpy(qerr);
+	/* error angles */
+	Vector3D rpy_err = qerr.rpy();
 
-    /* update bias */
-    x[4] += params.bias_gain * rpy_err[1];
-    x[5] += params.bias_gain * rpy_err[0];
-    x[6] += -params.bias_gain * rpy_err[2];
+	/* update bias */
+	x[4] += params.bias_gain * rpy_err[1];
+	x[5] += params.bias_gain * rpy_err[0];
+	x[6] += -params.bias_gain * rpy_err[2];
 
     /* propagate quaternion */
     x = F * x;
     normalize_state();
 
-    NumVector ident_quat = qutils::identity_quaternion();
-
     /* extract predicted quaternion */
-    NumVector q_pred = get_orientation_quaternion();
+    Quaternion q_pred = get_orientation_quaternion();
 
-    NumVector a_norm = z.a / z.a.norm();
+    Vector3D a_norm = z.a / z.a.norm();
 
     /* predict gravity */
-    NumVector g_pred = qutils::quaternion_to_dcm(q_pred) * a_norm;
-    NumVector qacc_delta = qutils::quat_conjugate(qutils::acceleration_quat(g_pred));
-    NumVector qacc_corr = qutils::lerp(ident_quat, qacc_delta, calculate_gain(z.a));
-    NumVector q_corr = qutils::quat_multiply(qacc_corr, q_pred);
+    Vector3D g_pred = q_pred.dcm() * a_norm;
+    Quaternion qacc_delta = Quaternion::acceleration_quat(g_pred).conjugate();
+    Quaternion qacc_corr = lerp(Quaternion::identity, qacc_delta, calculate_gain(z.a));
+    Quaternion q_corr = qacc_corr * q_pred;
 
     /* predict magnetic vector */
-    NumVector mag_pred = qutils::quaternion_to_dcm(q_corr) * z.m;
-    NumVector qmag_delta = qutils::quat_conjugate(qutils::magnetometer_quat(mag_pred));
-    NumVector qmag_corr = qutils::lerp(ident_quat, qmag_delta, params.static_magn_gain);
-    q_corr = qutils::quat_multiply(qmag_corr, q_corr);
+    Vector3D mag_pred = q_corr.dcm() * z.m;
+    Quaternion qmag_delta = Quaternion::magnetometer_quat(mag_pred).conjugate();
+    Quaternion qmag_corr = lerp(Quaternion::identity, qmag_delta, params.static_magn_gain);
+    q_corr = qmag_corr * q_corr;
 
     /* finish */
-    x.segment(0, 4) = q_corr;
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>(q_corr);
 }
 
 void OrientationCF::normalize_state()
 {
-    x.segment(0, 4) = qutils::quat_normalize(get_orientation_quaternion());
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>(get_orientation_quaternion().normalize());
 }
 
-double OrientationCF::calculate_gain(const NumVector & accel) const
+double OrientationCF::calculate_gain(const Vector3D & accel) const
 {
     // TODO
     return params.static_accel_gain;
 }
 
-NumVector OrientationCF::get_orientation_quaternion() const
+Quaternion OrientationCF::get_orientation_quaternion() const
 {
-    return x.segment(0, 4);
+    return static_cast<Quaternion::vector_form>(x.segment<4>(0));
 }
 
-NumVector OrientationCF::get_gyro_bias() const
+Vector3D OrientationCF::get_gyro_bias() const
 {
-    return x.segment(4, 3);
+    return x.segment<3>(4);
 }
 
 void OrientationCF::set_static_accel_gain(double gain)
@@ -136,4 +144,24 @@ void OrientationCF::set_static_accel_gain(double gain)
 void OrientationCF::set_static_magn_gain(double gain)
 {
     params.static_magn_gain = gain;
+}
+
+void OrientationCF::set_bias_gain(double gain)
+{
+	params.bias_gain = gain;
+}
+
+double OrientationCF::get_static_accel_gain() const
+{
+	return params.static_accel_gain;
+}
+
+double OrientationCF::get_static_magn_gain() const
+{
+	return params.static_magn_gain;
+}
+
+double OrientationCF::get_bias_gain() const
+{
+	return params.bias_gain;
 }

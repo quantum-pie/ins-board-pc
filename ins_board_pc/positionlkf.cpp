@@ -1,331 +1,174 @@
+/*
+ * positionlkf.cpp
+ *
+ *      Author: Ermakov_P
+ */
 #include "positionlkf.h"
-#include "physconst.h"
+#include "geometry.h"
 
 #include <Eigen/Dense>
 
-#include <QtMath>
-#include <QDebug>
-
-const int PositionLKF::state_size = 9;
-const int PositionLKF::measurement_size = 6;
-
 PositionLKF::PositionLKF(const FilterParams & par)
-    : KalmanPositionFilter(par.track_history),
-      params(par)
+	: is_initialized(false),
+	  params {par}
 {
-    x = NumVector(state_size);
-    P = NumMatrix(state_size, state_size);
+	x = state_type::Zero();
+	P = P_type::Identity();
+
+    H = create_meas_proj_mtx();
+    F = create_transition_mtx(params.const_dt);
+    Q = create_proc_noise_cov_mtx(params.const_dt);
+    local_cov = create_local_cov_mtx();
 }
 
-PositionLKF::~PositionLKF()
-{
-
-}
-
-void PositionLKF::initialize_init_covar()
-{
-    P = NumMatrix::Zero(state_size, state_size);
-
-    double position_variance = params.init_params.pos_std * params.init_params.pos_std;
-    P(0, 0) = position_variance;
-    P(1, 1) = position_variance;
-    P(2, 2) = position_variance;
-
-    double velocity_variance = params.init_params.vel_std * params.init_params.vel_std;
-    P(3, 3) = velocity_variance;
-    P(4, 4) = velocity_variance;
-    P(5, 5) = velocity_variance;
-
-    double accel_variance = params.init_params.accel_std * params.init_params.accel_std;
-    P(6, 6) = accel_variance;
-    P(7, 7) = accel_variance;
-    P(8, 8) = accel_variance;
-}
-
-void PositionLKF::initialize(const FilterInput & z)
-{
-    KalmanPositionFilter::initialize(z);
-
-    x[0] = z.pos[0];
-    x[1] = z.pos[1];
-    x[2] = z.pos[2];
-
-    x[3] = z.v[0];
-    x[4] = z.v[1];
-    x[5] = z.v[2];
-
-    x[6] = 0;
-    x[7] = 0;
-    x[8] = 0;
-
-    initialize_init_covar();
-}
-
-void PositionLKF::update(const FilterInput & z)
-{
-    NumMatrix F = create_transition_mtx(z);
-    NumMatrix Q = create_proc_noise_cov_mtx(z.dt);
-
-    x = F * x;
-    P = F * P * F.transpose() + Q;
-
-    if(z.gps_fresh)
-    {
-        NumVector predicted_pos = get_position();
-        NumVector geo = calculate_geodetic(predicted_pos);
-
-        NumVector z_pr(measurement_size);
-        z_pr << predicted_pos, get_velocity();
-
-        NumVector z_meas(measurement_size);
-        z_meas << z.pos, z.v;
-
-        NumVector y = z_meas - z_pr;
-
-        NumMatrix R = create_meas_noise_cov_mtx(geo);
-        NumMatrix H = create_meas_proj_mtx();
-
-        NumMatrix S = H * P * H.transpose() + R;
-        NumMatrix K = P * H.transpose() * S.inverse();
-
-        x += K * y;
-
-        NumMatrix tmp = NumMatrix::Identity(x.size(), x.size()) - K * H;
-        P = tmp * P * tmp.transpose() + K * R * K.transpose();
-
-        PositionFilter::update(z);
-    }
-}
+PositionLKF::~PositionLKF() = default;
 
 void PositionLKF::step(const FilterInput & z)
 {
-    if(is_initialized())
-    {
-        update(z);
-    }
-    else
-    {
-        initialize(z);
-    }
+	if(is_initialized)
+	{
+		step_initialized(z);
+	}
+	else
+	{
+		step_uninitialized(z);
+	}
 }
 
-void PositionLKF::sim_step(const FilterInput & z)
+void PositionLKF::reset()
 {
-    if(is_initialized())
-    {
-        sim_update(z);
-    }
-    else
-    {
-        sim_initialize(z);
-    }
+	is_initialized = false;
 }
 
-void PositionLKF::sim_initialize(const FilterInput & z)
+void PositionLKF::step_uninitialized(const FilterInput & z)
 {
-    KalmanPositionFilter::initialize(z);
+	x.segment<3>(0) = z.pos;
+	x.segment<3>(3) = z.v;
+	x.segment<3>(6) = Vector3D::Zero();
 
-    double slat = std::sin(start_geo[0]);
-    double clat = std::cos(start_geo[0]);
-    double slon = std::sin(start_geo[1]);
-    double clon = std::cos(start_geo[1]);
+	auto diag = P.diagonal();
+	diag.segment<3>(0) = Vector3D::Constant(params.init_params.pos_std * params.init_params.pos_std);
+	diag.segment<3>(3) = Vector3D::Constant(params.init_params.vel_std * params.init_params.vel_std);
+	diag.segment<3>(6) = Vector3D::Constant(params.init_params.accel_std * params.init_params.accel_std);
 
-    double er = WrapperWMM::instance().earth_rad();
-    x[0] = er * clat * clon;
-    x[1] = er * clat * slon;
-    x[2] = er * slat;
-
-    double track_rad = -45.0 / 180 * M_PI;
-
-    double vn = std::cos(track_rad);
-    double ve = std::sin(track_rad);
-    double vu = 0;
-
-    NumVector enu(3);
-    enu << ve, vn, vu;
-
-    NumMatrix dcm_tr = WrapperWMM::instance().geodetic_to_dcm(start_geo).transpose();
-    NumVector vc = dcm_tr * enu;
-
-    x[3] = vc[0];
-    x[4] = vc[1];
-    x[5] = vc[2];
-
-    x[6] = 0;
-    x[7] = 0;
-    x[8] = 0;
-
-    initialize_init_covar();
+    is_initialized = true;
 }
 
-void PositionLKF::sim_update(const FilterInput & z)
+void PositionLKF::step_initialized(const FilterInput & z)
 {
-    double earth_rad = WrapperWMM::instance().earth_rad();
+    x = F * x;
+    P = F * P * F.transpose() + Q;
 
-    NumVector geo(2);
-    geo(0) = std::asin(x[2] / earth_rad);
-    geo(1) = std::atan2(x[1], x[0]);
-
-    double delta = 28 * z.dt / earth_rad;
-
-    NumVector local_vel = WrapperWMM::instance().geodetic_to_dcm(geo) * get_velocity();
-    double bearing = std::atan2(local_vel[0], local_vel[1]);
-
-    double slat = std::sin(geo[0]);
-    double clat = std::cos(geo[0]);
-    double slon = std::sin(geo[1]);
-    double clon = std::cos(geo[1]);
-    double sdel = std::sin(delta);
-    double cdel = std::cos(delta);
-    double sbea = std::sin(bearing);
-    double cbea = std::cos(bearing);
-
-    geo[0] = std::asin(slat * cdel + clat * sdel * cbea);
-    geo[1] += std::atan2(sbea * sdel * clat, cdel - slat * std::sin(geo[0]));
-
-    if(geo[0] >= M_PI / 2 || geo[1] <= -M_PI)
+    if(z.gps_valid)
     {
-        geo = start_geo;
-        x.segment(0, 3) = start_ecef;
-    }
+		meas_type z_pr;
+		z_pr << get_cartesian(), get_velocity();
 
-    slat = std::sin(geo[0]);
-    clat = std::cos(geo[0]);
-    slon = std::sin(geo[1]);
-    clon = std::cos(geo[1]);
+		meas_type z_meas;
+		z_meas << z.pos, z.v;
 
-    double x_new = earth_rad * clat * clon;
-    double y_new = earth_rad * clat * slon;
-    double z_new = earth_rad * slat;
+		auto y = z_meas - z_pr;
 
-    double vx_new = (x_new - x[0]) / z.dt;
-    double vy_new = (y_new - x[1]) / z.dt;
-    double vz_new = (z_new - x[2]) / z.dt;
+		auto R = create_meas_noise_cov_mtx(z.geo);
+		auto S = H * P * H.transpose() + R;
+		auto K = P * H.transpose() * S.inverse();
 
-    double ax_new = (vx_new - x[3]) / z.dt;
-    double ay_new = (vy_new - x[4]) / z.dt;
-    double az_new = (vz_new - x[5]) / z.dt;
-
-    x[0] = x_new;
-    x[1] = y_new;
-    x[2] = z_new;
-
-    x[3] = vx_new;
-    x[4] = vy_new;
-    x[5] = vz_new;
-
-    x[6] = ax_new;
-    x[7] = ay_new;
-    x[8] = az_new;
-
-    PositionFilter::update(z);
-}
-
-void PositionLKF::bypass_step(const FilterInput & z)
-{
-    if(is_initialized())
-    {
-        x[0] = z.pos[0];
-        x[1] = z.pos[1];
-        x[2] = z.pos[2];
-
-        x[3] = z.v[0];
-        x[4] = z.v[1];
-        x[5] = z.v[2];
-
-        x[6] = 0;
-        x[7] = 0;
-        x[8] = 0;
-    }
-    else
-    {
-        KalmanPositionFilter::initialize(z);
+		x += K * y;
+		P = (P_type::Identity() - K * H) * P;
     }
 }
 
-NumMatrix PositionLKF::create_transition_mtx(const FilterInput & z) const
+PositionLKF::F_type PositionLKF::create_transition_mtx(double dt) const
 {
     /* useful constants */
-    double dt = z.dt;
-    double dt_sq = z.dt * z.dt;
-    double dt_sq_2 = dt_sq / 2;
+    const double dt_sq = dt * dt;
+    const double dt_sq_2 = dt_sq / 2;
 
     /* constructing state transition matrix */
-    NumMatrix F(state_size, state_size);
+    F_type F;
 
-    F << NumMatrix::Identity(3, 3), dt * NumMatrix::Identity(3, 3), dt_sq_2 * NumMatrix::Identity(3, 3),
-            NumMatrix::Zero(3, 3), NumMatrix::Identity(3, 3), dt * NumMatrix::Identity(3, 3),
-            NumMatrix::Zero(3, 6), NumMatrix::Identity(3, 3);
+    const auto I3 = Matrix3D::Identity();
+
+    F << I3, dt * I3, dt_sq_2 * I3,
+    	 StaticMatrix<3, 3>::Zero(), I3, dt * I3,
+		 StaticMatrix<3, 6>::Zero(), I3;
 
     return F;
 }
 
-NumMatrix PositionLKF::create_proc_noise_cov_mtx(double dt) const
+PositionLKF::Q_type PositionLKF::create_proc_noise_cov_mtx(double dt) const
 {
     /* useful constants */
     double dt_sq = dt * dt;
     double dt_sq_2 = dt_sq / 2;
 
-    NumMatrix G(9, 3);
-    G << NumMatrix::Identity(3, 3) * dt_sq_2,
-            NumMatrix::Identity(3, 3) * dt,
-            NumMatrix::Identity(3, 3);
+    G_type G;
+
+    const auto I3 = Matrix3D::Identity();
+
+    G << I3 * dt_sq_2,
+    	 I3 * dt,
+		 I3;
 
     return params.proc_params.accel_std * params.proc_params.accel_std * G * G.transpose();
 }
 
-NumMatrix PositionLKF::create_meas_noise_cov_mtx(const NumVector & geo) const
+Matrix3D PositionLKF::create_local_cov_mtx() const
 {
-    double horizontal_linear_std = params.meas_params.gps_cep * 1.2;
-    double altitude_std = horizontal_linear_std / 0.53;
+    const double horizontal_linear_std = params.meas_params.gps_cep * 1.2;
+    const double altitude_std = horizontal_linear_std / 0.53;
 
-    NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(geo);
-    NumMatrix local_cov = NumMatrix::Identity(3, 3);
+    Matrix3D local_cov = Matrix3D::Zero();
     local_cov(0, 0) = horizontal_linear_std * horizontal_linear_std;
     local_cov(1, 1) = horizontal_linear_std * horizontal_linear_std;
     local_cov(2, 2) = altitude_std * altitude_std;
 
-    NumMatrix Rp = Cel.transpose() * local_cov * Cel;
+    return local_cov;
+}
 
-    NumMatrix R(measurement_size, measurement_size);
+PositionLKF::R_type PositionLKF::create_meas_noise_cov_mtx(const Vector3D & geo) const
+{
+    Matrix3D Cel = geom::geodetic_to_dcm(geo);
+    Matrix3D Rp = Cel.transpose() * local_cov * Cel;
 
-    double vel_variance = params.meas_params.gps_vel_std * params.meas_params.gps_vel_std;
+    R_type R;
 
-    R << Rp, NumMatrix::Zero(3, 3),
-            NumMatrix::Zero(3, 3), NumMatrix::Identity(3, 3) * vel_variance;
+    const double vel_variance = params.meas_params.gps_vel_std * params.meas_params.gps_vel_std;
+
+    R << Rp, Matrix3D::Zero(),
+    	 Matrix3D::Zero(), Matrix3D::Identity() * vel_variance;
 
     return R;
 }
 
-NumMatrix PositionLKF::create_meas_proj_mtx() const
+PositionLKF::H_type PositionLKF::create_meas_proj_mtx() const
 {
-    // 5
-    NumMatrix Dpos_Dpos = NumMatrix::Identity(3, 3);
+    H_type H;
 
-    // 6
-    NumMatrix Dv_Dv = NumMatrix::Identity(3, 3);
-
-    // Combine
-    NumMatrix H(measurement_size, state_size);
-    H <<   Dpos_Dpos, NumMatrix::Zero(3, 6),
-            NumMatrix::Zero(3, 3), Dv_Dv, NumMatrix::Zero(3, 3);
+    H <<   Matrix3D::Identity(), StaticMatrix<3, 6>::Zero(),
+    		Matrix3D::Zero(), Matrix3D::Identity(), Matrix3D::Zero();
 
     return H;
 }
 
-NumVector PositionLKF::get_position() const
+Vector3D PositionLKF::get_cartesian() const
 {
-    return x.segment(0, 3);
+    return x.segment<3>(0);
 }
 
-NumVector PositionLKF::get_velocity() const
+Vector3D PositionLKF::get_geodetic() const
 {
-    return x.segment(3, 3);
+    return geom::cartesian_to_geodetic(get_cartesian(), earth_model.get_ellipsoid());
 }
 
-NumVector PositionLKF::get_acceleration() const
+Vector3D PositionLKF::get_velocity() const
 {
-    return x.segment(6, 3);
+    return x.segment<3>(3);
+}
+
+Vector3D PositionLKF::get_acceleration() const
+{
+    return x.segment<3>(6);
 }
 
 void PositionLKF::set_proc_accel_std(double std)
@@ -356,4 +199,34 @@ void PositionLKF::set_init_vel_std(double std)
 void PositionLKF::set_init_accel_std(double std)
 {
     params.init_params.accel_std = std;
+}
+
+double PositionLKF::get_proc_accel_std() const
+{
+	return params.proc_params.accel_std;
+}
+
+double PositionLKF::get_meas_pos_std() const
+{
+	return params.meas_params.gps_cep;
+}
+
+double PositionLKF::get_meas_vel_std() const
+{
+	return params.meas_params.gps_vel_std;
+}
+
+double PositionLKF::get_init_pos_std() const
+{
+	return params.init_params.pos_std;
+}
+
+double PositionLKF::get_init_vel_std() const
+{
+	return params.init_params.vel_std;
+}
+
+double PositionLKF::get_init_accel_std() const
+{
+	return params.init_params.accel_std;
 }

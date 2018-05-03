@@ -14,7 +14,7 @@ TEMPLATE = app
 OBJECTS_DIR = obj
 MOC_DIR = moc
 
-CONFIG += c++14 #console
+CONFIG += c++17 #console
 #CONFIG -= app_bundle
 
 QMAKE_CXXFLAGS += -DNDEBUG -DBOOST_UBLAS_NDEBUG
@@ -52,7 +52,9 @@ SOURCES += main.cpp\
     gravity.cpp \
     magncalibrator.cpp \
     magnetic.cpp \
-    quaternion.cpp
+    quaternion.cpp \
+    positionbypass.cpp \
+    positionsim.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -62,7 +64,6 @@ HEADERS  += mainwindow.h \
     qualitycontrol.h \
     physconst.h \
     eigenaux.h \
-    filter.h \
     positionfilter.h \
     orientationfilter.h \
     kalmanpositionfilter.h \
@@ -78,6 +79,14 @@ HEADERS  += mainwindow.h \
     gravity.h \
     magncalibrator.h \
     magnetic.h \
-    quaternion.h
+    quaternion.h \
+    IComplementOrientationFilter.h \
+    IFilter.h \
+    IKalmanOrientationFilter.h \
+    IKalmanPositionFilter.h \
+    IOrientationFilter.h \
+    IPositionFilter.h \
+    positionbypass.h \
+    positionsim.h
 
 FORMS    += mainwindow.ui
