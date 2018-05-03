@@ -4,32 +4,49 @@
 #ifndef EIGENAUX_H
 #define EIGENAUX_H
 
-#include <QString>
+#include <string>
 
 #include <Eigen/Core>
 
-//! Numeric matrix alias.
-using NumMatrix = Eigen::MatrixXd;
+//! Dynamic-sized numeric matrix alias.
+using DynamicMatrix = Eigen::MatrixXd;
 
-//! Numeric vector alias.
-using NumVector = Eigen::VectorXd;
+//! Dynamic-sized numeric vector alias.
+using DynamicVector = Eigen::VectorXd;
 
+//! Static-sized numeric matrix alias.
+template<std::size_t D1, std::size_t D2>
+using StaticMatrix = Eigen::Matrix<double, D1, D2>;
+
+//! Static-sized numeric vector alias.
+template<std::size_t D>
+using StaticVector = Eigen::Matrix<double, D, 1>;
+
+//! 3D matrix alias.
+using Matrix3D = Eigen::Matrix3d;
+
+//! 3D Vector alias.
+using Vector3D = Eigen::Vector3d;
+
+/*!
+ * @brief This namespace holds implementation of various linear algebra utility functions.
+ */
 namespace eaux
 {
 
 /*!
- * \brief Display vector via qDebug().
- * \param vec vector to display.
- * \param name vector label.
+ * @brief Display vector.
+ * @param vec vector to display.
+ * @param name vector label.
  */
-void debug_vector(const NumVector & vec, QString name);
+void debug_vector(const DynamicVector & vec, std::string name);
 
 /*!
- * \brief Display matrix via qDebug().
- * \param mtx matrix to display.
- * \param name matrix label.
+ * @brief Display matrix.
+ * @param mtx matrix to display.
+ * @param name matrix label.
  */
-void debug_matrix(const NumMatrix & mtx, QString name);
+void debug_matrix(const DynamicMatrix & mtx, std::string name);
 
 }
 

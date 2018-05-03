@@ -1,31 +1,30 @@
 #include "eigenaux.h"
-#include <QDebug>
+
+#include <iostream>
 
 namespace eaux
 {
 
-void debug_vector(const NumVector & vec, QString name)
+void debug_vector(const DynamicVector & vec, std::string name)
 {
-    QDebug deb = qDebug();
-    deb << name + ":" << endl;
+    std::cout << name + ":" << std::endl;
     for(int i = 0; i < vec.size(); ++i)
     {
-        deb << vec[i];
+    	std::cout << vec[i] << ' ';
     }
-    deb << endl;
+    std::cout << std::endl;
 }
 
-void debug_matrix(const NumMatrix & mtx, QString name)
+void debug_matrix(const DynamicMatrix & mtx, std::string name)
 {
-    QDebug deb = qDebug();
-    deb << name + ":" << endl;
+	std::cout << name + ":" << std::endl;
     for(int i = 0; i < mtx.rows(); ++i)
     {
         for(int j = 0; j < mtx.cols(); ++j)
         {
-            deb << mtx(i, j);
+        	std::cout << mtx(i, j) << ' ';
         }
-        deb << endl;
+        std::cout << std::endl;
     }
 }
 

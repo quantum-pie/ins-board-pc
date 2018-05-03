@@ -45,7 +45,14 @@ SOURCES += main.cpp\
     fullukf.cpp \
     positionlkf.cpp \
     orientationcomplement.cpp \
-    orientationekf.cpp
+    orientationekf.cpp \
+    earth.cpp \
+    ellipsoid.cpp \
+    geometry.cpp \
+    gravity.cpp \
+    magncalibrator.cpp \
+    magnetic.cpp \
+    quaternion.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -53,7 +60,6 @@ HEADERS  += mainwindow.h \
     wmm/GeomagnetismHeader.h \
     wmmwrapper.h \
     qualitycontrol.h \
-    quaternions.h \
     physconst.h \
     eigenaux.h \
     filter.h \
@@ -65,6 +71,13 @@ HEADERS  += mainwindow.h \
     orientationcomplement.h \
     orientationekf.h \
     fullukf.h \
-    fullekf.h
+    fullekf.h \
+    earth.h \
+    ellipsoid.h \
+    geometry.h \
+    gravity.h \
+    magncalibrator.h \
+    magnetic.h \
+    quaternion.h
 
 FORMS    += mainwindow.ui
