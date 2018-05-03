@@ -4,10 +4,7 @@
 #ifndef CALIBRATOR_H
 #define CALIBRATOR_H
 
-// TODO try fit in other thread
-
 #include "eigenaux.h"
-#include "var.h"
 
 #include <vector>
 #include <string>
@@ -74,9 +71,6 @@ public:
 private:
     //! Helper matrix alias.
     using C_type = StaticMatrix<6, 6>;
-
-	std::string get_magnet_calib_bias() const;
-	std::string get_magnet_calib_scale() const;
 
     /*!
      * @brief Load calibration parameters from file.

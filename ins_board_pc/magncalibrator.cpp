@@ -25,12 +25,6 @@ MagnCalibrator::MagnCalibrator()
 	meas.reserve(buf_size);
     reset();
     load();
-
-	Var::reserve("calib.bias", "magnetometer calibration biases",
-				 [this]() { return get_magnet_calib_bias(); });
-
-	Var::reserve("calib.scale", "magnetometer calibration scales",
-				 [this]() { return get_magnet_calib_scale(); });
 }
 
 void MagnCalibrator::reset()
@@ -162,7 +156,7 @@ Vector3D MagnCalibrator::calibrate(const Vector3D & m) const
 
 void MagnCalibrator::load()
 {
-	std::ifstream ifile("/home/root/res/magnet_calib.dat", std::ios::binary);
+    std::ifstream ifile("res/magnet_calib.dat", std::ios::binary);
 
     if(ifile.is_open())
     {
@@ -186,7 +180,7 @@ void MagnCalibrator::load()
 
 void MagnCalibrator::save() const
 {
-	std::ofstream ofile("/home/root/res/magnet_calib.dat", std::ios::binary);
+    std::ofstream ofile("res/magnet_calib.dat", std::ios::binary);
 
     if(ofile.is_open())
     {
@@ -216,20 +210,4 @@ Vector3D MagnCalibrator::get_bias() const
 Matrix3D MagnCalibrator::get_scale() const
 {
     return scale;
-}
-
-std::string MagnCalibrator::get_magnet_calib_bias() const
-{
-	Vector3D bias = get_bias();
-	return "\nx: " + boost::lexical_cast<std::string>(bias[0]) +
-			"\ny: " + boost::lexical_cast<std::string>(bias[1]) +
-			"\nz: " + boost::lexical_cast<std::string>(bias[2]);
-}
-
-std::string MagnCalibrator::get_magnet_calib_scale() const
-{
-	Matrix3D scale = get_scale();
-	return "\nx: " + boost::lexical_cast<std::string>(scale(0, 0)) +
-			"\ny: " + boost::lexical_cast<std::string>(scale(1, 1)) +
-			"\nz: " + boost::lexical_cast<std::string>(scale(2, 2));
 }
