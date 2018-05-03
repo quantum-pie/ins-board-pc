@@ -195,12 +195,12 @@ Matrix3D FullEKF::create_local_cov_mtx() const
     const double horizontal_linear_std = params.pos_meas_params.gps_cep * 1.2;
     const double altitude_std = horizontal_linear_std / 0.53;
 
-    auto local_cov = Matrix3D::Zero();
-    local_cov(0, 0) = horizontal_linear_std * horizontal_linear_std;
-    local_cov(1, 1) = horizontal_linear_std * horizontal_linear_std;
-    local_cov(2, 2) = altitude_std * altitude_std;
+    Matrix3D cov = Matrix3D::Zero();
+    cov(0, 0) = horizontal_linear_std * horizontal_linear_std;
+    cov(1, 1) = horizontal_linear_std * horizontal_linear_std;
+    cov(2, 2) = altitude_std * altitude_std;
 
-    return local_cov;
+    return cov;
 }
 
 FullEKF::H_type FullEKF::create_meas_proj_mtx(const Vector3D & geo,
