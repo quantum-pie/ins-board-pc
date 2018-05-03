@@ -13,7 +13,7 @@
 /*!
  * @brief Position filter interface.
  */
-struct IPositionFilter : IFilter
+struct IPositionFilter : virtual IFilter
 {
 	/*!
 	 * @brief Class destructor.
