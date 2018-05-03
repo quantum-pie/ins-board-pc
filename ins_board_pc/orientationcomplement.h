@@ -1,15 +1,15 @@
-/*! \file quatcomplement.h
+/*! \file orientationcomplement.h
   */
 
-#ifndef QUATCOMPLEMENT_H
-#define QUATCOMPLEMENT_H
+#ifndef ORIENTATIONCOMPLEMENT_H
+#define ORIENTATIONCOMPLEMENT_H
 
-#include "abstractorientationfilter.h"
+#include "orientationfilter.h"
 
 /*!
  * \brief Concrete complementary orientation filter class.
  */
-class QuaternionComplement final : public AbstractOrientationFilter
+class OrientationCF final : public OrientationFilter
 {
 public:
     /*!
@@ -19,6 +19,7 @@ public:
     {
         double static_accel_gain;   //!< Static accelerometer measurements gain.
         double static_magn_gain;    //!< Static magnetometer measurements gain.
+        double bias_gain;
         int accum_capacity;         //!< Capacity of measurements accumulator.
     };
 
@@ -26,12 +27,12 @@ public:
      * \brief Constructor.
      * \param params filter paramateres structure.
      */
-    QuaternionComplement(const FilterParams & params);
+    OrientationCF(const FilterParams & params);
 
     /*!
      * \brief Destructor.
      */
-    ~QuaternionComplement() override;
+    ~OrientationCF() override;
 
     /*!
      * \brief Filter step.
@@ -87,6 +88,8 @@ private:
      * \param accel measured acceleration.
      */
     double calculate_gain(const NumVector & accel) const;
+
+    NumVector measured_quaternion(const NumVector & accel, const NumVector & magn) const;
 
     static const int state_size;    //!< State vector size.
 

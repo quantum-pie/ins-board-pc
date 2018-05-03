@@ -5,9 +5,9 @@
 #define MAINWINDOW_H
 
 #include "calibrator.h"
-#include "abstractkalmanorientationfilter.h"
-#include "abstractkalmanpositionfilter.h"
-#include "quatcomplement.h"
+#include "kalmanorientationfilter.h"
+#include "kalmanpositionfilter.h"
+#include "orientationcomplement.h"
 #include "qualitycontrol.h"
 
 #include <QMainWindow>
@@ -287,7 +287,7 @@ private:
      */
     struct gps_input_t
     {
-        unsigned char fix;      //!< Quality of position fix.
+        bool fix;               //!< Quality of position fix.
         gps_time_t time;        //!< GPS timestamp.
         double lat;             //!< Geodetic latitude in deg.
         double lon;             //!< Geodetic longitude in deg.
@@ -306,6 +306,7 @@ private:
      */
     struct input_t
     {
+        bool new_fix;           //!< GPS data is refreshed since last sample.
         double et;              //!< Elapsed time in s.
         double w_x;             //!< X-axis angular rate in dps.
         double w_y;             //!< Y-axis angular rate in dps.
@@ -360,7 +361,7 @@ private:
      * \param in input data instance.
      * \return filter input instance.
      */
-    AbstractFilter::FilterInput parse_input(const input_t & in) const;
+    Filter::FilterInput parse_input(const input_t & in) const;
 
     /*!
      * \brief Update tab with raw measurements visualizations.
@@ -425,12 +426,12 @@ private:
     Qt3DCore::QTransform * body_transform_compl;        //!< Pointer to rigid body box transform on Complement tab.
     Qt3DCore::QTransform * sphere_transform_compl;      //!< Pointer to rigid body sphere transform on Complement tab.
 
-    QHash<QString, AbstractFilter *> filters;           //!< Hash table with pointers to all filters.
+    QHash<QString, Filter *> filters;                   //!< Hash table with pointers to all filters.
 
-    AbstractKalmanOrientationFilter * curr_of;          //!< Pointer to the filter which is currently used for orientation estimation in Kalman tab.
-    AbstractKalmanPositionFilter * curr_pf;             //!< Pointer to the filter which is currently used for position estimation in Kalman tab.
-    QuaternionComplement * compl_of;                    //!< Pointer to the filter which is currently used for orientation estimation in Complement tab.
-    AbstractKalmanPositionFilter * compl_pf;            //!< Pointer to the filter which is currently used for position estimation in Complement tab.
+    KalmanOrientationFilter * curr_of;                  //!< Pointer to the filter which is currently used for orientation estimation in Kalman tab.
+    KalmanPositionFilter * curr_pf;                     //!< Pointer to the filter which is currently used for position estimation in Kalman tab.
+    OrientationCF * compl_of;                           //!< Pointer to the filter which is currently used for orientation estimation in Complement tab.
+    KalmanPositionFilter * compl_pf;                    //!< Pointer to the filter which is currently used for position estimation in Complement tab.
 
     QCPCurve * kalman_raw_track;
     QCPCurve * kalman_smooth_track;
@@ -438,28 +439,35 @@ private:
     QCPCurve * compl_smooth_track;
 
     const size_t pkt_header_size = 4;                   //!< Size of input packet header.
-    const size_t sample_size = 169;                     //!< Size of one input data sample.
+    const size_t sample_size = 170;                     //!< Size of one input data sample.
 
-    const double proc_gyro_std = 0.0001;                //!< Default gyroscope process noise std.
+    const double proc_gyro_std = 0.001;                 //!< Default gyroscope process noise std.
     const double proc_gyro_bias_std = 0;                //!< Default gyroscope bias process noise std.
-    const double proc_accel_std = 0.00001;              //!< Default acceleration process noise std.
+    const double proc_accel_std = 0.0001;               //!< Default acceleration process noise std.
 
     const double meas_accel_std = 0.005;                //!< Default accelerometer measurement noise std.
-    const double meas_magn_std = 0.5;                   //!< Default magnetometer measurement noise std.
-    const double meas_gps_cep = 2.5;                    //!< Default GPS position CEP.
+    const double meas_magn_std = 1.2;                   //!< Default magnetometer measurement noise std.
+    const double meas_gps_cep = 0.1;                    //!< Default GPS position CEP.
     const double meas_gps_vel_abs_std = 0.1;            //!< Default GPS velocity measurement std.
 
-    const double cov_qs_std = 0.015;                    //!< Default std of initial qs estimate.
-    const double cov_qx_std = 0.0015;                   //!< Default std of initial qx estimate.
-    const double cov_qy_std = 0.0015;                   //!< Default std of initial qy estimate.
-    const double cov_qz_std = 0.06;                     //!< Default std of initial qz estimate.
+    const double cov_qs_std = 0.0001;                   //!< Default std of initial qs estimate.
+    const double cov_qx_std = 0.00001;                  //!< Default std of initial qx estimate.
+    const double cov_qy_std = 0.00001;                  //!< Default std of initial qy estimate.
+    const double cov_qz_std = 0.0001;                   //!< Default std of initial qz estimate.
     const double cov_bias_std = 0;                      //!< Default std of initial gyro bias estimate.
-    const double cov_pos_std = 2.5;                     //!< Default std of initial position estimate.
-    const double cov_vel_std = 0.1;                     //!< Default std of initial velocity estimate.
-    const double cov_accel_std = 1;                     //!< Default std of initial acceleration estimate.
+    const double cov_pos_std = 0.00001;                 //!< Default std of initial position estimate.
+    const double cov_vel_std = 0.0001;                  //!< Default std of initial velocity estimate.
+    const double cov_accel_std = 0.001;                 //!< Default std of initial acceleration estimate.
 
     const double static_accel_gain = 0.05;              //!< Default static accelerometer gain.
     const double static_magn_gain = 0.0005;             //!< Default static magnetometer gain.
+    const double bias_gain = 0.00001;
+
+    const double unscented_kappa = 0;
+    const double unscented_beta = 2;
+    const double unscented_alpha = 1e-3;
+
+    const int track_history = 100;
 };
 
 #endif // MAINWINDOW_H

@@ -5,7 +5,7 @@
 namespace qutils
 {
 
-void quat_to_rpy(const NumVector & quaternion, double & roll, double & pitch, double & yaw)
+NumVector quat_to_rpy(const NumVector & quaternion)
 {
     /*! ZXY rotation sequence implied.
      * Explanation:
@@ -21,34 +21,17 @@ void quat_to_rpy(const NumVector & quaternion, double & roll, double & pitch, do
 
     double test = qy * qz + qs * qx;
 
-/*
-    if (test > 0.499)
-    {
-        // singularity at north pole
-        yaw = - 2 * qAtan2(qz, qs);
-        pitch = M_PI / 2;
-        roll = 0;
-        return;
-    }
-
-    if (test < -0.499)
-    {
-        // singularity at south pole
-        yaw = 2 * qAtan2(qz, qs);
-        pitch = - M_PI / 2;
-        roll = 0;
-        return;
-    }
-*/
-
     double qss = qs * qs;
     double qxx = qx * qx;
     double qyy = qy * qy;
     double qzz = qz * qz;
 
-    yaw = -qAtan2(2 * qs * qz - 2 * qx * qy, qss - qxx + qyy - qzz);
-    pitch = qAsin(2 * test);
-    roll = qAtan2(2 * qs * qy - 2 * qx * qz, qss - qxx - qyy + qzz);
+    NumVector res(3);
+    res[0] = qAtan2(2 * qs * qy - 2 * qx * qz, qss - qxx - qyy + qzz);
+    res[1] = qAsin(2 * test);
+    res[2] = -qAtan2(2 * qs * qz - 2 * qx * qy, qss - qxx + qyy - qzz);
+
+    return res;
 }
 
 NumMatrix quaternion_to_dcm_tr(const NumVector & quaternion)

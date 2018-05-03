@@ -48,7 +48,7 @@ public:
      * \param[out] inclination magnetic field inclination angle.
      * \param[out] magnitude magnetic field magnitude.
      */
-    void measure(double lat, double lon, double alt, QDate day, double & declination, double & inclination, double & magnitude);
+    void measure(const NumVector & geo, QDate day, double & declination, double & inclination, double & magnitude);
 
     /*!
      * \brief Get WGS-84 ellipsoid a-parameter.
@@ -81,7 +81,7 @@ public:
      * \param[out] lon geodetic longitude.
      * \param[out] alt geodetic altitude above ellipsoid.
      */
-    void cartesian_to_geodetic(const NumVector & pos, double & lat, double & lon, double & alt) const;
+    NumVector cartesian_to_geodetic(const NumVector & pos) const;
 
     /*!
      * \brief Convert geodetic coordinates to direction cosine matrix.
@@ -89,7 +89,7 @@ public:
      * \param lon geodetic longitude.
      * \return direction cosine matrix.
      */
-    NumMatrix geodetic_to_dcm(double lat, double lon) const;
+    NumMatrix geodetic_to_dcm(const NumVector & geo) const;
 
     /*!
      * \brief Calculate model normalized magnetic field vector at a given time and position.
@@ -99,7 +99,7 @@ public:
      * \param day current date.
      * \return expected normalized magnetic field vector.
      */
-    NumVector expected_mag(double lat, double lon, double alt, QDate day);
+    NumVector expected_mag(const NumVector & geo, QDate day);
 
     /*!
      * \brief Calculate model magnetic field vector magnitude at a given time and position.
@@ -109,7 +109,7 @@ public:
      * \param day current date.
      * \return expected magnetic field vector magnitude.
      */
-    double expected_mag_magnitude(double lat, double lon, double alt, QDate day);
+    double expected_mag_magnitude(const NumVector & geo, QDate day);
 
     /*!
      * \brief Calculate model gravity acceleration vector at a given position.
@@ -117,7 +117,7 @@ public:
      * \param alt geodetic altitude above ellipsoid.
      * \return expected gravity acceleration vector.
      */
-    double expected_gravity_accel(double lat, double alt) const;
+    double expected_gravity_accel(const NumVector & geo) const;
 
     /*!
      * \brief Calculate derivative of direction cosine matrix with respect to latitude given position.
@@ -125,7 +125,7 @@ public:
      * \param lon geodetic longitude.
      * \return derivative of DCM with respect to latitude.
      */
-    NumMatrix dcm_lat_partial(double lat, double lon) const;
+    NumMatrix dcm_lat_partial(const NumVector & geo) const;
 
     /*!
      * \brief Calculate derivative of direction cosine matrix with respect to longitude given position.
@@ -133,7 +133,7 @@ public:
      * \param lon geodetic longitude.
      * \return derivative of DCM with respect to longitude.
      */
-    NumMatrix dcm_lon_partial(double lat, double lon) const;
+    NumMatrix dcm_lon_partial(const NumVector & geo) const;
 
     /*!
      * \brief Calculate derivative of geodetic coordinates with respect to cartesian ones.
@@ -142,7 +142,7 @@ public:
      * \param alt geodetic altitude above ellipsoid.
      * \return derivative of geodetic coordinates with respect to cartesian ones.
      */
-    NumMatrix dgeo_dpos(double lat, double lon, double alt) const;
+    NumMatrix dgeo_dpos(const NumVector & geo) const;
 
 private:
     /*!

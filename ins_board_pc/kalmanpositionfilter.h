@@ -1,28 +1,28 @@
-/*! \file abstractkalmanpositionfilter.h
+/*! \file kalmanpositionfilter.h
   */
 
-#ifndef ABSTRACTKALMANPOSITIONFILTER_H
-#define ABSTRACTKALMANPOSITIONFILTER_H
+#ifndef KALMANPOSITIONFILTER_H
+#define KALMANPOSITIONFILTER_H
 
-#include "abstractpositionfilter.h"
+#include "positionfilter.h"
 
 /*!
  * \brief Abstract point position Kalman filter.
  *
  * Base class for all Kalman filters capable of estimating point position.
  */
-class AbstractKalmanPositionFilter : public AbstractPositionFilter
+class KalmanPositionFilter : public PositionFilter
 {
 public:
     /*!
      * \brief Constructor.
      */
-    AbstractKalmanPositionFilter() : AbstractPositionFilter() {}
+    KalmanPositionFilter(int track_history) : PositionFilter(track_history) {}
 
     /*!
      * \brief Destructor.
      */
-    ~AbstractKalmanPositionFilter() override {}
+    ~KalmanPositionFilter() override {}
 
     /*!
      * \brief Set process noise acceleration standard deviation.
@@ -59,17 +59,6 @@ public:
      * \param std standard deviation.
      */
     virtual void set_init_accel_std(double std) = 0;
-
-protected:
-    /*!
-     * \brief Calculate velocity vector magnitude.
-     * \param velocity velocity vector in cartesian coordinates.
-     * \param[out] vel velocity magnitude.
-     */
-    void calculate_velocity(const NumVector & velocity, double & vel) const
-    {
-        vel = velocity.norm();
-    }
 };
 
-#endif // ABSTRACTKALMANPOSITIONFILTER_H
+#endif // KALMANPOSITIONFILTER_H

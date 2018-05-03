@@ -39,12 +39,13 @@ SOURCES += main.cpp\
     wmm/GeomagnetismLibrary.c \
     wmmwrapper.cpp \
     qualitycontrol.cpp \
-    quatcomplement.cpp \
     quaternions.cpp \
-    quatkalman.cpp \
-    poskalman.cpp \
     eigenaux.cpp \
-    quatorientkalman.cpp
+    fullekf.cpp \
+    fullukf.cpp \
+    positionlkf.cpp \
+    orientationcomplement.cpp \
+    orientationekf.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -52,17 +53,18 @@ HEADERS  += mainwindow.h \
     wmm/GeomagnetismHeader.h \
     wmmwrapper.h \
     qualitycontrol.h \
-    quatcomplement.h \
     quaternions.h \
     physconst.h \
-    abstractfilter.h \
-    abstractorientationfilter.h \
-    abstractpositionfilter.h \
-    quatkalman.h \
-    poskalman.h \
     eigenaux.h \
-    quatorientkalman.h \
-    abstractkalmanorientationfilter.h \
-    abstractkalmanpositionfilter.h
+    filter.h \
+    positionfilter.h \
+    orientationfilter.h \
+    kalmanpositionfilter.h \
+    kalmanorientationfilter.h \
+    positionlkf.h \
+    orientationcomplement.h \
+    orientationekf.h \
+    fullukf.h \
+    fullekf.h
 
 FORMS    += mainwindow.ui

@@ -21,8 +21,13 @@ WrapperWMM::WrapperWMM()
     MAG_SetDefaults(&ellip, &geoid);
 }
 
-void WrapperWMM::measure(double lat, double lon, double alt, QDate day, double & declination, double & inclination, double & magnitude)
+void WrapperWMM::measure(const NumVector & geo, QDate day, double & declination, double & inclination, double & magnitude)
 {
+    double lat, lon, alt;
+    lat = geo[0];
+    lon = geo[1];
+    alt = geo[2];
+
     MAGtype_CoordGeodetic geodetic_coord;
     geodetic_coord.UseGeoid = 0;
     geodetic_coord.phi = qRadiansToDegrees(lat);
@@ -48,17 +53,25 @@ void WrapperWMM::measure(double lat, double lon, double alt, QDate day, double &
     magnitude = result.F * 1e-3;
 }
 
-void WrapperWMM::cartesian_to_geodetic(const NumVector & pos, double & lat, double & lon, double & alt) const
+NumVector WrapperWMM::cartesian_to_geodetic(const NumVector & pos) const
 {
     MAGtype_CoordGeodetic geodetic_coord;
     MAG_CartesianToGeodetic(ellip, pos[0] * 1e-3, pos[1] * 1e-3, pos[2] * 1e-3, &geodetic_coord);
-    lat = qDegreesToRadians(geodetic_coord.phi);
-    lon = qDegreesToRadians(geodetic_coord.lambda);
-    alt = geodetic_coord.HeightAboveEllipsoid * 1e3;
+
+    NumVector res(3);
+    res[0] = qDegreesToRadians(geodetic_coord.phi);
+    res[1] = qDegreesToRadians(geodetic_coord.lambda);
+    res[2] = geodetic_coord.HeightAboveEllipsoid * 1e3;
+
+    return res;
 }
 
-NumMatrix WrapperWMM::geodetic_to_dcm(double lat, double lon) const
+NumMatrix WrapperWMM::geodetic_to_dcm(const NumVector & geo) const
 {
+    double lat, lon;
+    lat = geo[0];
+    lon = geo[1];
+
     double clat = qCos(lat);
     double slat = qSin(lat);
     double clon = qCos(lon);
@@ -73,10 +86,10 @@ NumMatrix WrapperWMM::geodetic_to_dcm(double lat, double lon) const
     return DCM;
 }
 
-NumVector WrapperWMM::expected_mag(double lat, double lon, double alt, QDate day)
+NumVector WrapperWMM::expected_mag(const NumVector & geo, QDate day)
 {
     double declination, inclination, magn;
-    measure(lat, lon, alt, day, declination, inclination, magn);
+    measure(geo, day, declination, inclination, magn);
 
     double sdecl = qSin(declination);
     double cdecl = qCos(declination);
@@ -88,15 +101,19 @@ NumVector WrapperWMM::expected_mag(double lat, double lon, double alt, QDate day
     return RES;
 }
 
-double WrapperWMM::expected_mag_magnitude(double lat, double lon, double alt, QDate day)
+double WrapperWMM::expected_mag_magnitude(const NumVector & geo, QDate day)
 {
     double declination, inclination, magn;
-    measure(lat, lon, alt, day, declination, inclination, magn);
+    measure(geo, day, declination, inclination, magn);
     return magn;
 }
 
-double WrapperWMM::expected_gravity_accel(double lat, double alt) const
+double WrapperWMM::expected_gravity_accel(const NumVector & geo) const
 {
+    double lat, alt;
+    lat = geo[0];
+    alt = geo[2];
+
     double f = ellip_f();
     double a = ellip_a();
     double a_sq = a * a;
@@ -106,8 +123,12 @@ double WrapperWMM::expected_gravity_accel(double lat, double alt) const
     return normal_surface_gravity * (1 - 2 * alt / a * (1 + f + phconst::wgs_m - 2 * f * slat_sq) + 3 * alt * alt / a_sq);
 }
 
-NumMatrix WrapperWMM::dcm_lat_partial(double lat, double lon) const
+NumMatrix WrapperWMM::dcm_lat_partial(const NumVector & geo) const
 {
+    double lat, lon;
+    lat = geo[0];
+    lon = geo[1];
+
     double clat = qCos(lat);
     double slat = qSin(lat);
     double clon = qCos(lon);
@@ -122,8 +143,12 @@ NumMatrix WrapperWMM::dcm_lat_partial(double lat, double lon) const
     return RES;
 }
 
-NumMatrix WrapperWMM::dcm_lon_partial(double lat, double lon) const
+NumMatrix WrapperWMM::dcm_lon_partial(const NumVector & geo) const
 {
+    double lat, lon;
+    lat = geo[0];
+    lon = geo[1];
+
     double clat = qCos(lat);
     double slat = qSin(lat);
     double clon = qCos(lon);
@@ -138,8 +163,13 @@ NumMatrix WrapperWMM::dcm_lon_partial(double lat, double lon) const
     return RES;
 }
 
-NumMatrix WrapperWMM::dgeo_dpos(double lat, double lon, double alt) const
+NumMatrix WrapperWMM::dgeo_dpos(const NumVector & geo) const
 {
+    double lat, lon, alt;
+    lat = geo[0];
+    lon = geo[1];
+    alt = geo[2];
+
     double clat = qCos(lat);
     double slat = qSin(lat);
     double clon = qCos(lon);

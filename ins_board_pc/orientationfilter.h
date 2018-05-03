@@ -1,10 +1,10 @@
-/*! \file abstractorientationfilter.h
+/*! \file orientationfilter.h
   */
 
-#ifndef ABSTRACTORIENTATIONFILTER_H
-#define ABSTRACTORIENTATIONFILTER_H
+#ifndef ORIENTATIONFILTER_H
+#define ORIENTATIONFILTER_H
 
-#include "abstractfilter.h"
+#include "filter.h"
 #include "qualitycontrol.h"
 #include "quaternions.h"
 
@@ -13,15 +13,15 @@
  *
  * Base class for all filters capable of estimating rigid body orientation.
  */
-class AbstractOrientationFilter : public virtual AbstractFilter
+class OrientationFilter : public virtual Filter
 {
 public:
     /*!
      * \brief Constructor.
      * \param accum_capacity capacity of input accumulator.
      */
-    AbstractOrientationFilter(int accum_capacity)
-        : AbstractFilter(),
+    OrientationFilter(int accum_capacity)
+        : Filter(),
           bias_x_ctrl(accum_capacity), bias_y_ctrl(accum_capacity), bias_z_ctrl(accum_capacity)
     {
         reset_this();
@@ -30,14 +30,14 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~AbstractOrientationFilter() override {}
+    ~OrientationFilter() override {}
 
     /*!
      * \brief Reset filter.
      */
     void reset() override
     {
-        AbstractFilter::reset();
+        Filter::reset();
         reset_this();
     }
 
@@ -59,9 +59,9 @@ public:
      * \param[out] pitch current pitch angle.
      * \param[out] yaw current yaw angle.
      */
-     void get_rpy(double & roll, double & pitch, double & yaw) const
+     NumVector get_rpy() const
      {
-         qutils::quat_to_rpy(this->get_orientation_quaternion(), roll, pitch, yaw);
+         return qutils::quat_to_rpy(this->get_orientation_quaternion());
      }
 
 protected:

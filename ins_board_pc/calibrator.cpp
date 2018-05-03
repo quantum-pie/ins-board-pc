@@ -218,8 +218,12 @@ void Calibrator::load()
                 scale(0, 0) >> scale(0, 1) >> scale(0, 2) >>
                 scale(1, 0) >> scale(1, 1) >> scale(1, 2) >>
                 scale(2, 0) >> scale(2, 1) >> scale(2, 2);
+
         file.close();
     }
+
+    eaux::debug_vector(bias, "bias");
+    eaux::debug_matrix(scale, "scale");
 }
 
 NumVector Calibrator::get_bias() const

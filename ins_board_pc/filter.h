@@ -1,8 +1,8 @@
-/*! \file abstractfilter.h
+/*! \file filter.h
   */
 
-#ifndef ABSTRACTFILTER_H
-#define ABSTRACTFILTER_H
+#ifndef FILTER_H
+#define FILTER_H
 
 #include "eigenaux.h"
 
@@ -13,7 +13,7 @@
  *
  * This class represents most basic filter entity.
  */
-class AbstractFilter
+class Filter
 {
 public:
     /*!
@@ -29,12 +29,13 @@ public:
         NumVector pos;  //!< position vector in cartesian coordinates in m.
         NumVector v;    //!< velocity vector in cartesian coordinates in m/s.
         double dt;      //!< elapsed time in s.
+        bool gps_fresh; //!< GPS data is fresh.
     };
 
     /*!
      * \brief Constructor.
      */
-    AbstractFilter()
+    Filter()
     {
         reset_this();
     }
@@ -42,7 +43,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~AbstractFilter() {}
+    virtual ~Filter() {}
 
     /*!
      * \brief Filter step.
@@ -111,4 +112,4 @@ private:
     }
 };
 
-#endif // ABSTRACTFILTER_H
+#endif // FILTER_H

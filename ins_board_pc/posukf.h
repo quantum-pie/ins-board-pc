@@ -1,15 +1,15 @@
 /*! \file poskalman.h
   */
 
-#ifndef POSKALMAN_H
-#define POSKALMAN_H
+#ifndef POSUKF_H
+#define POSUKF_H
 
-#include "abstractkalmanpositionfilter.h"
+#include "kalmanpositionfilter.h"
 
 /*!
  * \brief Concrete Kalman position estimator.
  */
-class PositionKalman final : public AbstractKalmanPositionFilter
+class PositionUnscented final : public AbstractKalmanPositionFilter
 {
 public:
     /*!
@@ -53,12 +53,12 @@ public:
      * \brief Constructor.
      * \param params filter parameters.
      */
-    PositionKalman(const FilterParams & params);
+    PositionUnscented(const FilterParams & params);
 
     /*!
      * \brief Destructor.
      */
-    ~PositionKalman() override;
+    ~PositionUnscented() override;
 
     /*!
      * \brief Filter step.
@@ -162,13 +162,6 @@ private:
      */
     NumMatrix create_meas_noise_cov_mtx(double lat, double lon) const;
 
-    /*!
-     * \brief Create state-to-measurement projection matrix (H).
-     * \param v predicted velocity vector.
-     * \return state-to-measurement projection matrix.
-     */
-    NumMatrix create_meas_proj_mtx(const NumVector & v) const;
-
     static const int state_size;        //!< Size of state vector.
     static const int measurement_size;  //!< Size of measurements vector.
 
@@ -176,4 +169,4 @@ private:
     FilterParams params;                //!< Filter parameters instance.
 };
 
-#endif // POSKALMAN_H
+#endif // POSUKF_H

@@ -17,7 +17,7 @@ namespace qutils
  * \param[out] pitch pitch angle.
  * \param[out] yaw yaw angle.
  */
-void quat_to_rpy(const NumVector & quaternion, double & roll, double & pitch, double & yaw);
+NumVector quat_to_rpy(const NumVector & quaternion);
 
 /*!
  * \brief Convert quaternion to transposed direction cosine matrix.

@@ -1,30 +1,30 @@
-/*! \file abstractkalmanorientationfilter.h
+/*! \file kalmanorientationfilter.h
   */
 
-#ifndef ABSTRACTKALMANORIENTATIONFILTER_H
-#define ABSTRACTKALMANORIENTATIONFILTER_H
+#ifndef KALMANORIENTATIONFILTER_H
+#define KALMANORIENTATIONFILTER_H
 
-#include "abstractorientationfilter.h"
+#include "orientationfilter.h"
 
 /*!
  * \brief Abstract body orientation Kalman filter.
  *
  * Base class for all Kalman filters capable of estimating rigid body orientation.
  */
-class AbstractKalmanOrientationFilter : public AbstractOrientationFilter
+class KalmanOrientationFilter : public OrientationFilter
 {
 public:
     /*!
      * \brief Constructor.
      * \param accum_capacity capacity of input accumulator.
      */
-    AbstractKalmanOrientationFilter(int accum_capacity)
-        : AbstractOrientationFilter(accum_capacity) {}
+    KalmanOrientationFilter(int accum_capacity)
+        : OrientationFilter(accum_capacity) {}
 
     /*!
      * \brief Destructor.
      */
-    ~AbstractKalmanOrientationFilter() override {}
+    ~KalmanOrientationFilter() override {}
 
     /*!
      * \brief Set process noise gyroscope standard deviation.
@@ -81,4 +81,4 @@ public:
     virtual void set_init_bias_std(double std) = 0;
 };
 
-#endif // ABSTRACTKALMANORIENTATIONFILTER_H
+#endif // KALMANORIENTATIONFILTER_H

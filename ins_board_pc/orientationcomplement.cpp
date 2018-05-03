@@ -1,47 +1,42 @@
-#include "quatcomplement.h"
+#include "orientationcomplement.h"
 
 #include <QtMath>
+#include <QDebug>
 
-const int QuaternionComplement::state_size = 7;
+const int OrientationCF::state_size = 7;
 
-QuaternionComplement::QuaternionComplement(const FilterParams & par)
-    : AbstractOrientationFilter(par.accum_capacity), params(par)
+OrientationCF::OrientationCF(const FilterParams & par)
+    : OrientationFilter(par.accum_capacity), params(par)
 {
     x = NumVector(state_size);
 }
 
-QuaternionComplement::~QuaternionComplement()
+OrientationCF::~OrientationCF()
 {
 
 }
 
-void QuaternionComplement::initialize(const FilterInput & z)
+NumVector OrientationCF::measured_quaternion(const NumVector & accel, const NumVector & magn) const
 {
-    AbstractOrientationFilter::initialize(z);
-
-    NumVector qacc = qutils::acceleration_quat(z.a);
-
+    NumVector qacc = qutils::acceleration_quat(accel);
     NumMatrix accel_rotator = qutils::quaternion_to_dcm_tr(qacc);
-    NumVector l = accel_rotator * z.m;
-
+    NumVector l = accel_rotator * magn;
     NumVector qmag = qutils::magnetometer_quat(l);
+    return qutils::quat_multiply(qacc, qmag);
+}
 
-    NumVector q = qutils::quat_multiply(qacc, qmag);
-
-    // from lb to bl quaternion
-    x[0] = q[0];
-    x[1] = -q[1];
-    x[2] = -q[2];
-    x[3] = -q[3];
+void OrientationCF::initialize(const FilterInput & z)
+{
+    OrientationFilter::initialize(z);
+    x.segment(0, 4) = qutils::quat_conjugate(measured_quaternion(z.a, z.m));
 
     x[4] = bias_x_ctrl.get_mean();
     x[5] = bias_y_ctrl.get_mean();
     x[6] = bias_z_ctrl.get_mean();
 }
 
-void QuaternionComplement::step(const FilterInput & z)
+void OrientationCF::step(const FilterInput & z)
 {
-    accumulate(z);
     if(is_initialized())
     {
         update(z);
@@ -50,9 +45,13 @@ void QuaternionComplement::step(const FilterInput & z)
     {
         initialize(z);
     }
+    else
+    {
+        accumulate(z);
+    }
 }
 
-void QuaternionComplement::update(const FilterInput & z)
+void OrientationCF::update(const FilterInput & z)
 {
     /* useful constants */
     double dt_2 = z.dt / 2;
@@ -70,14 +69,19 @@ void QuaternionComplement::update(const FilterInput & z)
     F <<  V, K,
           NumMatrix::Zero(3, 4), NumMatrix::Identity(3, 3);
 
+    /* residual quaternion */
+    NumVector qerr = qutils::quat_multiply(measured_quaternion(z.a, z.m), get_orientation_quaternion());
+
+    /* error angles */
+    NumVector rpy_err = qutils::quat_to_rpy(qerr);
+
+    /* update bias */
+    x[4] += params.bias_gain * rpy_err[1];
+    x[5] += params.bias_gain * rpy_err[0];
+    x[6] += -params.bias_gain * rpy_err[2];
+
     /* propagate quaternion */
     x = F * x;
-
-    /* update biases */
-    //x[4] = bias_x_ctrl.get_mean();
-    //x[5] = bias_y_ctrl.get_mean();
-    //x[6] = bias_z_ctrl.get_mean();
-
     normalize_state();
 
     NumVector ident_quat = qutils::identity_quaternion();
@@ -100,39 +104,36 @@ void QuaternionComplement::update(const FilterInput & z)
     q_corr = qutils::quat_multiply(qmag_corr, q_corr);
 
     /* finish */
-    x[0] = q_corr[0];
-    x[1] = q_corr[1];
-    x[2] = q_corr[2];
-    x[3] = q_corr[3];
+    x.segment(0, 4) = q_corr;
 }
 
-void QuaternionComplement::normalize_state()
+void OrientationCF::normalize_state()
 {
     x.segment(0, 4) = qutils::quat_normalize(get_orientation_quaternion());
 }
 
-double QuaternionComplement::calculate_gain(const NumVector & accel) const
+double OrientationCF::calculate_gain(const NumVector & accel) const
 {
     // TODO
     return params.static_accel_gain;
 }
 
-NumVector QuaternionComplement::get_orientation_quaternion() const
+NumVector OrientationCF::get_orientation_quaternion() const
 {
     return x.segment(0, 4);
 }
 
-NumVector QuaternionComplement::get_gyro_bias() const
+NumVector OrientationCF::get_gyro_bias() const
 {
     return x.segment(4, 3);
 }
 
-void QuaternionComplement::set_static_accel_gain(double gain)
+void OrientationCF::set_static_accel_gain(double gain)
 {
     params.static_accel_gain = gain;
 }
 
-void QuaternionComplement::set_static_magn_gain(double gain)
+void OrientationCF::set_static_magn_gain(double gain)
 {
     params.static_magn_gain = gain;
 }

@@ -1,43 +1,45 @@
-#include "quatkalman.h"
+#include "fullekf.h"
 #include "physconst.h"
 
 #include <Eigen/Dense>
 
 #include <QtMath>
 
-const int QuaternionKalman::state_size = 16;
-const int QuaternionKalman::measurement_size = 10;
+#include <QDebug>
 
-QuaternionKalman::QuaternionKalman(const FilterParams & par)
-    : AbstractKalmanOrientationFilter(par.accum_capacity),
-      AbstractKalmanPositionFilter(),
+const int FullEKF::state_size = 16;
+const int FullEKF::measurement_size = 12;
+
+FullEKF::FullEKF(const FilterParams & par)
+    : KalmanOrientationFilter(par.accum_capacity),
+      KalmanPositionFilter(par.track_history),
       params(par)
 {
     x = NumVector(state_size);
     P = NumMatrix(state_size, state_size);
 }
 
-QuaternionKalman::~QuaternionKalman()
+FullEKF::~FullEKF()
 {
 
 }
 
-void QuaternionKalman::accumulate(const FilterInput & z)
+void FullEKF::accumulate(const FilterInput & z)
 {
-    AbstractKalmanOrientationFilter::accumulate(z);
-    AbstractKalmanPositionFilter::accumulate(z);
+    KalmanOrientationFilter::accumulate(z);
+    KalmanPositionFilter::accumulate(z);
 }
 
-void QuaternionKalman::reset()
+void FullEKF::reset()
 {
-    AbstractKalmanOrientationFilter::reset();
-    AbstractKalmanPositionFilter::reset();
+    KalmanOrientationFilter::reset();
+    KalmanPositionFilter::reset();
 }
 
-void QuaternionKalman::initialize(const FilterInput & z)
+void FullEKF::initialize(const FilterInput & z)
 {
-    AbstractKalmanOrientationFilter::initialize(z);
-    AbstractKalmanPositionFilter::initialize(z);
+    KalmanOrientationFilter::initialize(z);
+    KalmanPositionFilter::initialize(z);
 
     NumVector qacc = qutils::acceleration_quat(z.a);
 
@@ -47,7 +49,7 @@ void QuaternionKalman::initialize(const FilterInput & z)
     NumVector qmag = qutils::magnetometer_quat(l);
 
     double declination, inclination, magn;
-    WrapperWMM::instance().measure(z.geo[0], z.geo[1], z.geo[2], z.day, declination, inclination, magn);
+    WrapperWMM::instance().measure(z.geo, z.day, declination, inclination, magn);
 
     NumVector qdecl = qutils::declinator_quat(declination);
 
@@ -103,7 +105,7 @@ void QuaternionKalman::initialize(const FilterInput & z)
     P(15, 15) = accel_variance;
 }
 
-void QuaternionKalman::step(const FilterInput & z)
+void FullEKF::step(const FilterInput & z)
 {
     if(is_initialized())
     {
@@ -119,7 +121,7 @@ void QuaternionKalman::step(const FilterInput & z)
     }
 }
 
-void QuaternionKalman::update(const FilterInput & z)
+void FullEKF::update(const FilterInput & z)
 {
     NumMatrix F = create_transition_mtx(z);
     NumMatrix Q = create_proc_noise_cov_mtx(z.dt);
@@ -129,48 +131,49 @@ void QuaternionKalman::update(const FilterInput & z)
 
     P = F * P * F.transpose() + Q;
 
-    NumVector z_pr(measurement_size);
+    if(z.gps_fresh)
+    {
+        NumVector predicted_pos = get_position();
+        NumVector predicted_orientation = get_orientation_quaternion();
 
-    double lat, lon, alt;
-    NumVector predicted_pos = get_position();
-    NumVector predicted_orientation = get_orientation_quaternion();
+        NumVector geo = calculate_geodetic(predicted_pos);
 
-    calculate_geodetic(predicted_pos, lat, lon, alt);
+        NumVector predicted_acc = calculate_accelerometer(predicted_orientation, get_acceleration(), geo);
+        NumVector predicted_magn = calculate_magnetometer(predicted_orientation, geo, z.day);
 
-    calculate_accelerometer(predicted_orientation, get_acceleration(), lat, lon, alt, z_pr(0), z_pr(1), z_pr(2));
-    calculate_magnetometer(predicted_orientation, lat, lon, alt, z.day, z_pr(3), z_pr(4), z_pr(5));
+        NumVector z_pr(measurement_size);
+        z_pr << predicted_acc, predicted_magn, predicted_pos, get_velocity();
 
-    z_pr(6) = predicted_pos(0);
-    z_pr(7) = predicted_pos(1);
-    z_pr(8) = predicted_pos(2);
+        NumVector z_meas(measurement_size);
+        z_meas << z.a, z.m, z.pos, z.v;
 
-    NumVector predicted_v = get_velocity();
-    calculate_velocity(predicted_v, z_pr(9));
+        //eaux::debug_vector(z_meas, "z meas");
+        //eaux::debug_vector(z_pr, "z pred");
 
-    NumVector z_meas(measurement_size);
-    z_meas << z.a, z.m, z.pos, z.v.norm();
+        NumVector y = z_meas - z_pr;
 
-    NumVector y = z_meas - z_pr;
+        NumMatrix R = create_meas_noise_cov_mtx(geo, z.day);
+        NumMatrix H = create_meas_proj_mtx(geo, z.day);
 
-    NumMatrix R = create_meas_noise_cov_mtx(lat, lon, alt, z.day);
-    NumMatrix H = create_meas_proj_mtx(lat, lon, alt, z.day, predicted_v);
+        NumMatrix S = H * P * H.transpose() + R;
+        NumMatrix K = P * H.transpose() * S.inverse();
 
-    NumMatrix S = H * P * H.transpose() + R;
-    NumMatrix K = P * H.transpose() * S.inverse();
+        x += K * y;
+        normalize_state();
 
-    x += K * y;
-    normalize_state();
+        NumMatrix tmp = NumMatrix::Identity(x.size(), x.size()) - K * H;
+        P = tmp * P * tmp.transpose() + K * R * K.transpose();
 
-    NumMatrix tmp = NumMatrix::Identity(x.size(), x.size()) - K * H;
-    P = tmp * P * tmp.transpose() + K * R * K.transpose();
+        KalmanPositionFilter::update(z);
+    }
 }
 
-void QuaternionKalman::normalize_state()
+void FullEKF::normalize_state()
 {
     x.segment(0, 4) = qutils::quat_normalize(get_orientation_quaternion());
 }
 
-NumMatrix QuaternionKalman::create_transition_mtx(const FilterInput & z) const
+NumMatrix FullEKF::create_transition_mtx(const FilterInput & z) const
 {
     /* useful constants */
     double dt = z.dt;
@@ -197,7 +200,7 @@ NumMatrix QuaternionKalman::create_transition_mtx(const FilterInput & z) const
     return F;
 }
 
-NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt) const
+NumMatrix FullEKF::create_proc_noise_cov_mtx(double dt) const
 {
     /* useful constants */
     double dt_sq = dt * dt;
@@ -225,18 +228,18 @@ NumMatrix QuaternionKalman::create_proc_noise_cov_mtx(double dt) const
     return Q;
 }
 
-NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon, double alt, QDate day) const
+NumMatrix FullEKF::create_meas_noise_cov_mtx(const NumVector & geo, QDate day) const
 {
     NumMatrix Ra = params.meas_params.accel_std * params.meas_params.accel_std * NumMatrix::Identity(3, 3);
 
-    double mag_magn = WrapperWMM::instance().expected_mag_magnitude(lat, lon, alt, day);
+    double mag_magn = WrapperWMM::instance().expected_mag_magnitude(geo, day);
     double normalized_magn_std = params.meas_params.magn_std / mag_magn;
     NumMatrix Rm = normalized_magn_std * normalized_magn_std * NumMatrix::Identity(3, 3);
 
     double horizontal_linear_std = params.meas_params.gps_cep * 1.2;
     double altitude_std = horizontal_linear_std / 0.53;
 
-    NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
+    NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(geo);
     NumMatrix local_cov = NumMatrix::Identity(3, 3);
     local_cov(0, 0) = horizontal_linear_std * horizontal_linear_std;
     local_cov(1, 1) = horizontal_linear_std * horizontal_linear_std;
@@ -246,25 +249,26 @@ NumMatrix QuaternionKalman::create_meas_noise_cov_mtx(double lat, double lon, do
 
     NumMatrix R(measurement_size, measurement_size);
 
-    R << Ra, NumMatrix::Zero(3, 7),
-            NumMatrix::Zero(3, 3), Rm, NumMatrix::Zero(3, 4),
-            NumMatrix::Zero(3, 6), Rp, NumMatrix::Zero(3, 1),
-            NumMatrix::Zero(1, 9), params.meas_params.gps_vel_abs_std * params.meas_params.gps_vel_abs_std;
+    double vel_variance = params.meas_params.gps_vel_std * params.meas_params.gps_vel_std;
+    R << Ra, NumMatrix::Zero(3, 9),
+            NumMatrix::Zero(3, 3), Rm, NumMatrix::Zero(3, 6),
+            NumMatrix::Zero(3, 6), Rp, NumMatrix::Zero(3, 3),
+            NumMatrix::Zero(3, 9), NumMatrix::Identity(3, 3) * vel_variance;
 
     return R;
 }
 
-NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double alt, QDate day, const NumVector & v) const
+NumMatrix FullEKF::create_meas_proj_mtx(const NumVector & geo, QDate day) const
 {
     // 1
     NumMatrix Dac_Dq(3, 4);
 
-    double height_adjust = WrapperWMM::instance().expected_gravity_accel(lat, alt) / phconst::standard_gravity;
+    double height_adjust = WrapperWMM::instance().expected_gravity_accel(geo) / phconst::standard_gravity;
 
     NumVector a = get_acceleration() / phconst::standard_gravity;
     NumVector q = get_orientation_quaternion();
 
-    NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
+    NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(geo);
     NumMatrix Clb = qutils::quaternion_to_dcm_tr(q);
     NumMatrix Ceb = Clb * Cel;
 
@@ -285,9 +289,9 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     // 2
     NumMatrix Dac_Dpos(3, 3);
 
-    NumMatrix Dgeo_Dpos = WrapperWMM::instance().dgeo_dpos(lat, lon, alt);
-    NumMatrix Ddcm_Dlat = WrapperWMM::instance().dcm_lat_partial(lat, lon);
-    NumMatrix Ddcm_Dlon = WrapperWMM::instance().dcm_lon_partial(lat, lon);
+    NumMatrix Dgeo_Dpos = WrapperWMM::instance().dgeo_dpos(geo);
+    NumMatrix Ddcm_Dlat = WrapperWMM::instance().dcm_lat_partial(geo);
+    NumMatrix Ddcm_Dlon = WrapperWMM::instance().dcm_lon_partial(geo);
 
     NumMatrix Dcel_Dx = Dgeo_Dpos(0, 0) * Ddcm_Dlat + Dgeo_Dpos(1, 0) * Ddcm_Dlon;
     NumMatrix Dcel_Dy = Dgeo_Dpos(0, 1) * Ddcm_Dlat + Dgeo_Dpos(1, 1) * Ddcm_Dlon;
@@ -305,7 +309,7 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     // 4
     NumMatrix Dm_Dq(3, 4);
 
-    NumVector earth_mag = WrapperWMM::instance().expected_mag(lat, lon, alt, day);
+    NumVector earth_mag = WrapperWMM::instance().expected_mag(geo, day);
 
     col_s = Ddcm_Dqs * earth_mag;
     col_x = Ddcm_Dqx * earth_mag;
@@ -318,36 +322,25 @@ NumMatrix QuaternionKalman::create_meas_proj_mtx(double lat, double lon, double 
     NumMatrix Dpos_Dpos = NumMatrix::Identity(3, 3);
 
     // 6
-    NumMatrix Dv_Dv(1, 3);
-    double v_abs = v.norm();
-
-    if(v_abs > 0)
-    {
-        Dv_Dv << v[0] / v_abs, v[1] / v_abs, v[2] / v_abs;
-    }
-    else
-    {
-        Dv_Dv << 0, 0, 0;
-    }
+    NumMatrix Dv_Dv = NumMatrix::Identity(3, 3);
 
     // Combine
     NumMatrix H(measurement_size, state_size);
     H <<    Dac_Dq, NumMatrix::Zero(3, 3), Dac_Dpos, NumMatrix::Zero(3, 3), Dac_Da,
             Dm_Dq, NumMatrix::Zero(3, 12),
             NumMatrix::Zero(3, 7), Dpos_Dpos, NumMatrix::Zero(3, 6),
-            NumMatrix::Zero(1, 10), Dv_Dv, NumMatrix::Zero(1, 3);
+            NumMatrix::Zero(3, 10), Dv_Dv, NumMatrix::Zero(3, 3);
 
     return H;
 }
 
-void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
-                             double lat, double lon, double alt,
-                             double & ax, double & ay, double & az) const
+NumVector FullEKF::calculate_accelerometer(const NumVector & orientation_quat, const NumVector & acceleration,
+                             const NumVector & geo) const
 {
-    double height_adjust = WrapperWMM::instance().expected_gravity_accel(lat, alt) / phconst::standard_gravity;
+    double height_adjust = WrapperWMM::instance().expected_gravity_accel(geo) / phconst::standard_gravity;
 
     NumMatrix Clb = qutils::quaternion_to_dcm_tr(orientation_quat);
-    NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(lat, lon);
+    NumMatrix Cel = WrapperWMM::instance().geodetic_to_dcm(geo);
 
     NumVector movement_component = Clb * Cel * acceleration / phconst::standard_gravity;
     NumVector g(3);
@@ -355,121 +348,112 @@ void QuaternionKalman::calculate_accelerometer(const NumVector & orientation_qua
 
     NumVector gravity_component = Clb * g;
 
-    NumVector rot_accel = gravity_component + movement_component;
-
-    ax = rot_accel(0);
-    ay = rot_accel(1);
-    az = rot_accel(2);
+    return gravity_component + movement_component;
 }
 
-void QuaternionKalman::calculate_magnetometer(const NumVector & orientation_quat,
-                                              double lat, double lon, double alt, QDate day,
-                                              double & mx, double & my, double & mz) const
+NumVector FullEKF::calculate_magnetometer(const NumVector & orientation_quat,
+                                              const NumVector & geo, QDate day) const
 {
-    NumVector rot_magn = qutils::quaternion_to_dcm_tr(orientation_quat) *
-                            WrapperWMM::instance().expected_mag(lat, lon, alt, day);
-
-    mx = rot_magn(0);
-    my = rot_magn(1);
-    mz = rot_magn(2);
+    return qutils::quaternion_to_dcm_tr(orientation_quat) *
+                            WrapperWMM::instance().expected_mag(geo, day);
 }
 
-NumVector QuaternionKalman::get_orientation_quaternion() const
+NumVector FullEKF::get_orientation_quaternion() const
 {
     return x.segment(0, 4);
 }
 
-NumVector QuaternionKalman::get_gyro_bias() const
+NumVector FullEKF::get_gyro_bias() const
 {
     return x.segment(4, 3);
 }
 
-NumVector QuaternionKalman::get_position() const
+NumVector FullEKF::get_position() const
 {
     return x.segment(7, 3);
 }
 
-NumVector QuaternionKalman::get_velocity() const
+NumVector FullEKF::get_velocity() const
 {
     return x.segment(10, 3);
 }
 
-NumVector QuaternionKalman::get_acceleration() const
+NumVector FullEKF::get_acceleration() const
 {
     return x.segment(13, 3);
 }
 
-void QuaternionKalman::set_proc_gyro_std(double std)
+void FullEKF::set_proc_gyro_std(double std)
 {
     params.proc_params.gyro_std = std;
 }
 
-void QuaternionKalman::set_proc_gyro_bias_std(double std)
+void FullEKF::set_proc_gyro_bias_std(double std)
 {
     params.proc_params.gyro_bias_std = std;
 }
 
-void QuaternionKalman::set_proc_accel_std(double std)
+void FullEKF::set_proc_accel_std(double std)
 {
     params.proc_params.accel_std = std;
 }
 
-void QuaternionKalman::set_meas_accel_std(double std)
+void FullEKF::set_meas_accel_std(double std)
 {
     params.meas_params.accel_std = std;
 }
 
-void QuaternionKalman::set_meas_magn_std(double std)
+void FullEKF::set_meas_magn_std(double std)
 {
     params.meas_params.magn_std = std;
 }
 
-void QuaternionKalman::set_meas_pos_std(double std)
+void FullEKF::set_meas_pos_std(double std)
 {
     params.meas_params.gps_cep = std;
 }
 
-void QuaternionKalman::set_meas_vel_std(double std)
+void FullEKF::set_meas_vel_std(double std)
 {
-    params.meas_params.gps_vel_abs_std = std;
+    params.meas_params.gps_vel_std = std;
 }
 
-void QuaternionKalman::set_init_qs_std(double std)
+void FullEKF::set_init_qs_std(double std)
 {
     params.init_params.qs_std = std;
 }
 
-void QuaternionKalman::set_init_qx_std(double std)
+void FullEKF::set_init_qx_std(double std)
 {
     params.init_params.qx_std = std;
 }
 
-void QuaternionKalman::set_init_qy_std(double std)
+void FullEKF::set_init_qy_std(double std)
 {
     params.init_params.qy_std = std;
 }
 
-void QuaternionKalman::set_init_qz_std(double std)
+void FullEKF::set_init_qz_std(double std)
 {
     params.init_params.qz_std = std;
 }
 
-void QuaternionKalman::set_init_bias_std(double std)
+void FullEKF::set_init_bias_std(double std)
 {
     params.init_params.bias_std = std;
 }
 
-void QuaternionKalman::set_init_pos_std(double std)
+void FullEKF::set_init_pos_std(double std)
 {
     params.init_params.pos_std = std;
 }
 
-void QuaternionKalman::set_init_vel_std(double std)
+void FullEKF::set_init_vel_std(double std)
 {
     params.init_params.vel_std = std;
 }
 
-void QuaternionKalman::set_init_accel_std(double std)
+void FullEKF::set_init_accel_std(double std)
 {
     params.init_params.accel_std = std;
 }

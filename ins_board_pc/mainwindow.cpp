@@ -1,10 +1,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "quatkalman.h"
-#include "quatorientkalman.h"
-#include "quatcomplement.h"
-#include "poskalman.h"
+#include "orientationekf.h"
+#include "orientationcomplement.h"
+#include "positionlkf.h"
+#include "fullekf.h"
+#include "fullukf.h"
 
 #include <QDataStream>
 #include <QDebug>
@@ -34,7 +35,8 @@ MainWindow::MainWindow(QWidget *parent) :
     cast_filters();
 
     udp_socket = new QUdpSocket(this);
-    udp_socket->bind(QHostAddress("192.168.4.1"), 65000);
+    //udp_socket->bind(QHostAddress("192.168.4.1"), 65000);
+    udp_socket->bind(QHostAddress("192.168.0.100"), 7700);
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 
     resize(1300, 800);
@@ -52,18 +54,18 @@ MainWindow::~MainWindow()
 
 void MainWindow::setup_kalman_op()
 {
-    QuaternionKalman::ProcessNoiseParams proc_params;
+    FullEKF::ProcessNoiseParams proc_params;
     proc_params.gyro_std = proc_gyro_std;
     proc_params.gyro_bias_std = proc_gyro_bias_std;
     proc_params.accel_std = proc_accel_std;
 
-    QuaternionKalman::MeasurementNoiseParams meas_params;
+    FullEKF::MeasurementNoiseParams meas_params;
     meas_params.accel_std = meas_accel_std;
     meas_params.magn_std = meas_magn_std;
     meas_params.gps_cep = meas_gps_cep;
-    meas_params.gps_vel_abs_std = meas_gps_vel_abs_std;
+    meas_params.gps_vel_std = meas_gps_vel_abs_std;
 
-    QuaternionKalman::InitCovParams cov_params;
+    FullEKF::InitCovParams cov_params;
     cov_params.qs_std = cov_qs_std;
     cov_params.qx_std = cov_qx_std;
     cov_params.qy_std = cov_qy_std;
@@ -73,49 +75,54 @@ void MainWindow::setup_kalman_op()
     cov_params.vel_std = cov_vel_std;
     cov_params.accel_std = cov_accel_std;
 
-    filters.insert("kalman_op", new QuaternionKalman(QuaternionKalman::FilterParams{proc_params, meas_params, cov_params, 500}));
+    FullUKF::UnscentedTransformParams ut_params;
+    ut_params.alpha = unscented_alpha;
+    ut_params.beta = unscented_beta;
+    ut_params.kappa = unscented_kappa;
+
+    filters.insert("kalman_op", new FullEKF(FullEKF::FilterParams{proc_params, meas_params, cov_params, 500, 100}));
 }
 
 void MainWindow::setup_kalman_o()
 {
-    QuaternionOrientationKalman::ProcessNoiseParams proc_params;
+    OrientationEKF::ProcessNoiseParams proc_params;
     proc_params.gyro_std = proc_gyro_std;
     proc_params.gyro_bias_std = proc_gyro_bias_std;
 
-    QuaternionOrientationKalman::MeasurementNoiseParams meas_params;
+    OrientationEKF::MeasurementNoiseParams meas_params;
     meas_params.accel_std = meas_accel_std;
     meas_params.magn_std = meas_magn_std;
 
-    QuaternionOrientationKalman::InitCovParams cov_params;
+    OrientationEKF::InitCovParams cov_params;
     cov_params.qs_std = cov_qs_std;
     cov_params.qx_std = cov_qx_std;
     cov_params.qy_std = cov_qy_std;
     cov_params.qz_std = cov_qz_std;
     cov_params.bias_std = cov_bias_std;
 
-    filters.insert("kalman_o", new QuaternionOrientationKalman(QuaternionOrientationKalman::FilterParams{proc_params, meas_params, cov_params, 500}));
+    filters.insert("kalman_o", new OrientationEKF(OrientationEKF::FilterParams{proc_params, meas_params, cov_params, 500}));
 }
 
 void MainWindow::setup_kalman_p()
 {
-    PositionKalman::ProcessNoiseParams proc_params;
+    PositionLKF::ProcessNoiseParams proc_params;
     proc_params.accel_std = proc_accel_std;
 
-    PositionKalman::MeasurementNoiseParams meas_params;
+    PositionLKF::MeasurementNoiseParams meas_params;
     meas_params.gps_cep = meas_gps_cep;
-    meas_params.gps_vel_abs_std = meas_gps_vel_abs_std;
+    meas_params.gps_vel_std = meas_gps_vel_abs_std;
 
-    PositionKalman::InitCovParams cov_params;
+    PositionLKF::InitCovParams cov_params;
     cov_params.pos_std = cov_pos_std;
     cov_params.vel_std = cov_vel_std;
     cov_params.accel_std = cov_accel_std;
 
-    filters.insert("kalman_p", new PositionKalman(PositionKalman::FilterParams{proc_params, meas_params, cov_params}));
+    filters.insert("kalman_p", new PositionLKF(PositionLKF::FilterParams{proc_params, meas_params, cov_params, 100}));
 }
 
 void MainWindow::setup_complementary()
 {
-    filters.insert("complement", new QuaternionComplement(QuaternionComplement::FilterParams{static_accel_gain, static_magn_gain, 500}));
+    filters.insert("complement", new OrientationCF(OrientationCF::FilterParams{static_accel_gain, static_magn_gain, bias_gain, 500}));
 }
 
 void MainWindow::setup_ui()
@@ -173,7 +180,7 @@ void MainWindow::setup_ui()
     ui->samples_le_2->setText(QString::number(roll_ctrl_compl.get_sampling()));
 }
 
-AbstractFilter::FilterInput MainWindow::parse_input(const input_t & in) const
+Filter::FilterInput MainWindow::parse_input(const input_t & in) const
 {
     NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
 
@@ -189,7 +196,7 @@ AbstractFilter::FilterInput MainWindow::parse_input(const input_t & in) const
 
     QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
 
-    AbstractFilter::FilterInput z{w, a, m, day, geo, pos, v, in.et};
+    Filter::FilterInput z{w, a, m, day, geo, pos, v, in.et, in.new_fix};
 
     return z;
 }
@@ -234,19 +241,18 @@ void MainWindow::update_kalman_tab(const input_t & in)
 {
     if(curr_of->is_initialized())
     {
-        double r, p, y;
-        curr_of->get_rpy(r, p, y);
+        NumVector rpy = curr_of->get_rpy();
 
-        update_plot(ui->plot4, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
+        update_plot(ui->plot4, QVector3D(qRadiansToDegrees(rpy[0]), qRadiansToDegrees(rpy[1]), qRadiansToDegrees(rpy[2])));
 
         NumVector quat = curr_of->get_orientation_quaternion();
         QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
 
         update_body_transform(qquat, body_transform_kalman, sphere_transform_kalman);
 
-        roll_ctrl_kalman.update(qRadiansToDegrees(r));
-        pitch_ctrl_kalman.update(qRadiansToDegrees(p));
-        yaw_ctrl_kalman.update(qRadiansToDegrees(y));
+        roll_ctrl_kalman.update(qRadiansToDegrees(rpy[0]));
+        pitch_ctrl_kalman.update(qRadiansToDegrees(rpy[1]));
+        yaw_ctrl_kalman.update(qRadiansToDegrees(rpy[2]));
 
         if(roll_ctrl_kalman.is_saturated())
         {
@@ -254,6 +260,8 @@ void MainWindow::update_kalman_tab(const input_t & in)
             ui->pitch_std_le->setText(QString::number(pitch_ctrl_kalman.get_std(), 'f', 2));
             ui->yaw_std_le->setText(QString::number(yaw_ctrl_kalman.get_std(), 'f', 2));
         }
+
+        ui->magnetic_heading_le->setText(QString::number(qRadiansToDegrees(rpy[2]), 'f', 2));
     }
 
     if(curr_pf->is_initialized())
@@ -268,6 +276,9 @@ void MainWindow::update_kalman_tab(const input_t & in)
         kalman_raw_track->addData(enu_raw[0], enu_raw[1]);
 
         update_enu_plot(ui->plot5);
+
+        double track_angle = curr_pf->get_track_angle();
+        ui->gps_heading_le->setText(QString::number(qRadiansToDegrees(track_angle), 'f', 2));
     }
 }
 
@@ -275,19 +286,18 @@ void MainWindow::update_comp_pos_tab(const input_t & in)
 {
     if(compl_of->is_initialized())
     {
-        double r, p, y;
-        compl_of->get_rpy(r, p, y);
+        NumVector rpy = compl_of->get_rpy();
 
-        update_plot(ui->plot6, QVector3D(qRadiansToDegrees(r), qRadiansToDegrees(p), qRadiansToDegrees(y)));
+        update_plot(ui->plot6, QVector3D(qRadiansToDegrees(rpy[0]), qRadiansToDegrees(rpy[1]), qRadiansToDegrees(rpy[2])));
 
         NumVector quat = compl_of->get_orientation_quaternion();
         QQuaternion qquat(quat[0], quat[1], quat[2], quat[3]);
 
         update_body_transform(qquat, body_transform_compl, sphere_transform_compl);
 
-        roll_ctrl_compl.update(qRadiansToDegrees(r));
-        pitch_ctrl_compl.update(qRadiansToDegrees(p));
-        yaw_ctrl_compl.update(qRadiansToDegrees(y));
+        roll_ctrl_compl.update(qRadiansToDegrees(rpy[0]));
+        pitch_ctrl_compl.update(qRadiansToDegrees(rpy[1]));
+        yaw_ctrl_compl.update(qRadiansToDegrees(rpy[2]));
 
         if(roll_ctrl_compl.is_saturated())
         {
@@ -295,6 +305,9 @@ void MainWindow::update_comp_pos_tab(const input_t & in)
             ui->pitch_std_le_2->setText(QString::number(pitch_ctrl_compl.get_std(), 'f', 2));
             ui->yaw_std_le_2->setText(QString::number(yaw_ctrl_compl.get_std(), 'f', 2));
         }
+
+        ui->track_angle_le->setText(QString::number(qRadiansToDegrees(compl_pf->get_track_angle()), 'f', 2));
+        ui->ground_speed_le->setText(QString::number(compl_pf->get_ground_speed(), 'f', 2));
     }
 
     if(compl_pf->is_initialized())
@@ -336,17 +349,17 @@ void MainWindow::cast_filters()
 {
     if(ui->comboBox->currentIndex() == 0)
     {
-        curr_of = dynamic_cast<AbstractKalmanOrientationFilter *>(filters["kalman_o"]);
-        curr_pf = dynamic_cast<AbstractKalmanPositionFilter *>(filters["kalman_p"]);
+        curr_of = dynamic_cast<KalmanOrientationFilter *>(filters["kalman_o"]);
+        curr_pf = dynamic_cast<KalmanPositionFilter *>(filters["kalman_p"]);
     }
     else
     {
-        curr_of = dynamic_cast<AbstractKalmanOrientationFilter *>(filters["kalman_op"]);
-        curr_pf = dynamic_cast<AbstractKalmanPositionFilter *>(filters["kalman_op"]);
+        curr_of = dynamic_cast<KalmanOrientationFilter *>(filters["kalman_op"]);
+        curr_pf = dynamic_cast<KalmanPositionFilter *>(filters["kalman_op"]);
     }
 
-    compl_of = dynamic_cast<QuaternionComplement *>(filters["complement"]);
-    compl_pf = dynamic_cast<AbstractKalmanPositionFilter *>(filters["kalman_p"]);
+    compl_of = dynamic_cast<OrientationCF *>(filters["complement"]);
+    compl_pf = dynamic_cast<KalmanPositionFilter *>(filters["kalman_p"]);
 
 }
 
@@ -364,7 +377,7 @@ void MainWindow::process_data(const QByteArray & data)
     input_t in;
     for(size_t i = 0; i < samples; ++i)
     {
-        ds >>   in.et >> in.w_x >> in.w_y >> in.w_z >>
+        ds >>   in.new_fix >> in.et >> in.w_x >> in.w_y >> in.w_z >>
                 in.a_x >> in.a_y >> in.a_z >>
                 in.m_x >> in.m_y >> in.m_z >>
                 in.gps.fix >>
@@ -375,7 +388,7 @@ void MainWindow::process_data(const QByteArray & data)
                 in.gps.x >> in.gps.y >> in.gps.z >>
                 in.gps.vx >> in.gps.vy >> in.gps.vz;
 
-        AbstractFilter::FilterInput z = parse_input(in);
+        Filter::FilterInput z = parse_input(in);
         if(ui->pushButton_2->isChecked() && in.gps.fix)
         {
             curr_of->step(z);
@@ -389,7 +402,7 @@ void MainWindow::process_data(const QByteArray & data)
             compl_of->step(z);
             if(in.gps.fix)
             {
-                compl_pf->step(z);
+                dynamic_cast<PositionLKF *>(compl_pf)->step(z);
             }
         }
     }
