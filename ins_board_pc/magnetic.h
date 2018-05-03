@@ -5,7 +5,7 @@
 #define WMMWRAPPER_H
 
 extern "C" {
-    #include "GeomagnetismHeader.h"
+    #include "wmm/GeomagnetismHeader.h"
 }
 
 #include "eigenaux.h"
