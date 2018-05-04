@@ -14,7 +14,7 @@
 /*!
  * @brief Orientation filter interface.
  */
-struct IOrientationFilter : IFilter
+struct IOrientationFilter : virtual IFilter
 {
     /*!
      * @brief Class desctructor.
