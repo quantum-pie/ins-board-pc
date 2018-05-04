@@ -58,11 +58,11 @@ public:
     void reset() override;
 
     Vector3D get_cartesian() const override;
-    Vector3D get_geodetic() const override;
+    const Ellipsoid & get_ellipsoid() const override;
     Vector3D get_velocity() const override;
     Vector3D get_acceleration() const override;
 
-    Quaternion get_orientation_quaternion() const override;
+    quat::Quaternion get_orientation_quaternion() const override;
     Vector3D get_gyro_bias() const override;
 
     void set_proc_accel_std(double std) override;
@@ -163,26 +163,6 @@ private:
      * @return local ENU measurement noise covariance matrix.
      */
     Matrix3D create_local_cov_mtx() const;
-
-    /*!
-     * @brief Map state quaternion to accelerometer measurements.
-     * @param orientation_quat state quaternion.
-     * @param acceleration state cartesian acceleration.
-     * @param geo geodetic coordinates.
-     * @return predicted accelerometer readings.
-     */
-    Vector3D calculate_accelerometer(const Quaternion & orientation_quat, const Vector3D & acceleration,
-                                 const Vector3D & geo) const;
-
-    /*!
-     * @brief Map state quaternion to magnetometer measurements.
-     * @param orientation_quat state quaternion.
-     * @param geo geodetic coordinates.
-     * @param day current date.
-     * @return predicted megnetometer readings.
-     */
-    Vector3D calculate_magnetometer(const Quaternion & orientation_quat,
-                                const Vector3D & geo, const boost::gregorian::date & day) const;
 
     bool is_initialized;                    //!< Filter is initialized flag.
 

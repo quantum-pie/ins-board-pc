@@ -8,6 +8,7 @@
 #define INCLUDE_IPOSITIONFILTER_H_
 
 #include "eigenaux.h"
+#include "ellipsoid.h"
 #include "IFilter.h"
 
 /*!
@@ -26,11 +27,11 @@ struct IPositionFilter : virtual IFilter
 	 */
 	virtual Vector3D get_cartesian() const = 0;
 
-	/*!
-	 * @brief Get geodetic coordinates vector.
-	 * @return geodetic coordinates.
-	 */
-	virtual Vector3D get_geodetic() const = 0;
+    /*!
+     * @brief Get underlying Earth ellipsoid model.
+     * @return ellipsoid model reference.
+     */
+    virtual const Ellipsoid & get_ellipsoid() const = 0;
 
 	/*!
 	 * @brief Get ECEF velocity vector.

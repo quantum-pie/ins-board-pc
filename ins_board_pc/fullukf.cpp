@@ -1,9 +1,13 @@
 #include "fullukf.h"
 #include "geometry.h"
+#include "quatutils.h"
 
 #include <Eigen/Dense>
 
 #include <cmath>
+
+using namespace quat;
+using namespace geom;
 
 FullUKF::FullUKF(const FilterParams & par)
     : is_initialized { false },
@@ -29,6 +33,11 @@ FullUKF::FullUKF(const FilterParams & par)
 
 FullUKF::~FullUKF() = default;
 
+const Ellipsoid & FullUKF::get_ellipsoid() const
+{
+    return earth_model.get_ellipsoid();
+}
+
 void FullUKF::step(const FilterInput & z)
 {
     if(is_initialized)
@@ -52,7 +61,7 @@ void FullUKF::reset()
 
 void FullUKF::initialize(const FilterInput & z)
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(Quaternion::accel_magn_quat(z.a, z.m).conjugate());
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>(accel_magn_quat(z.a, z.m).conjugate());
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     x.segment<3>(7) = z.pos;
@@ -113,9 +122,9 @@ void FullUKF::step_initialized(const FilterInput & z)
             const auto & sigma_pos = get_cartesian();
             const auto & sigma_vel = get_velocity();
 
-            auto geo = get_geodetic();
-            auto pred_acc = calculate_accelerometer(sigma_quat, sigma_accel, geo);
-            auto pred_magn = calculate_magnetometer(sigma_quat, geo, z.day);
+            Vector3D geo = cartesian_to_geodetic(sigma_pos, get_ellipsoid());
+            Vector3D pred_acc = predict_accelerometer(sigma_quat, ecef_to_enu(sigma_accel, geo), earth_model.gravity(geo));
+            Vector3D pred_magn = predict_magnetometer(sigma_quat, earth_model.magnetic_vector(geo, z.day));
 
             meas_type z_pr;
             z_pr << pred_acc, pred_magn, sigma_pos, sigma_vel;
@@ -164,7 +173,7 @@ FullUKF::F_type FullUKF::create_transition_mtx(const FilterInput & z) const
     double dt_sq_2 = dt_sq / 2;
 
     /* constructing state transition matrix */
-    auto V = Quaternion::skew_symmetric(z.w);
+    auto V = skew_symmetric(z.w);
 
     V *= dt_2;
     V += StaticMatrix<4, 4>::Identity();
@@ -221,7 +230,7 @@ FullUKF::R_type FullUKF::create_meas_noise_cov_mtx(const Vector3D & geo,
     double normalized_magn_std = params.ori_meas_params.magn_std / mag_magn;
     auto Rm = normalized_magn_std * normalized_magn_std * Matrix3D::Identity();
 
-    auto Cel = geom::geodetic_to_dcm(geo);
+    auto Cel = geodetic_to_dcm(geo);
     auto Rp = Cel.transpose() * local_cov * Cel;
 
     R_type R;
@@ -249,38 +258,9 @@ Matrix3D FullUKF::create_local_cov_mtx() const
     return cov;
 }
 
-Vector3D FullUKF::calculate_accelerometer(const Quaternion & orientation_quat, const Vector3D & acceleration,
-                                          const Vector3D & geo) const
-{
-    double height_adjust = earth_model.gravity(geo) / Gravity::gf;
-
-    Matrix3D Clb = orientation_quat.dcm_tr();
-    Matrix3D Cel = geom::geodetic_to_dcm(geo);
-
-    Vector3D movement_component = Clb * Cel * acceleration / Gravity::gf;
-
-    Vector3D g;
-    g << 0, 0, height_adjust;
-
-    Vector3D gravity_component = Clb * g;
-
-    return gravity_component + movement_component;
-}
-
-Vector3D FullUKF::calculate_magnetometer(const Quaternion & orientation_quat,
-                                         const Vector3D & geo, const boost::gregorian::date & day) const
-{
-    return orientation_quat.dcm_tr() * earth_model.magnetic_vector(geo, day);
-}
-
 Vector3D FullUKF::get_cartesian() const
 {
     return x.segment<3>(7);
-}
-
-Vector3D FullUKF::get_geodetic() const
-{
-    return geom::cartesian_to_geodetic(get_cartesian(), earth_model.get_ellipsoid());
 }
 
 Vector3D FullUKF::get_velocity() const

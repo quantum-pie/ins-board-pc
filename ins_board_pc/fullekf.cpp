@@ -20,6 +20,11 @@ FullEKF::FullEKF(const FilterParams & par)
 
 FullEKF::~FullEKF() = default;
 
+const Ellipsoid & FullEKF::get_ellipsoid() const
+{
+    return earth_model.get_ellipsoid();
+}
+
 void FullEKF::step(const FilterInput & z)
 {
     if(is_initialized)
@@ -81,7 +86,7 @@ void FullEKF::step_initialized(const FilterInput & z)
 
     if(z.gps_valid)
     {
-        Vector3D geo = get_geodetic();
+        Vector3D geo = cartesian_to_geodetic(get_cartesian(), get_ellipsoid());
 
         Vector3D predicted_acc = predict_accelerometer(get_orientation_quaternion(), ecef_to_enu(get_acceleration(), geo), earth_model.gravity(geo));
         Vector3D predicted_magn = predict_magnetometer(get_orientation_quaternion(), earth_model.magnetic_vector(geo, z.day));
@@ -287,11 +292,6 @@ FullEKF::H_type FullEKF::create_meas_proj_mtx(const Vector3D & geo,
 Vector3D FullEKF::get_cartesian() const
 {
     return x.segment<3>(7);
-}
-
-Vector3D FullEKF::get_geodetic() const
-{
-    return cartesian_to_geodetic(get_cartesian(), earth_model.get_ellipsoid());
 }
 
 Vector3D FullEKF::get_velocity() const
