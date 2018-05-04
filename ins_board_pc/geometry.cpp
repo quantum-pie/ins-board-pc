@@ -6,6 +6,7 @@
 
 #include "geometry.h"
 #include "quatutils.h"
+#include "gravity.h"
 
 namespace geom
 {
@@ -298,6 +299,19 @@ Vector3D align(const Vector3D & vec, const Horizon & hor)
 quat::Quaternion align(const quat::Quaternion & q, const Horizon & hor)
 {
 	return q * quat::y_rotator(hor.get_roll()) * quat::x_rotator(hor.get_pitch());
+}
+
+Vector3D predict_accelerometer(const quat::Quaternion & q, const Vector3D & enu_accel, double gravity_magn)
+{
+    Vector3D g;
+    g << 0, 0,  gravity_magn / Gravity::gf;
+
+    return q.dcm_tr() * g + enu_accel / Gravity::gf;
+}
+
+Vector3D predict_magnetometer(const quat::Quaternion & q, const Vector3D & enu_magnetic_field)
+{
+    return q.dcm_tr() * enu_magnetic_field;
 }
 
 }
