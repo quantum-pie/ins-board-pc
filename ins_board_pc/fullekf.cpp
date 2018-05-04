@@ -1,7 +1,11 @@
 #include "fullekf.h"
 #include "geometry.h"
+#include "quatutils.h"
 
 #include <Eigen/Dense>
+
+using namespace quat;
+using namespace geom;
 
 FullEKF::FullEKF(const FilterParams & par)
     : is_initialized { false },
@@ -39,7 +43,7 @@ void FullEKF::reset()
 
 void FullEKF::initialize(const FilterInput & z)
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(Quaternion::accel_magn_quat(z.a, z.m).conjugate());
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>(accel_magn_quat(z.a, z.m).conjugate());
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     x.segment<3>(7) = z.pos;
@@ -79,8 +83,8 @@ void FullEKF::step_initialized(const FilterInput & z)
     {
         Vector3D geo = get_geodetic();
 
-        Vector3D predicted_acc = calculate_accelerometer(get_orientation_quaternion(), get_acceleration(), geo);
-        Vector3D predicted_magn = calculate_magnetometer(get_orientation_quaternion(), geo, z.day);
+        Vector3D predicted_acc = predict_accelerometer(get_orientation_quaternion(), ecef_to_enu(get_acceleration(), geo), earth_model.gravity(geo));
+        Vector3D predicted_magn = predict_magnetometer(get_orientation_quaternion(), earth_model.magnetic_vector(geo, z.day));
 
         meas_type z_pr;
         z_pr << predicted_acc, predicted_magn, get_cartesian(), get_velocity();
@@ -118,7 +122,7 @@ FullEKF::F_type FullEKF::create_transition_mtx(const FilterInput & z) const
     double dt_sq_2 = dt_sq / 2;
 
     /* constructing state transition matrix */
-    auto V = Quaternion::skew_symmetric(z.w);
+    auto V = skew_symmetric(z.w);
 
     V *= dt_2;
     V += StaticMatrix<4, 4>::Identity();
@@ -175,7 +179,7 @@ FullEKF::R_type FullEKF::create_meas_noise_cov_mtx(const Vector3D & geo,
     double normalized_magn_std = params.ori_meas_params.magn_std / mag_magn;
     auto Rm = normalized_magn_std * normalized_magn_std * Matrix3D::Identity();
 
-    auto Cel = geom::geodetic_to_dcm(geo);
+    auto Cel = geodetic_to_dcm(geo);
     auto Rp = Cel.transpose() * local_cov * Cel;
 
     R_type R;
@@ -214,7 +218,7 @@ FullEKF::H_type FullEKF::create_meas_proj_mtx(const Vector3D & geo,
     Vector3D a = get_acceleration() / Gravity::gf;
     const Quaternion & q = get_orientation_quaternion();
 
-    Matrix3D Cel = geom::geodetic_to_dcm(geo);
+    Matrix3D Cel = geodetic_to_dcm(geo);
     Matrix3D Clb = q.dcm_tr();
     Matrix3D Ceb = Clb * Cel;
 
@@ -235,9 +239,9 @@ FullEKF::H_type FullEKF::create_meas_proj_mtx(const Vector3D & geo,
     // 2
     Matrix3D Dac_Dpos;
 
-    Matrix3D Dgeo_Dpos = geom::dgeo_dpos(geo, earth_model.get_ellipsoid());
-    Matrix3D Ddcm_Dlat = geom::dcm_lat_partial(geo);
-    Matrix3D Ddcm_Dlon = geom::dcm_lon_partial(geo);
+    Matrix3D Dgeo_Dpos = dgeo_dpos(geo, earth_model.get_ellipsoid());
+    Matrix3D Ddcm_Dlat = dcm_lat_partial(geo);
+    Matrix3D Ddcm_Dlon = dcm_lon_partial(geo);
 
     Matrix3D Dcel_Dx = Dgeo_Dpos(0, 0) * Ddcm_Dlat + Dgeo_Dpos(1, 0) * Ddcm_Dlon;
     Matrix3D Dcel_Dy = Dgeo_Dpos(0, 1) * Ddcm_Dlat + Dgeo_Dpos(1, 1) * Ddcm_Dlon;
@@ -280,30 +284,6 @@ FullEKF::H_type FullEKF::create_meas_proj_mtx(const Vector3D & geo,
     return H;
 }
 
-Vector3D FullEKF::calculate_accelerometer(const Quaternion & orientation_quat, const Vector3D & acceleration,
-                                          const Vector3D & geo) const
-{
-    double height_adjust = earth_model.gravity(geo) / Gravity::gf;
-
-    Matrix3D Clb = orientation_quat.dcm_tr();
-    Matrix3D Cel = geom::geodetic_to_dcm(geo);
-
-    Vector3D movement_component = Clb * Cel * acceleration / Gravity::gf;
-
-    Vector3D g;
-    g << 0, 0, height_adjust;
-
-    Vector3D gravity_component = Clb * g;
-
-    return gravity_component + movement_component;
-}
-
-Vector3D FullEKF::calculate_magnetometer(const Quaternion & orientation_quat,
-                                         const Vector3D & geo, const boost::gregorian::date & day) const
-{
-    return orientation_quat.dcm_tr() * earth_model.magnetic_vector(geo, day);
-}
-
 Vector3D FullEKF::get_cartesian() const
 {
     return x.segment<3>(7);
@@ -311,7 +291,7 @@ Vector3D FullEKF::get_cartesian() const
 
 Vector3D FullEKF::get_geodetic() const
 {
-    return geom::cartesian_to_geodetic(get_cartesian(), earth_model.get_ellipsoid());
+    return cartesian_to_geodetic(get_cartesian(), earth_model.get_ellipsoid());
 }
 
 Vector3D FullEKF::get_velocity() const

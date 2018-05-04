@@ -1,4 +1,9 @@
 #include "orientationcomplement.h"
+#include "quatutils.h"
+#include "geometry.h"
+
+using namespace quat;
+using namespace geom;
 
 OrientationCF::OrientationCF(const FilterParams & par)
     : is_initialized {false},
@@ -11,7 +16,7 @@ OrientationCF::~OrientationCF() = default;
 
 OrientationCF::FInput OrientationCF::adopt_input(const FilterInput & z)
 {
-	Vector3D m_corr = Quaternion::z_rotator(earth_model.magnetic_declination(z.geo, z.day)).dcm_tr() * z.m;
+	Vector3D m_corr = z_rotator(earth_model.magnetic_declination(z.geo, z.day)).dcm_tr() * z.m;
 	return {z.w, z.a, m_corr, z.dt};
 }
 
@@ -40,7 +45,7 @@ void OrientationCF::step(const FilterInput & z)
 
 void OrientationCF::initialize(const FInput & z)
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(Quaternion::accel_magn_quat(z.a, z.m).conjugate());
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>(accel_magn_quat(z.a, z.m).conjugate());
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     is_initialized = true;
@@ -58,7 +63,7 @@ void OrientationCF::step_initialized(const FInput & z)
     const double dt_2 = z.dt / 2;
 
     /* constructing the quaternion propagation matrix */
-    auto V = Quaternion::skew_symmetric(z.w);
+    auto V = quat::skew_symmetric(z.w);
 
     V *= dt_2;
     V += V_type::Identity();
@@ -71,7 +76,7 @@ void OrientationCF::step_initialized(const FInput & z)
           StaticMatrix<3, 4>::Zero(), StaticMatrix<3, 3>::Identity();
 
 	/* residual quaternion */
-    Quaternion qerr = Quaternion::accel_magn_quat(z.a, z.m) * get_orientation_quaternion();
+	Quaternion qerr = accel_magn_quat(z.a, z.m) *  get_orientation_quaternion();
 
 	/* error angles */
 	Vector3D rpy_err = qerr.rpy();
@@ -92,13 +97,13 @@ void OrientationCF::step_initialized(const FInput & z)
 
     /* predict gravity */
     Vector3D g_pred = q_pred.dcm() * a_norm;
-    Quaternion qacc_delta = Quaternion::acceleration_quat(g_pred).conjugate();
+    Quaternion qacc_delta = acceleration_quat(g_pred).conjugate();
     Quaternion qacc_corr = lerp(Quaternion::identity, qacc_delta, calculate_gain(z.a));
     Quaternion q_corr = qacc_corr * q_pred;
 
     /* predict magnetic vector */
     Vector3D mag_pred = q_corr.dcm() * z.m;
-    Quaternion qmag_delta = Quaternion::magnetometer_quat(mag_pred).conjugate();
+    Quaternion qmag_delta = magnetometer_quat(mag_pred).conjugate();
     Quaternion qmag_corr = lerp(Quaternion::identity, qmag_delta, params.static_magn_gain);
     q_corr = qmag_corr * q_corr;
 
