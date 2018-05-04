@@ -9,6 +9,9 @@
 
 #include "eigenaux.h"
 
+namespace quat
+{
+
 /*!
  * @brief Quaternion class.
  */
@@ -187,78 +190,12 @@ public:
 	 */
 	operator vector_form() const;
 
-	/*!
-	 * @brief Create quaternion which describes rotation of vector by given angle around x axis.
-	 * @param radians rotation angle.
-	 * @return rotation quaternion.
-	 */
-	static Quaternion x_rotator(double radians);
-
-	/*!
-	 * @brief Create quaternion which describes rotation of vector by given angle around y axis.
-	 * @param radians rotation angle.
-	 * @return rotation quaternion.
-	 */
-	static Quaternion y_rotator(double radians);
-
-	/*!
-	 * @brief Create quaternion which describes rotation of vector by given angle around z axis.
-	 * @param radians rotation angle.
-	 * @return rotation quaternion.
-	 */
-	static Quaternion z_rotator(double radians);
-
-	/*!
-	 * @brief Calculate quaternion which describes orientation of rigid body with given accelerometer readings.
-	 * @param a accelerometer readings.
-	 * @return acceleration quaternion.
-	 */
-	static Quaternion acceleration_quat(const Vector3D & a);
-
-	/*!
-	 * @brief Calculate quaternion which describes orientation of rigid body with given magnetometer readings.
-	 * @param l magnetometer readings.
-	 * @return magnetometer quaternion.
-	 */
-	static Quaternion magnetometer_quat(const Vector3D & l);
-
-    /*!
-     * @brief Calculate quaternion which describes orientation of rigid body with given magnetometer and accelerometer readings.
-     * @param a accelerometer readings.
-     * @param m magnetometer readings.
-     * @return orientation quaternion.
-     */
-    static Quaternion accel_magn_quat(const Vector3D & a, const Vector3D & m);
-
-	/*!
-	 * @brief Get skew-symmetric matrix corresponding to given vector.
-	 * @param v vector.
-	 * @return skew-symmetric matrix.
-	 */
-	static skew_type skew_symmetric(const Vector3D & v);
-
 	static const Quaternion identity; 						//!< Identity quaternion.
 
 private:
 	double qs, qx, qy, qz;									//!< Quaternion components.
 };
 
-/*!
- * @brief Simple quaternion linear interpolation.
- * @param q first operand.
- * @param p second operand.
- * @param alpha first operand weight.
- * @return interpolated quaternion.
- */
-Quaternion lerp(const Quaternion & q, const Quaternion & p, double alpha);
-
-/*!
- * @brief Spherical quaternion linear interpolation.
- * @param q first operand.
- * @param p second operand.
- * @param alpha first operand weight.
- * @return interpolated quaternion.
- */
-Quaternion slerp(const Quaternion & q, const Quaternion & p, double alpha);
+}
 
 #endif /* INCLUDE_QUATERNION_H_ */

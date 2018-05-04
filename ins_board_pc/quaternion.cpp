@@ -6,90 +6,10 @@
 
 #include "quaternion.h"
 
+namespace quat
+{
+
 const Quaternion Quaternion::identity {1.0, 0, 0, 0};
-
-Quaternion Quaternion::x_rotator(double radians)
-{
-	return {std::cos(radians / 2), std::sin(radians / 2), 0.0, 0.0};
-}
-
-Quaternion Quaternion::y_rotator(double radians)
-{
-	return {std::cos(radians / 2), 0.0, std::sin(radians / 2), 0.0};
-}
-
-Quaternion Quaternion::z_rotator(double radians)
-{
-    return {std::cos(radians / 2), 0.0, 0.0, std::sin(radians / 2)};
-}
-
-Quaternion Quaternion::acceleration_quat(const Vector3D & a)
-{
-	Vector3D a_norm = a / a.norm();
-
-    double ax = a_norm[0];
-    double ay = a_norm[1];
-    double az = a_norm[2];
-
-    if(az >= 0)
-    {
-    	return { std::sqrt( (az + 1) / 2),
-    			 -ay / std::sqrt(2 * (az + 1)),
-				 ax / std::sqrt(2 * (az + 1)),
-    			 0.0 };
-    }
-    else
-    {
-    	return { -ay / std::sqrt(2 * (1 - az)),
-				 std::sqrt( (1 - az) / 2),
-				 0.0,
-				 ax / std::sqrt(2 * (1 - az)) };
-    }
-}
-
-Quaternion Quaternion::magnetometer_quat(const Vector3D & l)
-{
-    double lx = l[0];
-    double ly = l[1];
-
-    double G = lx * lx + ly * ly;
-    double G_sqrt = std::sqrt(G);
-
-    if(ly >= 0)
-    {
-    	return { std::sqrt(G + ly * G_sqrt) / std::sqrt(2 * G),
-    			 0.0,
-				 0.0,
-				 -lx / std::sqrt(2 * (G + ly * G_sqrt)) };
-    }
-    else
-    {
-    	return { -lx / std::sqrt(2 * (G - ly * G_sqrt)),
-    			 0.0,
-				 0.0,
-				 std::sqrt(G - ly * G_sqrt) / std::sqrt(2 * G) };
-    }
-}
-
-Quaternion Quaternion::accel_magn_quat(const Vector3D & a, const Vector3D & m)
-{
-    Quaternion qacc = acceleration_quat(a);
-    Matrix3D accel_rotator = qacc.dcm_tr();
-    Vector3D l = accel_rotator * m;
-    Quaternion qmag = magnetometer_quat(l);
-    return qacc * qmag;
-}
-
-Quaternion::skew_type Quaternion::skew_symmetric(const Vector3D & v)
-{
-	skew_type V;
-    V <<     0,    -v[0], -v[1], -v[2],
-             v[0],  0,     v[2], -v[1],
-             v[1], -v[2],  0,     v[0],
-             v[2],  v[1], -v[0],  0;
-
-    return V;
-}
 
 Quaternion::Quaternion(double qs, double qx, double qy, double qz)
 						: qs{qs}, qx{qx}, qy{qy}, qz{qz}
@@ -333,13 +253,4 @@ Quaternion& Quaternion::operator+=(const Quaternion & p)
 	return *this;
 }
 
-Quaternion lerp(const Quaternion & q, const Quaternion & p, double alpha)
-{
-    return (q * (1 - alpha) + p * alpha).normalize();
-}
-
-Quaternion slerp(const Quaternion & q, const Quaternion & p, double alpha)
-{
-    // TODO
-	return lerp(q, p, alpha);
 }

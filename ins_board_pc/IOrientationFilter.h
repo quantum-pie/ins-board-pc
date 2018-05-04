@@ -14,7 +14,7 @@
 /*!
  * @brief Orientation filter interface.
  */
-struct IOrientationFilter : virtual IFilter
+struct IOrientationFilter : IFilter
 {
     /*!
      * @brief Class desctructor.
@@ -25,7 +25,7 @@ struct IOrientationFilter : virtual IFilter
      * @brief Get current orientation quaternion.
      * @return vector representing quaternion.
      */
-    virtual Quaternion get_orientation_quaternion() const = 0;
+    virtual quat::Quaternion get_orientation_quaternion() const = 0;
 
     /*!
      * @brief Get current gyroscope bias.

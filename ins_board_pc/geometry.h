@@ -9,6 +9,8 @@
 
 #include "eigenaux.h"
 #include "ellipsoid.h"
+#include "quaternion.h"
+#include "horizon.h"
 
 /*!
  * @brief This namespace holds various geometrical utilities.
@@ -106,6 +108,44 @@ double ground_speed(const Vector3D & ecef_vel, const Vector3D & geo);
  * @return target track angle in radians.
  */
 double track_angle(const Vector3D & ecef_vel, const Vector3D & geo);
+
+/*!
+ * @brief Calculate quaternion which describes orientation of rigid body with given accelerometer readings.
+ * @param a accelerometer readings.
+ * @return acceleration quaternion.
+ */
+quat::Quaternion acceleration_quat(const Vector3D & a);
+
+/*!
+ * @brief Calculate quaternion which describes orientation of rigid body with given magnetometer readings.
+ * @param l magnetometer readings.
+ * @return magnetometer quaternion.
+ */
+quat::Quaternion magnetometer_quat(const Vector3D & l);
+
+/*!
+ * @brief Calculate quaternion which describes orientation of rigid body with given magnetometer and accelerometer readings.
+ * @param a accelerometer readings.
+ * @param m magnetometer readings.
+ * @return orientation quaternion.
+ */
+quat::Quaternion accel_magn_quat(const Vector3D & a, const Vector3D & m);
+
+/*!
+ * @brief Align vector relative to horizon.
+ * @param vec vector to align.
+ * @param hor horizon reference.
+ * @return aligned vector.
+ */
+Vector3D align(const Vector3D & vec, const Horizon & hor);
+
+/*!
+ * @brief Align quaternion relative to horizon.
+ * @param q quaternion to align.
+ * @param hor horizon reference.
+ * @return aligned quaternion.
+ */
+quat::Quaternion align(const quat::Quaternion & q, const Horizon & hor);
 
 }
 

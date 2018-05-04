@@ -40,7 +40,7 @@ public:
      * @brief Class constructor.
      * @param params filter parameters structure.
      */
-    OrientationCF(const FilterParams & params);
+    explicit OrientationCF(const FilterParams & params);
 
     /*!
      * @brief Class destructor.
@@ -51,7 +51,7 @@ public:
     void step(const FilterInput & z) override;
     void reset() override;
 
-    Quaternion get_orientation_quaternion() const override;
+    quat::Quaternion get_orientation_quaternion() const override;
     Vector3D get_gyro_bias() const override;
 
     void set_static_accel_gain(double gain) override;
@@ -93,8 +93,8 @@ private:
     /* Useful type aliases */
     using state_type = StaticVector<state_size>;
     using F_type = StaticMatrix<state_size, state_size>;
-    using V_type = Quaternion::skew_type;
-    using K_type = Quaternion::delta_type;
+    using V_type = quat::Quaternion::skew_type;
+    using K_type = quat::Quaternion::delta_type;
 
     /*!
      * @brief normalize filter state.

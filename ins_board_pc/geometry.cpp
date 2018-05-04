@@ -4,8 +4,8 @@
  *      Author: bigaw
  */
 
-#include "eigenaux.h"
 #include "geometry.h"
+#include "quatutils.h"
 
 namespace geom
 {
@@ -224,6 +224,80 @@ double track_angle(const Vector3D & ecef_vel, const Vector3D & geo)
 {
 	Vector3D mean_enu_vel = ecef_to_enu(ecef_vel, geo);
 	return std::atan2(mean_enu_vel[0], mean_enu_vel[1]);
+}
+
+quat::Quaternion acceleration_quat(const Vector3D & a)
+{
+	Vector3D a_norm = a / a.norm();
+
+    double ax = a_norm[0];
+    double ay = a_norm[1];
+    double az = a_norm[2];
+
+    if(az >= 0)
+    {
+    	return { std::sqrt( (az + 1) / 2),
+    			 -ay / std::sqrt(2 * (az + 1)),
+				 ax / std::sqrt(2 * (az + 1)),
+    			 0.0 };
+    }
+    else
+    {
+    	return { -ay / std::sqrt(2 * (1 - az)),
+				 std::sqrt( (1 - az) / 2),
+				 0.0,
+				 ax / std::sqrt(2 * (1 - az)) };
+    }
+}
+
+quat::Quaternion magnetometer_quat(const Vector3D & l)
+{
+    double lx = l[0];
+    double ly = l[1];
+
+    double G = lx * lx + ly * ly;
+    double G_sqrt = std::sqrt(G);
+
+    if(ly >= 0)
+    {
+    	return { std::sqrt(G + ly * G_sqrt) / std::sqrt(2 * G),
+    			 0.0,
+				 0.0,
+				 -lx / std::sqrt(2 * (G + ly * G_sqrt)) };
+    }
+    else
+    {
+    	return { -lx / std::sqrt(2 * (G - ly * G_sqrt)),
+    			 0.0,
+				 0.0,
+				 std::sqrt(G - ly * G_sqrt) / std::sqrt(2 * G) };
+    }
+}
+
+quat::Quaternion accel_magn_quat(const Vector3D & a, const Vector3D & m)
+{
+	using namespace quat;
+
+	Quaternion qacc = acceleration_quat(a);
+	Matrix3D accel_rotator = qacc.dcm_tr();
+    Vector3D l = accel_rotator * m;
+    Quaternion qmag = magnetometer_quat(l);
+    return qacc * qmag;
+}
+
+Vector3D align(const Vector3D & vec, const Horizon & hor)
+{
+	using namespace quat;
+
+	Quaternion deroller = y_rotator(hor.get_roll());
+	Quaternion depitcher = x_rotator(hor.get_pitch());
+	Quaternion res = depitcher * ( deroller * vec * deroller.conjugate() ) * depitcher.conjugate();
+	return res.vector_part();
+}
+
+quat::Quaternion align(const quat::Quaternion & q, const Horizon & hor)
+{
+	return q * quat::y_rotator(hor.get_roll()) * quat::x_rotator(hor.get_pitch());
 }
 
 }

@@ -50,7 +50,9 @@ SOURCES += main.cpp\
     magnetic.cpp \
     quaternion.cpp \
     positionbypass.cpp \
-    positionsim.cpp
+    positionsim.cpp \
+    horizon.cpp \
+    quatutils.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -77,6 +79,8 @@ HEADERS  += mainwindow.h \
     IPositionFilter.h \
     positionbypass.h \
     positionsim.h \
-    packets.h
+    packets.h \
+    horizon.h \
+    quatutils.h
 
 FORMS    += mainwindow.ui
