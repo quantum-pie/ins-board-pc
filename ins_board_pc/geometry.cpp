@@ -275,7 +275,7 @@ quat::Quaternion magnetometer_quat(const Vector3D & l)
     }
 }
 
-quat::Quaternion accel_magn_quat(const Vector3D & a, const Vector3D & m)
+quat::Quaternion accel_magn_quat(const Vector3D & a, const Vector3D & m, double declination)
 {
 	using namespace quat;
 
@@ -283,7 +283,7 @@ quat::Quaternion accel_magn_quat(const Vector3D & a, const Vector3D & m)
 	Matrix3D accel_rotator = qacc.dcm_tr();
     Vector3D l = accel_rotator * m;
     Quaternion qmag = magnetometer_quat(l);
-    return qacc * qmag;
+    return qacc * qmag * quat::z_rotator(declination);
 }
 
 Vector3D align(const Vector3D & vec, const Horizon & hor)

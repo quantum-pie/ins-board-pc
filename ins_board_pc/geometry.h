@@ -127,9 +127,10 @@ quat::Quaternion magnetometer_quat(const Vector3D & l);
  * @brief Calculate quaternion which describes orientation of rigid body with given magnetometer and accelerometer readings.
  * @param a accelerometer readings.
  * @param m magnetometer readings.
+ * @param declination magnetic declination.
  * @return orientation quaternion.
  */
-quat::Quaternion accel_magn_quat(const Vector3D & a, const Vector3D & m);
+quat::Quaternion accel_magn_quat(const Vector3D & a, const Vector3D & m, double declination = 0);
 
 /*!
  * @brief Align vector relative to horizon.
