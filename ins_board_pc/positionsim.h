@@ -23,7 +23,6 @@ public:
     {
         double initial_track;       //!< Start track angle.
         double speed;               //!< Movement speed.
-        double const_dt;			//!< Fixed elapsed time for fast calculations.
     };
 
     /*!
@@ -66,7 +65,7 @@ public:
     void reset() override;
 
 	Vector3D get_cartesian() const override;
-	Vector3D get_geodetic() const override;
+    const Ellipsoid & get_ellipsoid() const override;
 	Vector3D get_velocity() const override;
 	Vector3D get_acceleration() const override;
 

@@ -15,13 +15,15 @@ PositionLKF::PositionLKF(const FilterParams & par)
 	x = state_type::Zero();
 	P = P_type::Identity();
 
-    H = create_meas_proj_mtx();
-    F = create_transition_mtx(params.const_dt);
-    Q = create_proc_noise_cov_mtx(params.const_dt);
     local_cov = create_local_cov_mtx();
 }
 
 PositionLKF::~PositionLKF() = default;
+
+const Ellipsoid & PositionLKF::get_ellipsoid() const
+{
+    return Ellipsoid::WGS84;
+}
 
 void PositionLKF::step(const FilterInput & z)
 {
@@ -56,6 +58,9 @@ void PositionLKF::step_uninitialized(const FilterInput & z)
 
 void PositionLKF::step_initialized(const FilterInput & z)
 {
+    F_type F = create_transition_mtx(z.dt);
+    Q_type Q = create_proc_noise_cov_mtx(z.dt);
+
     x = F * x;
     P = F * P * F.transpose() + Q;
 
@@ -69,7 +74,9 @@ void PositionLKF::step_initialized(const FilterInput & z)
 
 		auto y = z_meas - z_pr;
 
-		auto R = create_meas_noise_cov_mtx(z.geo);
+        H_type H = create_meas_proj_mtx();
+        R_type R = create_meas_noise_cov_mtx(geom::cartesian_to_geodetic(get_cartesian(), get_ellipsoid()));
+
 		auto S = H * P * H.transpose() + R;
 		auto K = P * H.transpose() * S.inverse();
 
@@ -154,11 +161,6 @@ PositionLKF::H_type PositionLKF::create_meas_proj_mtx() const
 Vector3D PositionLKF::get_cartesian() const
 {
     return x.segment<3>(0);
-}
-
-Vector3D PositionLKF::get_geodetic() const
-{
-    return geom::cartesian_to_geodetic(get_cartesian(), earth_model.get_ellipsoid());
 }
 
 Vector3D PositionLKF::get_velocity() const

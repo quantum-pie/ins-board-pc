@@ -24,7 +24,6 @@ public:
         ProcessNoiseParams proc_params;         //!< Process noise parameters instance.
         MeasurementNoiseParams meas_params;     //!< Measurement noise parameters instance.
         InitCovParams init_params;              //!< Initial state estimate covariance parameters instance.
-        double const_dt;						//!< Fixed elapsed time for fast calculations.
     };
 
     /*!
@@ -43,7 +42,7 @@ public:
     void reset() override;
 
 	Vector3D get_cartesian() const override;
-	Vector3D get_geodetic() const override;
+    const Ellipsoid & get_ellipsoid() const override;
 	Vector3D get_velocity() const override;
 	Vector3D get_acceleration() const override;
 
@@ -126,16 +125,11 @@ private:
 
     bool is_initialized;                //!< Filter is initialized flag.
 
-    H_type H;							//!< State-to-measurement projection matrix.
-    F_type F;							//!< State transition matrix.
-    Q_type Q;							//!< Process noise covariance matrix.
     P_type P;                        	//!< State estimate covariance matrix.
     Matrix3D local_cov;                 //!< Local ENU measurement noise covariance matrix.
 
     FilterParams params;                //!< Filter parameters instance.
     state_type x;                       //!< State vector.
-
-    const Earth earth_model;            //!< Reference Earth model.
 };
 
 #endif /* INCLUDE_POSITIONLKF_H_ */

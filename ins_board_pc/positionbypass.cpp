@@ -11,6 +11,11 @@ PositionBypass::PositionBypass()
 
 PositionBypass::~PositionBypass() = default;
 
+const Ellipsoid & PositionBypass::get_ellipsoid() const
+{
+    return Ellipsoid::WGS84;
+}
+
 void PositionBypass::step(const FilterInput & z)
 {
 	x.segment<3>(0) = z.pos;
@@ -23,11 +28,6 @@ void PositionBypass::reset() {}
 Vector3D PositionBypass::get_cartesian() const
 {
     return x.segment<3>(0);
-}
-
-Vector3D PositionBypass::get_geodetic() const
-{
-    return x.segment<3>(6);
 }
 
 Vector3D PositionBypass::get_velocity() const

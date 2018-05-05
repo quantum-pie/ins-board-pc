@@ -15,6 +15,11 @@ PositionSim::PositionSim(const FilterParams & par)
 
 PositionSim::~PositionSim() = default;
 
+const Ellipsoid & PositionSim::get_ellipsoid() const
+{
+    return earth_model.get_ellipsoid();
+}
+
 void PositionSim::step(const FilterInput & z)
 {
 	if(is_initialized)
@@ -34,7 +39,7 @@ void PositionSim::reset()
 
 void PositionSim::step_uninitialized(const FilterInput & z)
 {
-    x.segment<3>(0) = geom::geodetic_to_cartesian(z.geo, earth_model.get_ellipsoid());
+    x.segment<3>(0) = geom::geodetic_to_cartesian(z.geo, get_ellipsoid());
 
     double vn = std::cos(params.initial_track);
     double ve = std::sin(params.initial_track);
@@ -49,13 +54,13 @@ void PositionSim::step_uninitialized(const FilterInput & z)
     is_initialized = true;
 }
 
-void PositionSim::step_initialized(const FilterInput &)
+void PositionSim::step_initialized(const FilterInput & z)
 {
-	const Ellipsoid & el = earth_model.get_ellipsoid();
+    const Ellipsoid & el = get_ellipsoid();
 
     Vector3D geo = geom::cartesian_to_geodetic(get_cartesian(), el);
 
-    double distance = params.speed * params.const_dt;
+    double distance = params.speed * z.dt;
 
     Vector3D local_vel = geom::geodetic_to_dcm(geo) * get_velocity();
     double bearing = std::atan2(local_vel[0], local_vel[1]);
@@ -63,9 +68,9 @@ void PositionSim::step_initialized(const FilterInput &)
     geo = geom::great_circle_destination(geo, bearing, distance, el);
 
     Vector3D new_pos = geom::geodetic_to_cartesian(geo, el);
-    Vector3D new_speed = (new_pos - get_cartesian()) / params.const_dt;
+    Vector3D new_speed = (new_pos - get_cartesian()) / z.dt;
 
-    x.segment<3>(6) = (new_speed - get_velocity()) / params.const_dt;
+    x.segment<3>(6) = (new_speed - get_velocity()) / z.dt;
     x.segment<3>(3) = new_speed;
     x.segment<3>(0) = new_pos;
 }
@@ -73,11 +78,6 @@ void PositionSim::step_initialized(const FilterInput &)
 Vector3D PositionSim::get_cartesian() const
 {
     return x.segment<3>(0);
-}
-
-Vector3D PositionSim::get_geodetic() const
-{
-    return geom::cartesian_to_geodetic(get_cartesian(), earth_model.get_ellipsoid());
 }
 
 Vector3D PositionSim::get_velocity() const
