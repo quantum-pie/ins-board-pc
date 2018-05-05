@@ -123,7 +123,7 @@ void FullUKF::step_initialized(const FilterInput & z)
             const auto & sigma_vel = get_velocity();
 
             Vector3D geo = cartesian_to_geodetic(sigma_pos, get_ellipsoid());
-            Vector3D pred_acc = predict_accelerometer(sigma_quat, ecef_to_enu(sigma_accel, geo), earth_model.gravity(geo));
+            Vector3D pred_acc = predict_accelerometer(sigma_quat, earth_model.gravity(geo), ecef_to_enu(sigma_accel, geo));
             Vector3D pred_magn = predict_magnetometer(sigma_quat, earth_model.magnetic_vector(geo, z.day));
 
             meas_type z_pr;

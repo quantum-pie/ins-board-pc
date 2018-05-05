@@ -151,11 +151,11 @@ quat::Quaternion align(const quat::Quaternion & q, const Horizon & hor);
 /*!
  * @brief Map quaternion to accelerometer measurements.
  * @param q quaternion.
- * @param enu_accel linear body acceleration in ENU system.
  * @param gravity_magn gravity magnitude.
+ * @param enu_accel linear body acceleration in ENU system.
  * @return predicted accelerometer readings.
  */
-Vector3D predict_accelerometer(const quat::Quaternion & q, const Vector3D & enu_accel, double gravity_magn);
+Vector3D predict_accelerometer(const quat::Quaternion & q, double gravity_magn, const Vector3D & enu_accel = Vector3D::Zero());
 
 /*!
  * @brief Map quaternion to magnetometer measurements.

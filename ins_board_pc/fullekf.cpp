@@ -88,7 +88,7 @@ void FullEKF::step_initialized(const FilterInput & z)
     {
         Vector3D geo = cartesian_to_geodetic(get_cartesian(), get_ellipsoid());
 
-        Vector3D predicted_acc = predict_accelerometer(get_orientation_quaternion(), ecef_to_enu(get_acceleration(), geo), earth_model.gravity(geo));
+        Vector3D predicted_acc = predict_accelerometer(get_orientation_quaternion(), earth_model.gravity(geo), ecef_to_enu(get_acceleration(), geo));
         Vector3D predicted_magn = predict_magnetometer(get_orientation_quaternion(), earth_model.magnetic_vector(geo, z.day));
 
         meas_type z_pr;
