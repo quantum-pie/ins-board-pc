@@ -48,7 +48,7 @@ void FullEKF::reset()
 
 void FullEKF::initialize(const FilterInput & z)
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(accel_magn_quat(z.a, z.m).conjugate());
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>( accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     x.segment<3>(7) = z.pos;

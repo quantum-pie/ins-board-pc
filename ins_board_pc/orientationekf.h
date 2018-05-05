@@ -4,222 +4,143 @@
 #ifndef ORIENTATIONEKF_H
 #define ORIENTATIONEKF_H
 
-#include "kalmanorientationfilter.h"
+#include "IKalmanOrientationFilter.h"
+#include "qualitycontrol.h"
+#include "earth.h"
 
 /*!
- * \brief Concrete Kalman filter for orientation estimation.
+ * @brief Concrete Kalman filter for orientation estimation.
  */
-class OrientationEKF final : public KalmanOrientationFilter
+class OrientationEKF final : public IKalmanOrientationFilter
 {
 public:
     /*!
-     * \brief Kalman filter process noise parameters.
-     */
-    struct ProcessNoiseParams
-    {
-        double gyro_std;        //!< Process noise gyroscope standard deviation.
-        double gyro_bias_std;   //!< Process noise gyroscope bias standard deviation.
-    };
-
-    /*!
-     * \brief Kalman filter measurement noise parameters.
-     */
-    struct MeasurementNoiseParams
-    {
-        double accel_std;   //!< accelerometer measurements std.
-        double magn_std;    //!< magnetometer measurements std.
-    };
-
-    /*!
-     * \brief Kalman filter initial state estimate covariance parameters.
-     */
-    struct InitCovParams
-    {
-        double qs_std;      //!< Initial qs estimate standard deviation.
-        double qx_std;      //!< Initial qx estimate standard deviation.
-        double qy_std;      //!< Initial qy estimate standard deviation.
-        double qz_std;      //!< Initial qz estimate standard deviation.
-        double bias_std;    //!< Initial gyro bias estimate standard deviation.
-    };
-
-    /*!
-     * \brief Kalman filter parameters structure.
+     * @brief Kalman filter parameters structure.
      */
     struct FilterParams
     {
         ProcessNoiseParams proc_params;     //!< Process noise parameters instance.
         MeasurementNoiseParams meas_params; //!< Measurement noise parameters instance.
         InitCovParams init_params;          //!< Initial state estimate covariance parameters instance.
-        int accum_capacity;                 //!< Capacity of filter input accumulator.
+        std::size_t accum_capacity;         //!< Capacity of filter input accumulator.
     };
 
     /*!
-     * \brief Constructor.
-     * \param params filter parameters.
+     * @brief Constructor.
+     * @param params filter parameters.
      */
-    OrientationEKF(const FilterParams & params);
+    explicit OrientationEKF(const FilterParams & params);
 
     /*!
      * \brief Destructor.
      */
     ~OrientationEKF() override;
 
-    /*!
-     * \brief Filter step.
-     * \param z filter input reference.
-     */
+    /* Interfaces implementation */
     void step(const FilterInput & z) override;
+    void reset() override;
 
-    /*!
-     * \brief Get current orientation quaternion.
-     * \return vector representing quaternion.
-     */
-    NumVector get_orientation_quaternion() const override;
+    quat::Quaternion get_orientation_quaternion() const override;
+    Vector3D get_gyro_bias() const override;
 
-    /*!
-     * \brief Get current gyroscope bias.
-     * \return gyroscope bias vector.
-     */
-    NumVector get_gyro_bias() const override;
-
-    /*!
-     * \brief Set process noise gyroscope standard deviation.
-     * \param std standard deviation.
-     */
     void set_proc_gyro_std(double std) override;
-
-    /*!
-     * \brief Set process noise gyroscope bias standard deviation.
-     * \param std standard deviation.
-     */
     void set_proc_gyro_bias_std(double std) override;
-
-    /*!
-     * \brief Set accelerometer measurements standard deviation.
-     * \param std standard deviation.
-     */
     void set_meas_accel_std(double std) override;
-
-    /*!
-     * \brief Set magnetometer measurements standard deviation.
-     * \param std standard deviation.
-     */
     void set_meas_magn_std(double std) override;
-
-    /*!
-     * \brief Set initial qs estimate standard deviation.
-     * \param std standard deviation.
-     */
     void set_init_qs_std(double std) override;
-
-    /*!
-     * \brief Set initial qx estimate standard deviation.
-     * \param std standard deviation.
-     */
     void set_init_qx_std(double std) override;
-
-    /*!
-     * \brief Set initial qy estimate standard deviation.
-     * \param std standard deviation.
-     */
     void set_init_qy_std(double std) override;
-
-    /*!
-     * \brief Set initial qz estimate standard deviation.
-     * \param std standard deviation.
-     */
     void set_init_qz_std(double std) override;
-
-    /*!
-     * \brief Set initial bias estimate standard deviation.
-     * \param std standard deviation.
-     */
     void set_init_bias_std(double std) override;
 
-protected:
-    /*!
-     * \brief Update filter state.
-     * \param z filter input reference.
-     */
-    void update(const FilterInput & z) override;
-
-    /*!
-     * \brief Initialize filter.
-     * \param z filter input reference.
-     */
-    void initialize(const FilterInput & z) override;
-
-    /*!
-     * \brief normalize filter state.
-     */
-    void normalize_state() override;
+    double get_proc_gyro_std() const override;
+    double get_proc_gyro_bias_std() const override;
+    double get_meas_accel_std() const override;
+    double get_meas_magn_std() const override;
+    double get_init_qs_std() const override;
+    double get_init_qx_std() const override;
+    double get_init_qy_std() const override;
+    double get_init_qz_std() const override;
+    double get_init_bias_std() const override;
 
 private:
     /*!
-     * \brief Create state transition matrix (F).
-     * \param z filter input reference.
-     * \return state transition matrix.
+     * @brief Step of initialized filter.
+     * @param z filter input.
      */
-    NumMatrix create_transition_mtx(const FilterInput & z) const;
+    void step_initialized(const FilterInput & z);
 
     /*!
-     * \brief Create process noise covariance matrix (Q).
-     * \param dt time elapsed since the last measurement.
-     * \return process noise covariance matrix.
+     * @brief Step of uninitialized filter.
+     * @param z filter input.
      */
-    NumMatrix create_proc_noise_cov_mtx(double dt) const;
+    void step_uninitialized(const FilterInput & z);
 
     /*!
-     * \brief Create measurement noise covariance matrix (R).
-     * \param lat geodetic latitude.
-     * \param lon geodetic longitude.
-     * \param alt geodetic altitude above ellipsoid.
-     * \param day current date.
-     * \return measurement noise covariance matrix.
+     * @brief Initialize filter.
+     * @param z filter input.
      */
-    NumMatrix create_meas_noise_cov_mtx(const NumVector & geo, QDate day) const;
+    void initialize(const FilterInput & z);
 
     /*!
-     * \brief Create state-to-measurement projection matrix (H).
-     * \param lat geodetic latitude.
-     * \param lon geodetic longitude.
-     * \param alt geodetic altitude above ellipsoid.
-     * \param day current date.
-     * \return state-to-measurement projection matrix.
+     * @brief normalize filter state.
      */
-    NumMatrix create_meas_proj_mtx(const NumVector & geo, QDate day) const;
+    void normalize_state();
+
+    static constexpr int state_size { 7 };        	//!< Size of state vector.
+    static constexpr int measurement_size { 6 };  	//!< Size of measurements vector.
+
+    /* Useful aliases */
+    using state_type = StaticVector<state_size>;
+    using meas_type = StaticVector<measurement_size>;
+
+    using F_type = StaticMatrix<state_size, state_size>;
+    using Q_type = F_type;
+    using P_type = F_type;
+    using R_type = StaticMatrix<measurement_size, measurement_size>;
+    using H_type = StaticMatrix<measurement_size, state_size>;
+    using S_type = R_type;
+    using K_type = StaticMatrix<state_size, measurement_size>;
 
     /*!
-     * \brief Map state quaternion to accelerometer measurements.
-     * \param orientation_quat state quaternion.
-     * \param lat geodetic latitude.
-     * \param alt geodetic altitude above ellipsoid.
-     * \param[out] ax x-componet of accelerometer measurements.
-     * \param[out] ay y-componet of accelerometer measurements.
-     * \param[out] az z-componet of accelerometer measurements.
+     * @brief Create state transition matrix (F).
+     * @param z filter input reference.
+     * @return state transition matrix.
      */
-    NumVector calculate_accelerometer(const NumVector & orientation_quat,
-                                 const NumVector & geo) const;
+    F_type create_transition_mtx(const FilterInput & z) const;
 
     /*!
-     * \brief Map state quaternion to magnetometer measurements.
-     * \param orientation_quat state quaternion.
-     * \param lat geodetic latitude.
-     * \param lon geodetic longitude.
-     * \param alt geodetic altitude above ellipsoid.
-     * \param day current date.
-     * \param[out] mx x-componet of magnetometer measurements.
-     * \param[out] my y-componet of magnetometer measurements.
-     * \param[out] mz z-componet of magnetometer measurements.
+     * @brief Create process noise covariance matrix (Q).
+     * @param dt time elapsed since the last step.
+     * @return process noise covariance matrix.
      */
-    NumVector calculate_magnetometer(const NumVector & orientation_quat,
-                                const NumVector & geo, QDate day) const;
+    Q_type create_proc_noise_cov_mtx(double dt) const;
 
-    static const int state_size;        //!< Size of state vector.
-    static const int measurement_size;  //!< Size of measurements vector.
+    /*!
+     * @brief Create measurement noise covariance matrix (R).
+     * @param z filter input reference.
+     * @return measurement noise covariance matrix.
+     */
+    R_type create_meas_noise_cov_mtx(const Vector3D & geo,
+                                     const boost::gregorian::date & day) const;
 
-    NumMatrix P;                        //!< state estimate covariance matrix.
+    /*!
+     * @brief Create state-to-measurement projection matrix (H).
+     * @param z filter input reference.
+     * @return state-to-measurement projection matrix.
+     */
+    H_type create_meas_proj_mtx(const Vector3D & geo,
+                                const boost::gregorian::date & day) const;
+
+    bool is_initialized;                //!< Filter is initialized flag.
+
+    P_type P;                           //!< State estimate covariance matrix.
+
     FilterParams params;                //!< Filter parameters instance.
+    QualityControl<Vector3D> bias_ctrl; //!< Gyroscope bias controller.
+    state_type x;                       //!< State vector.
+
+    const Earth earth_model;            //!< Reference Earth model.
 };
 
 #endif // ORIENTATIONEKF_H

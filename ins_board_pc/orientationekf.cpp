@@ -1,204 +1,187 @@
 #include "orientationekf.h"
-#include "wmmwrapper.h"
-#include "physconst.h"
+#include "geometry.h"
+#include "quatutils.h"
 
 #include <Eigen/Dense>
 
-#include <QtMath>
-
-const int OrientationEKF::state_size = 7;
-const int OrientationEKF::measurement_size = 6;
+using namespace quat;
+using namespace geom;
 
 OrientationEKF::OrientationEKF(const FilterParams & par)
-    : KalmanOrientationFilter(par.accum_capacity),
-      params(par)
+    : is_initialized{ false },
+      params{ par },
+      bias_ctrl{ par.accum_capacity, Vector3D::Zero() }
 {
-    x = NumVector(state_size);
-    P = NumMatrix(state_size, state_size);
+    x = state_type::Zero();
+    P = P_type::Identity();
 }
 
-OrientationEKF::~OrientationEKF()
-{
+OrientationEKF::~OrientationEKF() = default;
 
+void OrientationEKF::step(const FilterInput & z)
+{
+    if(is_initialized)
+    {
+        step_initialized(z);
+    }
+    else if(bias_ctrl.is_saturated())
+    {
+        initialize(z);
+    }
+    else
+    {
+        step_uninitialized(z);
+    }
+}
+
+void OrientationEKF::reset()
+{
+    is_initialized = false;
 }
 
 void OrientationEKF::initialize(const FilterInput & z)
 {
-    KalmanOrientationFilter::initialize(z);
+    // TODO check and correct in full EKF and UKF also if wrong
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>( accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
+    x.segment<3>(4) = bias_ctrl.get_mean();
 
-    NumVector qacc = qutils::acceleration_quat(z.a);
+    auto diag = P.diagonal();
+    diag[0] = params.init_params.qs_std * params.init_params.qs_std;
+    diag[1] = params.init_params.qx_std * params.init_params.qx_std;
+    diag[2] = params.init_params.qy_std * params.init_params.qy_std;
+    diag[3] = params.init_params.qz_std * params.init_params.qz_std;
+    diag.segment<3>(4) = Vector3D::Constant(params.init_params.bias_std * params.init_params.bias_std);
 
-    NumMatrix accel_rotator = qutils::quaternion_to_dcm_tr(qacc);
-    NumVector l = accel_rotator * z.m;
-
-    NumVector qmag = qutils::magnetometer_quat(l);
-
-    double declination, inclination, magn;
-    WrapperWMM::instance().measure(z.geo, z.day, declination, inclination, magn);
-
-    NumVector qdecl = qutils::declinator_quat(declination);
-
-    NumVector tmp = qutils::quat_multiply(qmag, qdecl);
-    NumVector q = qutils::quat_multiply(qacc, tmp);
-
-    // from lb to bl quaternion
-    x[0] = q[0];
-    x[1] = -q[1];
-    x[2] = -q[2];
-    x[3] = -q[3];
-
-    x[4] = bias_x_ctrl.get_mean();
-    x[5] = bias_y_ctrl.get_mean();
-    x[6] = bias_z_ctrl.get_mean();
-
-    P = NumMatrix::Zero(state_size, state_size);
-    P(0, 0) = params.init_params.qs_std * params.init_params.qs_std;
-    P(1, 1) = params.init_params.qx_std * params.init_params.qx_std;
-    P(2, 2) = params.init_params.qy_std * params.init_params.qy_std;
-    P(3, 3) = params.init_params.qz_std * params.init_params.qz_std;
-
-    double bias_var = params.init_params.bias_std * params.init_params.bias_std;
-    P(4, 4) = bias_var;
-    P(5, 5) = bias_var;
-    P(6, 6) = bias_var;
+    is_initialized = true;
+    bias_ctrl.set_sampling(0); // free memory
 }
 
-void OrientationEKF::step(const FilterInput & z)
+void OrientationEKF::step_uninitialized(const FilterInput & z)
 {
-    if(is_initialized())
-    {
-        update(z);
-    }
-    else
-    {
-        accumulate(z);
-        if(bias_estimated())
-        {
-            initialize(z);
-        }
-    }
+    bias_ctrl.update(z.w);
 }
 
-void OrientationEKF::update(const FilterInput & z)
+void OrientationEKF::step_initialized(const FilterInput & z)
 {
-    NumMatrix F = create_transition_mtx(z);
-    NumMatrix Q = create_proc_noise_cov_mtx(z.dt);
+    F_type F = create_transition_mtx(z);
+    Q_type Q = create_proc_noise_cov_mtx(z.dt);
 
     x = F * x;
     normalize_state();
 
     P = F * P * F.transpose() + Q;
 
-    NumVector predicted_orientation = get_orientation_quaternion();
-    NumVector pred_acc = calculate_accelerometer(predicted_orientation, z.geo);
-    NumVector pred_magn = calculate_magnetometer(predicted_orientation, z.geo, z.day);
+    if(z.gps_valid)
+    {
+        Vector3D predicted_acc = predict_accelerometer(get_orientation_quaternion(), Vector3D::Zero(), earth_model.gravity(z.geo));
+        Vector3D predicted_magn = predict_magnetometer(get_orientation_quaternion(), earth_model.magnetic_vector(z.geo, z.day));
 
-    NumVector z_pr(measurement_size);
-    z_pr << pred_acc, pred_magn;
+        meas_type z_pr;
+        z_pr << predicted_acc, predicted_magn;
 
-    NumVector z_meas(measurement_size);
-    z_meas << z.a, z.m;
+        meas_type z_meas;
+        z_meas << z.a, z.m;
 
-    NumVector y = z_meas - z_pr;
+        auto y = z_meas - z_pr;
 
-    NumMatrix R = create_meas_noise_cov_mtx(z.geo, z.day);
-    NumMatrix H = create_meas_proj_mtx(z.geo, z.day);
+        R_type R = create_meas_noise_cov_mtx(z.geo, z.day);
+        H_type H = create_meas_proj_mtx(z.geo, z.day);
 
-    NumMatrix S = H * P * H.transpose() + R;
-    NumMatrix K = P * H.transpose() * S.inverse();
+        auto S = H * P * H.transpose() + R;
+        auto K = P * H.transpose() * S.inverse();
 
-    x += K * y;
-    normalize_state();
+        x += K * y;
+        normalize_state();
 
-    NumMatrix tmp = NumMatrix::Identity(x.size(), x.size()) - K * H;
-    P = tmp * P * tmp.transpose() + K * R * K.transpose();
+        auto tmp = P_type::Identity() - K * H;
+        P = tmp * P * tmp.transpose() + K * R * K.transpose();
+    }
 }
 
 void OrientationEKF::normalize_state()
 {
-    x.segment(0, 4) = qutils::quat_normalize(get_orientation_quaternion());
+    x.segment<4>(0) = static_cast<Quaternion::vector_form>(get_orientation_quaternion().normalize());
 }
 
-NumMatrix OrientationEKF::create_transition_mtx(const FilterInput & z) const
+OrientationEKF::F_type OrientationEKF::create_transition_mtx(const FilterInput & z) const
 {
     /* useful constants */
     double dt_2 = z.dt / 2;
 
     /* constructing state transition matrix */
-    NumMatrix V = qutils::skew_symmetric(z.w);
+    auto V = skew_symmetric(z.w);
 
     V *= dt_2;
-    V += NumMatrix::Identity(4, 4);
+    V += StaticMatrix<4, 4>::Identity();
 
-    NumMatrix K = qutils::quat_delta_mtx(get_orientation_quaternion(), dt_2);
+    auto K = get_orientation_quaternion().delta_mtx(dt_2);
 
-    NumMatrix F(state_size, state_size);
-
+    F_type F;;
     F << V, K,
-         NumMatrix::Zero(3, 4), NumMatrix::Identity(3, 3);
+         StaticMatrix<3, 4>::Zero(), Matrix3D::Identity();
 
     return F;
 }
 
-NumMatrix OrientationEKF::create_proc_noise_cov_mtx(double dt) const
+OrientationEKF::Q_type OrientationEKF::create_proc_noise_cov_mtx(double dt) const
 {
     /* useful constants */
     double dt_2 = dt / 2;
 
-    NumMatrix K = qutils::quat_delta_mtx(get_orientation_quaternion(), dt_2);
+    auto K = get_orientation_quaternion().delta_mtx(dt_2);
 
-    NumMatrix Qq = params.proc_params.gyro_std * params.proc_params.gyro_std * K * K.transpose();
-    NumMatrix Qb = params.proc_params.gyro_bias_std * params.proc_params.gyro_bias_std * NumMatrix::Identity(3, 3);
+    auto Qq = params.proc_params.gyro_std * params.proc_params.gyro_std * K * K.transpose();
+    auto Qb = params.proc_params.gyro_bias_std * params.proc_params.gyro_bias_std * Matrix3D::Identity();
 
-    NumMatrix Q(state_size, state_size);
-
-    Q << Qq, NumMatrix::Zero(4, 3),
-            NumMatrix::Zero(3, 4), Qb;
+    Q_type Q;
+    Q << Qq, StaticMatrix<4, 3>::Zero(),
+            StaticMatrix<3, 4>::Zero(), Qb;
 
     return Q;
 }
 
-NumMatrix OrientationEKF::create_meas_noise_cov_mtx(const NumVector & geo, QDate day) const
+OrientationEKF::R_type OrientationEKF::create_meas_noise_cov_mtx(const Vector3D & geo,
+                                                   const boost::gregorian::date & day) const
 {
-    NumMatrix Ra = params.meas_params.accel_std * params.meas_params.accel_std * NumMatrix::Identity(3, 3);
+    auto Ra = params.meas_params.accel_std * params.meas_params.accel_std * Matrix3D::Identity();
 
-    double mag_magn = WrapperWMM::instance().expected_mag_magnitude(geo, day);
+    double mag_magn = earth_model.magnetic_magnitude(geo, day);
     double normalized_magn_std = params.meas_params.magn_std / mag_magn;
-    NumMatrix Rm = normalized_magn_std * normalized_magn_std * NumMatrix::Identity(3, 3);
+    auto Rm = normalized_magn_std * normalized_magn_std * Matrix3D::Identity();
 
-    NumMatrix R(measurement_size, measurement_size);
-
-    R << Ra, NumMatrix::Zero(3, 3),
-         NumMatrix::Zero(3, 3), Rm;
+    R_type R;
+    R << Ra, Matrix3D::Zero(),
+         Matrix3D::Zero(), Rm;
 
     return R;
 }
 
-NumMatrix OrientationEKF::create_meas_proj_mtx(const NumVector & geo, QDate day) const
+OrientationEKF::H_type OrientationEKF::create_meas_proj_mtx(const Vector3D & geo,
+                                              const boost::gregorian::date & day) const
 {
     // 1
-    NumMatrix Dac_Dq(3, 4);
+    StaticMatrix<3, 4> Dac_Dq;
 
-    double height_adjust = WrapperWMM::instance().expected_gravity_accel(geo) / phconst::standard_gravity;
+    double height_adjust = earth_model.gravity(geo) / Gravity::gf;
 
-    NumVector q = get_orientation_quaternion();
+    const Quaternion & q = get_orientation_quaternion();
 
-    NumMatrix Ddcm_Dqs = qutils::ddcm_dqs_tr(q);
-    NumMatrix Ddcm_Dqx = qutils::ddcm_dqx_tr(q);
-    NumMatrix Ddcm_Dqy = qutils::ddcm_dqy_tr(q);
-    NumMatrix Ddcm_Dqz = qutils::ddcm_dqz_tr(q);
+    Matrix3D Ddcm_Dqs = q.ddcm_dqs_tr();
+    Matrix3D Ddcm_Dqx = q.ddcm_dqx_tr();
+    Matrix3D Ddcm_Dqy = q.ddcm_dqy_tr();
+    Matrix3D Ddcm_Dqz = q.ddcm_dqz_tr();
 
-    NumVector col_s = Ddcm_Dqs.col(2) * height_adjust;
-    NumVector col_x = Ddcm_Dqx.col(2) * height_adjust;
-    NumVector col_y = Ddcm_Dqy.col(2) * height_adjust;
-    NumVector col_z = Ddcm_Dqz.col(2) * height_adjust;
+    Vector3D col_s = Ddcm_Dqs.col(2) * height_adjust;
+    Vector3D col_x = Ddcm_Dqx.col(2) * height_adjust;
+    Vector3D col_y = Ddcm_Dqy.col(2) * height_adjust;
+    Vector3D col_z = Ddcm_Dqz.col(2) * height_adjust;
 
     Dac_Dq << col_s, col_x, col_y, col_z;
 
     // 2
-    NumMatrix Dm_Dq(3, 4);
+    StaticMatrix<3, 4> Dm_Dq;
 
-    NumVector earth_mag = WrapperWMM::instance().expected_mag(geo, day);
+    Vector3D earth_mag = earth_model.magnetic_vector(geo, day);
 
     col_s = Ddcm_Dqs * earth_mag;
     col_x = Ddcm_Dqx * earth_mag;
@@ -208,41 +191,21 @@ NumMatrix OrientationEKF::create_meas_proj_mtx(const NumVector & geo, QDate day)
     Dm_Dq << col_s, col_x, col_y, col_z;
 
     // Combine
-    NumMatrix H(measurement_size, state_size);
-    H <<    Dac_Dq, NumMatrix::Zero(3, 3),
-            Dm_Dq, NumMatrix::Zero(3, 3);
+    H_type H;
+    H <<    Dac_Dq, Matrix3D::Zero(),
+            Dm_Dq, Matrix3D::Zero();
 
     return H;
 }
 
-NumVector OrientationEKF::calculate_accelerometer(const NumVector & orientation_quat,
-                             const NumVector & geo) const
+Quaternion OrientationEKF::get_orientation_quaternion() const
 {
-    double height_adjust = WrapperWMM::instance().expected_gravity_accel(geo) / phconst::standard_gravity;
-
-    NumMatrix Clb = qutils::quaternion_to_dcm_tr(orientation_quat);
-
-    NumVector g(3);
-    g << 0, 0, height_adjust;
-
-    return Clb * g;
+    return static_cast<Quaternion::vector_form>(x.segment<4>(0));
 }
 
-NumVector OrientationEKF::calculate_magnetometer(const NumVector & orientation_quat,
-                                              const NumVector & geo, QDate day) const
+Vector3D OrientationEKF::get_gyro_bias() const
 {
-    return qutils::quaternion_to_dcm_tr(orientation_quat) *
-                            WrapperWMM::instance().expected_mag(geo, day);
-}
-
-NumVector OrientationEKF::get_orientation_quaternion() const
-{
-    return x.segment(0, 4);
-}
-
-NumVector OrientationEKF::get_gyro_bias() const
-{
-    return x.segment(4, 3);
+    return x.segment<3>(4);
 }
 
 void OrientationEKF::set_proc_gyro_std(double std)
@@ -288,4 +251,49 @@ void OrientationEKF::set_init_qz_std(double std)
 void OrientationEKF::set_init_bias_std(double std)
 {
     params.init_params.bias_std = std;
+}
+
+double OrientationEKF::get_proc_gyro_std() const
+{
+    return params.proc_params.gyro_std;
+}
+
+double OrientationEKF::get_proc_gyro_bias_std() const
+{
+    return params.proc_params.gyro_bias_std;
+}
+
+double OrientationEKF::get_meas_accel_std() const
+{
+    return params.meas_params.accel_std;
+}
+
+double OrientationEKF::get_meas_magn_std() const
+{
+    return params.meas_params.magn_std;
+}
+
+double OrientationEKF::get_init_qs_std() const
+{
+    return params.init_params.qs_std;
+}
+
+double OrientationEKF::get_init_qx_std() const
+{
+    return params.init_params.qx_std;
+}
+
+double OrientationEKF::get_init_qy_std() const
+{
+    return params.init_params.qy_std;
+}
+
+double OrientationEKF::get_init_qz_std() const
+{
+    return params.init_params.qz_std;
+}
+
+double OrientationEKF::get_init_bias_std() const
+{
+    return params.init_params.bias_std;
 }
