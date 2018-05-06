@@ -59,6 +59,7 @@ struct FilterInput
  */
 struct RawPacket
 {
+    uint32_t pkt_number;        //!< Packet number.
     Nav gps_data;               //!< GPS sensor data.
 	Vector3D w;					//!< Angular rate vector.
 	Vector3D a;					//!< Acceleration vector.
