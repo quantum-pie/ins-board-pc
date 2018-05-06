@@ -4,11 +4,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "calibrator.h"
-#include "kalmanorientationfilter.h"
-#include "kalmanpositionfilter.h"
+#include "IKalmanPositionFilter.h"
+#include "IKalmanOrientationFilter.h"
 #include "orientationcomplement.h"
+#include "fullukf.h"
 #include "qualitycontrol.h"
+#include "magncalibrator.h"
 
 #include <QMainWindow>
 #include <QVector3D>
@@ -269,58 +270,6 @@ private slots:
 
 private:
     /*!
-     * \brief GPS timestamp type.
-     */
-    struct gps_time_t
-    {
-        unsigned short year;    //!< year.
-        unsigned char month;    //!< month.
-        unsigned char day;      //!< day.
-        unsigned char hour;     //!< hours.
-        unsigned char minute;   //!< minutes.
-        unsigned char second;   //!< seconds.
-        unsigned char msecond;  //!< milliseconds.
-    };
-
-    /*!
-     * \brief GPS input data structure.
-     */
-    struct gps_input_t
-    {
-        bool fix;               //!< Quality of position fix.
-        gps_time_t time;        //!< GPS timestamp.
-        double lat;             //!< Geodetic latitude in deg.
-        double lon;             //!< Geodetic longitude in deg.
-        double alt;             //!< Geodetic altitude above ellipsoid in m.
-        double msl_alt;         //!< Geodetic altitude above mean sea level in m.
-        double x;               //!< Cartesian X in m.
-        double y;               //!< Cartesian Y in m.
-        double z;               //!< Cartesian Z in m.
-        double vx;              //!< Cartesian Vx in m/s.
-        double vy;              //!< Cartesian Vy in m/s.
-        double vz;              //!< Cartesian Vz in m/s.
-    };
-
-    /*!
-     * \brief Input data structure.
-     */
-    struct input_t
-    {
-        bool new_fix;           //!< GPS data is refreshed since last sample.
-        double et;              //!< Elapsed time in s.
-        double w_x;             //!< X-axis angular rate in dps.
-        double w_y;             //!< Y-axis angular rate in dps.
-        double w_z;             //!< Z-axis angular rate in dps.
-        double a_x;             //!< X-axis accelerometer readings in g.
-        double a_y;             //!< Y-axis accelerometer readings in g.
-        double a_z;             //!< Z-axis accelerometer readings in g.
-        double m_x;             //!< X-axis magnetometer readings in uT.
-        double m_y;             //!< Y-axis magnetometer readings in uT.
-        double m_z;             //!< Z-axis magnetometer readings in uT.
-        gps_input_t gps;        //!< GPS input data.
-    };
-
-    /*!
      * \brief Process received datagram.
      * \param data received byte array.
      */
@@ -409,7 +358,7 @@ private:
     Q3DScatter * magnet_plot_cb;                        //!< Pointer to calibrated magnetometer data graphic.
     QScatterDataArray * magnet_data_cb;                 //!< Pointer to calibrated magnetometer data container.
 
-    Calibrator magn_cal;                                //!< Magnetometer calibrator instance.
+    MagnCalibrator magn_cal;                            //!< Magnetometer calibrator instance.
 
     QualityControl roll_ctrl_kalman;                    //!< Kalman tab output roll controller.
     QualityControl pitch_ctrl_kalman;                   //!< Kalman tab output pitch controller.
@@ -438,36 +387,24 @@ private:
     QCPCurve * compl_raw_track;
     QCPCurve * compl_smooth_track;
 
-    const size_t pkt_header_size = 4;                   //!< Size of input packet header.
-    const size_t sample_size = 170;                     //!< Size of one input data sample.
 
-    const double proc_gyro_std = 0.001;                 //!< Default gyroscope process noise std.
-    const double proc_gyro_bias_std = 0;                //!< Default gyroscope bias process noise std.
-    const double proc_accel_std = 0.0001;               //!< Default acceleration process noise std.
 
-    const double meas_accel_std = 0.005;                //!< Default accelerometer measurement noise std.
-    const double meas_magn_std = 1.2;                   //!< Default magnetometer measurement noise std.
-    const double meas_gps_cep = 0.1;                    //!< Default GPS position CEP.
-    const double meas_gps_vel_abs_std = 0.1;            //!< Default GPS velocity measurement std.
+    QualityControl<Vector3D>                                                speed_control;
 
-    const double cov_qs_std = 0.0001;                   //!< Default std of initial qs estimate.
-    const double cov_qx_std = 0.00001;                  //!< Default std of initial qx estimate.
-    const double cov_qy_std = 0.00001;                  //!< Default std of initial qy estimate.
-    const double cov_qz_std = 0.0001;                   //!< Default std of initial qz estimate.
-    const double cov_bias_std = 0;                      //!< Default std of initial gyro bias estimate.
-    const double cov_pos_std = 0.00001;                 //!< Default std of initial position estimate.
-    const double cov_vel_std = 0.0001;                  //!< Default std of initial velocity estimate.
-    const double cov_accel_std = 0.001;                 //!< Default std of initial acceleration estimate.
+    static constexpr IKalmanPositionFilter::ProcessNoiseParams              default_pos_proc_noise_params { 0.0001 };
+    static constexpr IKalmanPositionFilter::MeasurementNoiseParams          default_pos_meas_noise_params { 0.1, 0.1 };
+    static constexpr IKalmanPositionFilter::InitCovParams                   default_pos_init_cov_params { 0.00001, 0.0001, 0.001 };
 
-    const double static_accel_gain = 0.05;              //!< Default static accelerometer gain.
-    const double static_magn_gain = 0.0005;             //!< Default static magnetometer gain.
-    const double bias_gain = 0.00001;
+    static constexpr double default_sim_speed { 30 };
+    static constexpr double default_sim_angle { 0 };
 
-    const double unscented_kappa = 0;
-    const double unscented_beta = 2;
-    const double unscented_alpha = 1e-3;
+    static constexpr FullUKF::UnscentedTransformParams                      default_ut_params{ 0, 2, 1e-3 };
 
-    const int track_history = 100;
+    static constexpr OrientationCF::FilterParams                            default_ori_params { 0.005, 0.00005, 0.00001, 500 };
+
+    static constexpr IKalmanOrientationFilter::ProcessNoiseParams 			default_ori_proc_noise_params { 0.001, 0 };
+    static constexpr IKalmanOrientationFilter::MeasurementNoiseParams 		default_ori_meas_noise_params { 0.005, 1.2 };
+    static constexpr IKalmanOrientationFilter::InitCovParams 				default_ori_init_cov_params { 0.0001, 0.00001, 0.00001, 0.0001, 0 };
 };
 
 #endif // MAINWINDOW_H

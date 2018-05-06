@@ -35,7 +35,6 @@ MainWindow::MainWindow(QWidget *parent) :
     cast_filters();
 
     udp_socket = new QUdpSocket(this);
-    //udp_socket->bind(QHostAddress("192.168.4.1"), 65000);
     udp_socket->bind(QHostAddress("192.168.0.100"), 7700);
     connect(udp_socket, SIGNAL(readyRead()), this, SLOT(read_datagrams()));
 
