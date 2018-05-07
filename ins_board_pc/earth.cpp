@@ -39,7 +39,7 @@ double Earth::gravity(const Vector3D & geo) const
 	return gravity_model.gravity(geo);
 }
 
-const Ellipsoid & Earth::get_ellipsoid() const
+Ellipsoid Earth::get_ellipsoid() const
 {
 	return ellip;
 }

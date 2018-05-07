@@ -72,7 +72,7 @@ public:
      * @brief Get reference ellipsoid.
      * @return  reference ellipsoid.
      */
-    const Ellipsoid & get_ellipsoid() const;
+    Ellipsoid get_ellipsoid() const;
 
 private:
     const Ellipsoid ellip;			//!< Reference ellipsoid model.
