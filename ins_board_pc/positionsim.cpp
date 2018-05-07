@@ -15,7 +15,7 @@ PositionSim::PositionSim(const FilterParams & par)
 
 PositionSim::~PositionSim() = default;
 
-const Ellipsoid & PositionSim::get_ellipsoid() const
+Ellipsoid PositionSim::get_ellipsoid() const
 {
     return earth_model.get_ellipsoid();
 }

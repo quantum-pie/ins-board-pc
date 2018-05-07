@@ -20,7 +20,7 @@ FullEKF::FullEKF(const FilterParams & par)
 
 FullEKF::~FullEKF() = default;
 
-const Ellipsoid & FullEKF::get_ellipsoid() const
+Ellipsoid FullEKF::get_ellipsoid() const
 {
     return earth_model.get_ellipsoid();
 }

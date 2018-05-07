@@ -31,7 +31,7 @@ struct IPositionFilter : virtual IFilter
      * @brief Get underlying Earth ellipsoid model.
      * @return ellipsoid model reference.
      */
-    virtual const Ellipsoid & get_ellipsoid() const = 0;
+    virtual Ellipsoid get_ellipsoid() const = 0;
 
 	/*!
 	 * @brief Get ECEF velocity vector.

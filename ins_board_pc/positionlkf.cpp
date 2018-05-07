@@ -20,7 +20,7 @@ PositionLKF::PositionLKF(const FilterParams & par)
 
 PositionLKF::~PositionLKF() = default;
 
-const Ellipsoid & PositionLKF::get_ellipsoid() const
+Ellipsoid PositionLKF::get_ellipsoid() const
 {
     return Ellipsoid::WGS84;
 }

@@ -65,7 +65,7 @@ public:
     void reset() override;
 
 	Vector3D get_cartesian() const override;
-    const Ellipsoid & get_ellipsoid() const override;
+    Ellipsoid get_ellipsoid() const override;
 	Vector3D get_velocity() const override;
 	Vector3D get_acceleration() const override;
 

@@ -11,7 +11,7 @@ PositionBypass::PositionBypass()
 
 PositionBypass::~PositionBypass() = default;
 
-const Ellipsoid & PositionBypass::get_ellipsoid() const
+Ellipsoid PositionBypass::get_ellipsoid() const
 {
     return Ellipsoid::WGS84;
 }

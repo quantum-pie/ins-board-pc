@@ -33,7 +33,7 @@ FullUKF::FullUKF(const FilterParams & par)
 
 FullUKF::~FullUKF() = default;
 
-const Ellipsoid & FullUKF::get_ellipsoid() const
+Ellipsoid FullUKF::get_ellipsoid() const
 {
     return earth_model.get_ellipsoid();
 }
