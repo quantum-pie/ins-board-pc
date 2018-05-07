@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>4</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -463,25 +463,91 @@
        <attribute name="title">
         <string>Kalman</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,2,2,2,7">
-        <item row="0" column="1">
-         <widget class="QComboBox" name="comboBox">
-          <item>
-           <property name="text">
-            <string>Splitted</string>
-           </property>
+       <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,1,0,0,0" columnstretch="1,2,1,4">
+        <item row="0" column="3">
+         <layout class="QGridLayout" name="gridLayout_12">
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboBox_3">
+            <item>
+             <property name="text">
+              <string>EKF</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>UKF</string>
+             </property>
+            </item>
+           </widget>
           </item>
-          <item>
-           <property name="text">
-            <string>Combined</string>
-           </property>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_48">
+            <property name="text">
+             <string>Orientation type:</string>
+            </property>
+           </widget>
           </item>
-         </widget>
+          <item row="2" column="3">
+           <widget class="QComboBox" name="comboBox_4">
+            <item>
+             <property name="text">
+              <string>LKF</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QLabel" name="label_49">
+            <property name="text">
+             <string>Position type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_36">
+            <property name="text">
+             <string>Mode:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboBox">
+            <item>
+             <property name="text">
+              <string>Splitted</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Combined</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="label_47">
+            <property name="text">
+             <string>Combined type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QComboBox" name="comboBox_2">
+            <item>
+             <property name="text">
+              <string>EKF</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>UKF</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="1" column="4">
-         <widget class="QCustomPlot" name="plot5" native="true"/>
-        </item>
-        <item row="2" column="4">
+        <item row="4" column="3">
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
            <string>Tuning</string>
@@ -715,33 +781,10 @@
           </layout>
          </widget>
         </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_36">
-          <property name="text">
-           <string>Mode:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="4">
-         <widget class="QCustomPlot" name="plot4" native="true"/>
-        </item>
-        <item row="2" column="0" colspan="4">
+        <item row="4" column="0" colspan="3">
          <widget class="QWidget" name="dwidget" native="true"/>
         </item>
-        <item row="0" column="4">
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>746</width>
-            <height>17</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="0" column="2">
+        <item row="0" column="0" alignment="Qt::AlignTop">
          <widget class="QPushButton" name="pushButton_2">
           <property name="text">
            <string>Start</string>
@@ -750,6 +793,12 @@
            <bool>true</bool>
           </property>
          </widget>
+        </item>
+        <item row="1" column="3" rowspan="3">
+         <widget class="QCustomPlot" name="plot5" native="true"/>
+        </item>
+        <item row="1" column="0" rowspan="3" colspan="3">
+         <widget class="QCustomPlot" name="plot4" native="true"/>
         </item>
        </layout>
       </widget>
