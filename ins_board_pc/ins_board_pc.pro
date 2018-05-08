@@ -14,10 +14,10 @@ TEMPLATE = app
 OBJECTS_DIR = obj
 MOC_DIR = moc
 
-CONFIG += c++17 #console
+CONFIG += c++14 #console
 #CONFIG -= app_bundle
 
-QMAKE_CXXFLAGS += -DNDEBUG -DBOOST_UBLAS_NDEBUG
+QMAKE_CXXFLAGS += -DNDEBUG
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
@@ -52,7 +52,9 @@ SOURCES += main.cpp\
     positionbypass.cpp \
     positionsim.cpp \
     horizon.cpp \
-    quatutils.cpp
+    quatutils.cpp \
+    utils.cpp \
+    packets.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -81,6 +83,8 @@ HEADERS  += mainwindow.h \
     positionsim.h \
     packets.h \
     horizon.h \
-    quatutils.h
+    quatutils.h \
+    quatfwd.h \
+    utils.h
 
 FORMS    += mainwindow.ui

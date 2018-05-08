@@ -4,6 +4,8 @@
  *      Author: bigaw
  */
 #include "positionbypass.h"
+#include "packets.h"
+#include "ellipsoid.h"
 
 PositionBypass::PositionBypass()
 	: x{ state_type::Zero() }

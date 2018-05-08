@@ -8,7 +8,6 @@
 #define INCLUDE_POSITIONSIM_H_
 
 #include "IPositionFilter.h"
-#include "earth.h"
 
 /*!
  * @brief Concrete Kalman linear position filter simulator.
@@ -88,8 +87,6 @@ private:
     bool is_initialized;                            //!< Filter is initialized flag.
     FilterParams params;                            //!< Filter parameters instance.
     state_type x;                                   //!< Filter state.
-
-    const Earth earth_model;                        //!< Reference Earth model.
 };
 
 #endif /* INCLUDE_POSITIONSIM_H_ */

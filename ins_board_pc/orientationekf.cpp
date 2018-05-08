@@ -1,6 +1,8 @@
 #include "orientationekf.h"
 #include "geometry.h"
+#include "quaternion.h"
 #include "quatutils.h"
+#include "packets.h"
 
 #include <Eigen/Dense>
 
@@ -10,7 +12,7 @@ using namespace geom;
 OrientationEKF::OrientationEKF(const FilterParams & par)
     : is_initialized{ false },
       params{ par },
-      bias_ctrl{ par.accum_capacity, Vector3D::Zero() }
+      bias_ctrl{ par.accum_capacity }
 {
     x = state_type::Zero();
     P = P_type::Identity();
@@ -42,7 +44,7 @@ void OrientationEKF::reset()
 void OrientationEKF::initialize(const FilterInput & z)
 {
     // TODO check and correct in full EKF and UKF also if wrong
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>( accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
+    x.segment<4>(0) = static_cast<vector_form>( accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     auto diag = P.diagonal();
@@ -100,7 +102,7 @@ void OrientationEKF::step_initialized(const FilterInput & z)
 
 void OrientationEKF::normalize_state()
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(get_orientation_quaternion().normalize());
+    x.segment<4>(0) = static_cast<vector_form>(get_orientation_quaternion().normalize());
 }
 
 OrientationEKF::F_type OrientationEKF::create_transition_mtx(const FilterInput & z) const
@@ -200,7 +202,7 @@ OrientationEKF::H_type OrientationEKF::create_meas_proj_mtx(const Vector3D & geo
 
 Quaternion OrientationEKF::get_orientation_quaternion() const
 {
-    return static_cast<Quaternion::vector_form>(x.segment<4>(0));
+    return static_cast<vector_form>(x.segment<4>(0));
 }
 
 Vector3D OrientationEKF::get_gyro_bias() const

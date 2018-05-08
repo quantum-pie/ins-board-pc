@@ -8,8 +8,9 @@
 #define INCLUDE_IPOSITIONFILTER_H_
 
 #include "eigenaux.h"
-#include "ellipsoid.h"
 #include "IFilter.h"
+
+class Ellipsoid;
 
 /*!
  * @brief Position filter interface.

@@ -1,4 +1,5 @@
 #include "magnetic.h"
+#include "ellipsoid.h"
 #include "utils.h"
 
 MAGtype_MagneticModel ** Magnetic::read_models()

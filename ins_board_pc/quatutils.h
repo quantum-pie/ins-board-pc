@@ -7,7 +7,7 @@
 #ifndef INCLUDE_QUATUTILS_H_
 #define INCLUDE_QUATUTILS_H_
 
-#include "quaternion.h"
+#include "quatfwd.h"
 
 namespace quat
 {
@@ -38,7 +38,7 @@ Quaternion z_rotator(double radians);
  * @param v vector.
  * @return skew-symmetric matrix.
  */
-Quaternion::skew_type skew_symmetric(const Vector3D & v);
+skew_type skew_symmetric(const Vector3D & v);
 
 /*!
  * @brief Quaternion scalar product operator.

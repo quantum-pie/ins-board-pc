@@ -1,6 +1,8 @@
 #include "fullekf.h"
 #include "geometry.h"
+#include "quaternion.h"
 #include "quatutils.h"
+#include "packets.h"
 
 #include <Eigen/Dense>
 
@@ -10,7 +12,7 @@ using namespace geom;
 FullEKF::FullEKF(const FilterParams & par)
     : is_initialized { false },
       params { par },
-      bias_ctrl{ par.accum_capacity, Vector3D::Zero() }
+      bias_ctrl{ par.accum_capacity }
 {
     x = state_type::Zero();
     P = P_type::Identity();
@@ -48,7 +50,7 @@ void FullEKF::reset()
 
 void FullEKF::initialize(const FilterInput & z)
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>( accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
+    x.segment<4>(0) = static_cast<vector_form>( accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     x.segment<3>(7) = z.pos;
@@ -115,7 +117,7 @@ void FullEKF::step_initialized(const FilterInput & z)
 
 void FullEKF::normalize_state()
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(get_orientation_quaternion().normalize());
+    x.segment<4>(0) = static_cast<vector_form>(get_orientation_quaternion().normalize());
 }
 
 FullEKF::F_type FullEKF::create_transition_mtx(const FilterInput & z) const
@@ -306,7 +308,7 @@ Vector3D FullEKF::get_acceleration() const
 
 Quaternion FullEKF::get_orientation_quaternion() const
 {
-    return static_cast<Quaternion::vector_form>(x.segment<4>(0));
+    return static_cast<vector_form>(x.segment<4>(0));
 }
 
 Vector3D FullEKF::get_gyro_bias() const

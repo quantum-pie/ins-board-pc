@@ -8,7 +8,6 @@
 #define INCLUDE_POSITIONLKF_H_
 
 #include "IKalmanPositionFilter.h"
-#include "earth.h"
 
 /*!
  * @brief Concrete Kalman linear position filter.

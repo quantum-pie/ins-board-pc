@@ -4,6 +4,8 @@
  *      Author: Ermakov_P
  */
 #include "positionlkf.h"
+#include "packets.h"
+#include "ellipsoid.h"
 #include "geometry.h"
 
 #include <Eigen/Dense>

@@ -1,6 +1,8 @@
 #include "orientationcomplement.h"
+#include "quaternion.h"
 #include "quatutils.h"
 #include "geometry.h"
+#include "packets.h"
 
 using namespace quat;
 using namespace geom;
@@ -8,7 +10,7 @@ using namespace geom;
 OrientationCF::OrientationCF(const FilterParams & par)
     : is_initialized {false},
 	  params{par},
-	  bias_ctrl{ par.accum_capacity, Vector3D::Zero() },
+      bias_ctrl{ par.accum_capacity },
 	  x { state_type::Zero() }
 {}
 
@@ -45,7 +47,7 @@ void OrientationCF::step(const FilterInput & z)
 
 void OrientationCF::initialize(const FInput & z)
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(accel_magn_quat(z.a, z.m).conjugate());
+    x.segment<4>(0) = static_cast<vector_form>(accel_magn_quat(z.a, z.m).conjugate());
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     is_initialized = true;
@@ -63,7 +65,7 @@ void OrientationCF::step_initialized(const FInput & z)
     const double dt_2 = z.dt / 2;
 
     /* constructing the quaternion propagation matrix */
-    auto V = quat::skew_symmetric(z.w);
+    auto V = skew_symmetric(z.w);
 
     V *= dt_2;
     V += V_type::Identity();
@@ -108,12 +110,12 @@ void OrientationCF::step_initialized(const FInput & z)
     q_corr = qmag_corr * q_corr;
 
     /* finish */
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(q_corr);
+    x.segment<4>(0) = static_cast<vector_form>(q_corr);
 }
 
 void OrientationCF::normalize_state()
 {
-    x.segment<4>(0) = static_cast<Quaternion::vector_form>(get_orientation_quaternion().normalize());
+    x.segment<4>(0) = static_cast<vector_form>(get_orientation_quaternion().normalize());
 }
 
 double OrientationCF::calculate_gain(const Vector3D & accel) const
@@ -124,7 +126,7 @@ double OrientationCF::calculate_gain(const Vector3D & accel) const
 
 Quaternion OrientationCF::get_orientation_quaternion() const
 {
-    return static_cast<Quaternion::vector_form>(x.segment<4>(0));
+    return static_cast<vector_form>(x.segment<4>(0));
 }
 
 Vector3D OrientationCF::get_gyro_bias() const

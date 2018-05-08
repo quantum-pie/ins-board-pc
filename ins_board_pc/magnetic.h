@@ -9,9 +9,10 @@ extern "C" {
 }
 
 #include "eigenaux.h"
-#include "ellipsoid.h"
 
 #include <boost/date_time/gregorian/gregorian.hpp>
+
+class Ellipsoid;
 
 /*!
  * @brief Wrapper class for World Magnetic Model.

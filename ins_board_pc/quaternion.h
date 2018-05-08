@@ -7,7 +7,7 @@
 #ifndef INCLUDE_QUATERNION_H_
 #define INCLUDE_QUATERNION_H_
 
-#include "eigenaux.h"
+#include "quatfwd.h"
 
 namespace quat
 {
@@ -18,10 +18,6 @@ namespace quat
 class Quaternion
 {
 public:
-	using skew_type = StaticMatrix<4, 4>;
-	using delta_type = StaticMatrix<4, 3>;
-	using vector_form = StaticVector<4>;
-
 	/*!
 	 * @brief Class constructor from quaternion elements.
 	 * @param qs qs.

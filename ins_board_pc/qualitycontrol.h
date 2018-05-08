@@ -4,13 +4,29 @@
 #ifndef QUALITYCONTROL_H
 #define QUALITYCONTROL_H
 
+#include "eigenaux.h"
+
 #include <boost/circular_buffer.hpp>
 #include <cmath>
+#include <numeric>
+#include <type_traits>
+
+/* dirty hack to make code in this file valid for c++14 compiler */
+namespace std
+{
+
+template<class Base, class Derived>
+constexpr bool is_base_of_v = is_base_of<Base, Derived>::value;
+
+template<class T>
+constexpr bool is_arithmetic_v = is_arithmetic<T>::value;
+
+}
 
 /*!
  * @brief Estimate quality control class.
  *
- * This class allows to measure basic estimates metrics: bias and standard deviation.
+ * This class allows to measure basic estimates metrics of scalar and vector arithmetic types: bias and standard deviation.
  * @tparam T estimate value type.
  */
 template<typename T>
@@ -22,8 +38,8 @@ public:
      * @param buf_size size of buffer.
      * @param zero estimate value zero.
      */
-    explicit QualityControl(std::size_t buf_size = 200, const T & zero = T{})
-    	: buf_size{buf_size}, buf{buf_size}, zero{zero} {}
+    explicit QualityControl(std::size_t buf_size = 200)
+    	: buf_size{buf_size}, buf{buf_size} {}
 
     /*!
      * @brief Take new estimate.
@@ -35,26 +51,62 @@ public:
     }
 
     /*!
-     * @brief Get estimate bias (mean).
+     * @brief Get estimate bias of vector type (mean).
+     * @tparam U estimated type.
      * @return estimate bias (mean).
      */
-    T get_mean() const
+    template<typename U = T>
+    std::enable_if_t<std::is_base_of_v<Eigen::MatrixBase<U>, T> &&
+                     std::is_arithmetic_v<typename U::value_type>, T>
+    get_mean() const
     {
-    	T s { zero };
-        for(std::size_t i = 0; i < buf.size(); ++i)
-        {
-            s += buf[i];
-        }
-        return s / buf.size();
+    	T s { T::Zero() };
+    	return std::accumulate(buf.begin(), buf.end(), s) / buf.size();
     }
 
     /*!
-     * @brief Get estimate standard deviation.
+     * @brief Get estimate bias of scalar type (mean).
+     * @tparam U estimated type.
+     * @return estimate bias (mean).
+     */
+    template<typename U = T>
+    std::enable_if_t<std::is_arithmetic_v<U>, T>
+    get_mean() const
+    {
+    	return std::accumulate(buf.begin(), buf.end(), 0) / buf.size();
+    }
+
+    /*!
+     * @brief Get estimate standard deviation of vector type.
+     * @tparam U estimated type.
      * @return estimate standard deviation.
      */
-    T get_std() const
+    template<typename U = T>
+    std::enable_if_t<std::is_base_of_v<Eigen::MatrixBase<U>, T> &&
+                     std::is_arithmetic_v<typename U::value_type>, T>
+    get_std() const
     {
-        T s1 { zero }, s2 { zero };
+        T s1 { T::Zero() }, s2 { T::Zero() };
+        for(std::size_t i = 0; i < buf.size(); ++i)
+        {
+            s1 += buf[i];
+            s2 += buf[i].cwiseProduct(buf[i]);
+        }
+
+        T mean = s1 / buf.size();
+        return (s2 / buf.size() - mean.cwiseProduct(mean)).cwiseSqrt();
+    }
+
+    /*!
+     * @brief Get estimate standard deviation of scalar type.
+     * @tparam U estimated type.
+     * @return estimate standard deviation.
+     */
+    template<typename U = T>
+    std::enable_if_t<std::is_arithmetic_v<U>, T>
+    get_std() const
+    {
+        T s1 { 0 }, s2 { 0 };
         for(std::size_t i = 0; i < buf.size(); ++i)
         {
             s1 += buf[i];
@@ -104,7 +156,6 @@ public:
 private:
     std::size_t buf_size;                //!< Size of internal buffer.
     boost::circular_buffer<T> buf;       //!< Internal circular buffer.
-    const T zero;                        //!< Zero value.
 };
 
 #endif // QUALITYCONTROL_H

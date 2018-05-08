@@ -4,6 +4,7 @@
  *      Author: Ermakov_P
  */
 #include "quatutils.h"
+#include "quaternion.h"
 
 #include <cmath>
 
@@ -25,9 +26,9 @@ Quaternion z_rotator(double radians)
     return {std::cos(radians / 2), 0.0, 0.0, std::sin(radians / 2)};
 }
 
-Quaternion::skew_type skew_symmetric(const Vector3D & v)
+skew_type skew_symmetric(const Vector3D & v)
 {
-	Quaternion::skew_type V;
+    skew_type V;
     V <<     0,    -v[0], -v[1], -v[2],
              v[0],  0,     v[2], -v[1],
              v[1], -v[2],  0,     v[0],
@@ -52,7 +53,7 @@ Quaternion slerp(const Quaternion & q, const Quaternion & p, double alpha)
 	return lerp(q, p, alpha);
 }
 
-};
+}
 
 
 

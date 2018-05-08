@@ -10,6 +10,8 @@
 #include "eigenaux.h"
 #include <boost/date_time/gregorian/gregorian.hpp>
 
+class MagnCalibrator;
+
 /*!
  * @brief GPS timestamp structure.
  */
@@ -66,5 +68,12 @@ struct RawPacket
 	Vector3D m;					//!< Magnetic field vector.
 	double et;					//!< Elapsed time.
 };
+
+/*!
+ * @brief Convert raw input data to filter input structure.
+ * @param in raw input data instance.
+ * @return filter input instance.
+ */
+FilterInput parse_input(const RawPacket & in, const MagnCalibrator & magn_calib);
 
 #endif /* INCLUDE_PACKETS_H_ */

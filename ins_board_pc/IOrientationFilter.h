@@ -7,8 +7,7 @@
 #ifndef INCLUDE_IORIENTATIONFILTER_H_
 #define INCLUDE_IORIENTATIONFILTER_H_
 
-#include "eigenaux.h"
-#include "quaternion.h"
+#include "quatfwd.h"
 #include "IFilter.h"
 
 /*!

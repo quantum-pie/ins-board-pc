@@ -24,6 +24,8 @@ class QCustomPlot;
 class QCPCurve;
 class QUdpSocket;
 
+class RawPacket;
+
 namespace Ui {
 class MainWindow;
 }
@@ -276,69 +278,37 @@ private:
     void process_data(const QByteArray & data);
 
     /*!
-     * \brief Setup orientation + position Kalman filter.
-     */
-    void setup_kalman_op();
-
-    /*!
-     * \brief Setup orientation Kalman filter.
-     */
-    void setup_kalman_o();
-
-    /*!
-     * \brief Setup position Kalman filter.
-     */
-    void setup_kalman_p();
-
-    /*!
-     * \brief Setup complementary orientation filter.
-     */
-    void setup_complementary();
-
-    /*!
      * \brief Setup custom user interface initial state.
      */
     void setup_ui();
 
     /*!
-     * \brief Dynamicly determine current filter types.
-     */
-    void cast_filters();
-
-    /*!
-     * \brief Convert input data to filter input structure.
-     * \param in input data instance.
-     * \return filter input instance.
-     */
-    Filter::FilterInput parse_input(const input_t & in) const;
-
-    /*!
      * \brief Update tab with raw measurements visualizations.
      * \param in input data instance.
      */
-    void update_raw_tab(const input_t & in);
+    void update_raw_tab(const RawPacket & in);
 
     /*!
      * \brief Update magnetometer calibration tab.
      * \param in input data instance.
      */
-    void update_calibration_tab(const input_t & in);
+    void update_calibration_tab(const RawPacket & in);
 
     /*!
      * \brief Update GPS data tab.
      * \param in input data instance.
      */
-    void update_gps_tab(const input_t & in);
+    void update_gps_tab(const RawPacket & in);
 
     /*!
      * \brief Update Kalman filtering tab.
      */
-    void update_kalman_tab(const input_t & in);
+    void update_kalman_tab(const RawPacket & in);
 
     /*!
      * \brief Update complementary filtering tab.
      */
-    void update_comp_pos_tab(const input_t & in);
+    void update_comp_pos_tab(const RawPacket & in);
 
     /*!
      * \brief Update rigid body orientation.

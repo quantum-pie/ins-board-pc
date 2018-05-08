@@ -106,27 +106,6 @@ void MainWindow::setup_ui()
     ui->samples_le_2->setText(QString::number(roll_ctrl_compl.get_sampling()));
 }
 
-Filter::FilterInput MainWindow::parse_input(const input_t & in) const
-{
-    NumVector w(3), a(3), m(3), geo(3), pos(3), v(3);
-
-    w << qDegreesToRadians(in.w_x), qDegreesToRadians(in.w_y), qDegreesToRadians(in.w_z);
-    a << in.a_x, in.a_y, in.a_z;
-    m << in.m_x, in.m_y, in.m_z;
-
-    geo << qDegreesToRadians(in.gps.lat), qDegreesToRadians(in.gps.lon), in.gps.alt;
-    pos << in.gps.x, in.gps.y, in.gps.z;
-    v << in.gps.vx, in.gps.vy, in.gps.vz;
-
-    magn_cal.calibrate(m);
-
-    QDate day(in.gps.time.year, in.gps.time.month, in.gps.time.day);
-
-    Filter::FilterInput z{w, a, m, day, geo, pos, v, in.et, in.new_fix};
-
-    return z;
-}
-
 void MainWindow::update_raw_tab(const input_t & in)
 {
     update_plot(ui->plot1, QVector3D(in.a_x * 1e3, in.a_y * 1e3, in.a_z * 1e3));

@@ -7,10 +7,10 @@
 #ifndef INCLUDE_GEOMETRY_H_
 #define INCLUDE_GEOMETRY_H_
 
-#include "eigenaux.h"
-#include "ellipsoid.h"
-#include "quaternion.h"
-#include "horizon.h"
+#include "quatfwd.h"
+
+class Horizon;
+class Ellipsoid;
 
 /*!
  * @brief This namespace holds various geometrical utilities.

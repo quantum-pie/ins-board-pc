@@ -5,6 +5,9 @@
  */
 
 #include "geometry.h"
+#include "ellipsoid.h"
+#include "quaternion.h"
+#include "horizon.h"
 #include "quatutils.h"
 #include "gravity.h"
 

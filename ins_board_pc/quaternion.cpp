@@ -109,7 +109,7 @@ Quaternion::operator vector_form() const
 	return res;
 }
 
-Quaternion::delta_type Quaternion::delta_mtx(double dt_2) const
+delta_type Quaternion::delta_mtx(double dt_2) const
 {
 	delta_type K;
     K <<    qx,  qy,  qz,

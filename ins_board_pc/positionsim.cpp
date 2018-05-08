@@ -4,20 +4,21 @@
  *      Author: Ermakov_P
  */
 #include "positionsim.h"
+#include "ellipsoid.h"
+#include "packets.h"
 #include "geometry.h"
 
 PositionSim::PositionSim(const FilterParams & par)
 	: is_initialized(false),
 	  params {par},
-	  x { state_type::Zero() },
-	  earth_model{ Ellipsoid::sphere }
+      x { state_type::Zero() }
 {}
 
 PositionSim::~PositionSim() = default;
 
 Ellipsoid PositionSim::get_ellipsoid() const
 {
-    return earth_model.get_ellipsoid();
+    return Ellipsoid::sphere;
 }
 
 void PositionSim::step(const FilterInput & z)

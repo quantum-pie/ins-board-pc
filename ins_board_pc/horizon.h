@@ -7,11 +7,6 @@
 #ifndef INCLUDE_HORIZON_H_
 #define INCLUDE_HORIZON_H_
 
-#include "eigenaux.h"
-#include "quaternion.h"
-
-#include <vector>
-
 /*!
  * @brief Orientation horizon adjust class.
  */

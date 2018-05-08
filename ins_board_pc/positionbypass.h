@@ -7,7 +7,6 @@
 #define INCLUDE_POSITIONBYPASS_H_
 
 #include "IPositionFilter.h"
-#include "IFilter.h"
 
 /*!
  * @brief Concrete Kalman linear position filter bypass.

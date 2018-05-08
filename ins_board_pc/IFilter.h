@@ -7,8 +7,7 @@
 #ifndef INCLUDE_IFILTER_H_
 #define INCLUDE_IFILTER_H_
 
-#include "eigenaux.h"
-#include "packets.h"
+class FilterInput;
 
 /*!
  * @brief Filter interface.
