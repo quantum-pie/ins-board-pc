@@ -7,7 +7,7 @@
 #ifndef INCLUDE_IORIENTATIONFILTER_H_
 #define INCLUDE_IORIENTATIONFILTER_H_
 
-#include "quatfwd.h"
+#include "quaternion.h"
 #include "IFilter.h"
 
 /*!
@@ -16,21 +16,31 @@
 struct IOrientationFilter : virtual IFilter
 {
     /*!
-     * @brief Class desctructor.
-     */
-	~IOrientationFilter() override = default;
-
-    /*!
      * @brief Get current orientation quaternion.
      * @return vector representing quaternion.
      */
-    virtual quat::Quaternion get_orientation_quaternion() const = 0;
+    quat::Quaternion get_orientation_quaternion() const
+    {
+        return do_get_orientation_quaternion();
+    }
 
     /*!
      * @brief Get current gyroscope bias.
      * @return gyroscope bias vector.
      */
-    virtual Vector3D get_gyro_bias() const = 0;
+    Vector3D get_gyro_bias() const
+    {
+        return do_get_gyro_bias();
+    }
+
+    /*!
+     * @brief Class desctructor.
+     */
+	~IOrientationFilter() override = default;
+
+private:
+    virtual quat::Quaternion do_get_orientation_quaternion() const = 0;
+    virtual Vector3D do_get_gyro_bias() const = 0;
 };
 
 #endif /* INCLUDE_IORIENTATIONFILTER_H_ */

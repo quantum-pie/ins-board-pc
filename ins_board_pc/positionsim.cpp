@@ -16,26 +16,41 @@ PositionSim::PositionSim(const FilterParams & par)
 
 PositionSim::~PositionSim() = default;
 
+void PositionSim::step(const FilterInput & z)
+{
+    if(is_initialized)
+    {
+        step_initialized(z);
+    }
+    else
+    {
+        step_uninitialized(z);
+    }
+}
+
+void PositionSim::reset()
+{
+    is_initialized = false;
+}
+
+Vector3D PositionSim::get_cartesian() const
+{
+    return x.segment<3>(0);
+}
+
 Ellipsoid PositionSim::get_ellipsoid() const
 {
     return Ellipsoid::sphere;
 }
 
-void PositionSim::step(const FilterInput & z)
+Vector3D PositionSim::get_velocity() const
 {
-	if(is_initialized)
-	{
-		step_initialized(z);
-	}
-	else
-	{
-		step_uninitialized(z);
-	}
+    return x.segment<3>(3);
 }
 
-void PositionSim::reset()
+Vector3D PositionSim::get_acceleration() const
 {
-	is_initialized = false;
+    return x.segment<3>(6);
 }
 
 void PositionSim::step_uninitialized(const FilterInput & z)
@@ -74,21 +89,6 @@ void PositionSim::step_initialized(const FilterInput & z)
     x.segment<3>(6) = (new_speed - get_velocity()) / z.dt;
     x.segment<3>(3) = new_speed;
     x.segment<3>(0) = new_pos;
-}
-
-Vector3D PositionSim::get_cartesian() const
-{
-    return x.segment<3>(0);
-}
-
-Vector3D PositionSim::get_velocity() const
-{
-    return x.segment<3>(3);
-}
-
-Vector3D PositionSim::get_acceleration() const
-{
-    return x.segment<3>(6);
 }
 
 void PositionSim::set_initial_track(double radians)

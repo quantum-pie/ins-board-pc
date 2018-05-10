@@ -14,21 +14,32 @@ class FilterInput;
  */
 struct IFilter
 {
+public:
+    /*!
+     * @brief Make step.
+     * @param z filter input.
+     */
+    void step(const FilterInput & z)
+    {
+        do_step(z);
+    }
+
+    /*!
+     * @brief Reset filter to default state.
+     */
+    void reset()
+    {
+        do_reset();
+    }
+
     /*!
      * @brief Class desctructor.
      */
     virtual ~IFilter() = default;
 
-    /*!
-     * @brief Make step.
-     * @param z filter input.
-     */
-    virtual void step(const FilterInput & z) = 0;
-
-    /*!
-     * @brief Reset filter to default state.
-     */
-    virtual void reset() = 0;
+private:
+    virtual void do_step(const FilterInput & z) = 0;
+    virtual void do_reset() = 0;
 };
 
 #endif /* INCLUDE_IFILTER_H_ */

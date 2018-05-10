@@ -8,43 +8,60 @@
 #define INCLUDE_IPOSITIONFILTER_H_
 
 #include "eigenaux.h"
+#include "ellipsoid.h"
 #include "IFilter.h"
-
-class Ellipsoid;
 
 /*!
  * @brief Position filter interface.
  */
 struct IPositionFilter : virtual IFilter
 {
-	/*!
-	 * @brief Class destructor.
-	 */
-	~IPositionFilter() override = default;
-
-	/*!
-	 * @brief Get ECEF coordinates vector.
-	 * @return position vector.
-	 */
-	virtual Vector3D get_cartesian() const = 0;
+    /*!
+     * @brief Get ECEF coordinates vector.
+     * @return position vector.
+     */
+    Vector3D get_cartesian() const
+    {
+        return do_get_cartesian();
+    }
 
     /*!
      * @brief Get underlying Earth ellipsoid model.
      * @return ellipsoid model reference.
      */
-    virtual Ellipsoid get_ellipsoid() const = 0;
+    Ellipsoid get_ellipsoid() const
+    {
+        return do_get_ellipsoid();
+    }
+
+    /*!
+     * @brief Get ECEF velocity vector.
+     * @return velocity vector.
+     */
+    Vector3D get_velocity() const
+    {
+        return do_get_velocity();
+    }
+
+    /*!
+     * @brief Get ECEF acceleration vector.
+     * @return acceleration vector.
+     */
+    Vector3D get_acceleration() const
+    {
+        return do_get_acceleration();
+    }
 
 	/*!
-	 * @brief Get ECEF velocity vector.
-	 * @return velocity vector.
+	 * @brief Class destructor.
 	 */
-	virtual Vector3D get_velocity() const = 0;
+	~IPositionFilter() override = default;
 
-	/*!
-	 * @brief Get ECEF acceleration vector.
-	 * @return acceleration vector.
-	 */
-	virtual Vector3D get_acceleration() const = 0;
+private:
+    virtual Vector3D do_get_cartesian() const = 0;
+    virtual Ellipsoid do_get_ellipsoid() const = 0;
+    virtual Vector3D do_get_velocity() const = 0;
+    virtual Vector3D do_get_acceleration() const = 0;
 };
 
 #endif /* INCLUDE_IPOSITIONFILTER_H_ */

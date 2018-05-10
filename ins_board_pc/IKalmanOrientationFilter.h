@@ -15,147 +15,191 @@
 struct IKalmanOrientationFilter : IOrientationFilter
 {
     /*!
-     * @brief Kalman filter process noise parameters.
+     * @brief Set process noise gyroscope standard deviation.
+     * @param std standard deviation.
      */
-    struct ProcessNoiseParams
+    void set_proc_gyro_std(double std)
     {
-        double gyro_std;        //!< Process noise gyroscope standard deviation.
-        double gyro_bias_std;   //!< Process noise gyroscope bias standard deviation.
-    };
+        do_set_proc_gyro_std(std);
+    }
 
     /*!
-     * @brief Kalman filter measurement noise parameters.
+     * @brief Set process noise gyroscope bias standard deviation.
+     * @param std standard deviation.
      */
-    struct MeasurementNoiseParams
+    void set_proc_gyro_bias_std(double std)
     {
-        double accel_std;           //!< accelerometer measurements std.
-        double magn_std;            //!< magnetometer measurements std.
-    };
+        do_set_proc_gyro_bias_std(std);
+    }
 
     /*!
-     * @brief Kalman filter initial state estimate covariance parameters.
+     * @brief Set accelerometer measurements standard deviation.
+     * @param std standard deviation.
      */
-    struct InitCovParams
+    void set_meas_accel_std(double std)
     {
-        double qs_std;      //!< Initial qs estimate standard deviation.
-        double qx_std;      //!< Initial qx estimate standard deviation.
-        double qy_std;      //!< Initial qy estimate standard deviation.
-        double qz_std;      //!< Initial qz estimate standard deviation.
-        double bias_std;    //!< Initial gyro bias estimate standard deviation.
-    };
+        do_set_meas_accel_std(std);
+    }
+
+    /*!
+     * @brief Set magnetometer measurements standard deviation.
+     * @param std standard deviation.
+     */
+    void set_meas_magn_std(double std)
+    {
+        do_set_meas_magn_std(std);
+    }
+
+    /*!
+     * @brief Set initial qs estimate standard deviation.
+     * @param std standard deviation.
+     */
+    void set_init_qs_std(double std)
+    {
+        do_set_init_qs_std(std);
+    }
+
+    /*!
+     * @brief Set initial qx estimate standard deviation.
+     * @param std standard deviation.
+     */
+    void set_init_qx_std(double std)
+    {
+        do_set_init_qx_std(std);
+    }
+
+    /*!
+     * @brief Set initial qy estimate standard deviation.
+     * @param std standard deviation.
+     */
+    void set_init_qy_std(double std)
+    {
+        do_set_init_qy_std(std);
+    }
+
+    /*!
+     * @brief Set initial qz estimate standard deviation.
+     * @param std standard deviation.
+     */
+    void set_init_qz_std(double std)
+    {
+        do_set_init_qz_std(std);
+    }
+
+    /*!
+     * @brief Set initial bias estimate standard deviation.
+     * @param std standard deviation.
+     */
+    void set_init_bias_std(double std)
+    {
+        do_set_init_bias_std(std);
+    }
+
+    /*!
+     * @brief Get process noise gyroscope bias standard deviation.
+     * @return standard deviation.
+     */
+    double get_proc_gyro_std() const
+    {
+        return do_get_proc_gyro_std();
+    }
+
+    /*!
+     * @brief Get process noise gyroscope bias standard deviation.
+     * @return standard deviation.
+     */
+    double get_proc_gyro_bias_std() const
+    {
+        return do_get_proc_gyro_bias_std();
+    }
+
+    /*!
+     * @brief Get accelerometer measurements standard deviation.
+     * @return standard deviation.
+     */
+    double get_meas_accel_std() const
+    {
+        return do_get_meas_accel_std();
+    }
+
+    /*!
+     * @brief Get magnetometer measurements standard deviation.
+     * @return standard deviation.
+     */
+    double get_meas_magn_std() const
+    {
+        return do_get_meas_magn_std();
+    }
+
+    /*!
+     * @brief Get initial qs estimate standard deviation.
+     * @return standard deviation.
+     */
+    double get_init_qs_std() const
+    {
+        return do_get_init_qs_std();
+    }
+
+    /*!
+     * @brief Get initial qx estimate standard deviation.
+     * @return standard deviation.
+     */
+    double get_init_qx_std() const
+    {
+        return do_get_init_qx_std();
+    }
+
+    /*!
+     * @brief Get initial qy estimate standard deviation.
+     * @return standard deviation.
+     */
+    double get_init_qy_std() const
+    {
+        return do_get_init_qy_std();
+    }
+
+    /*!
+     * @brief Get initial qz estimate standard deviation.
+     * @return standard deviation.
+     */
+    double get_init_qz_std() const
+    {
+        return do_get_init_qz_std();
+    }
+
+    /*!
+     * @brief Get initial bias estimate standard deviation.
+     * @return standard deviation.
+     */
+    double get_init_bias_std() const
+    {
+        return do_get_init_bias_std();
+    }
 
     /*!
      * @brief Class destructor.
      */
     ~IKalmanOrientationFilter() override = default;
 
-    /*!
-     * @brief Set process noise gyroscope standard deviation.
-     * @param std standard deviation.
-     */
-    virtual void set_proc_gyro_std(double std) = 0;
-
-    /*!
-     * @brief Set process noise gyroscope bias standard deviation.
-     * @param std standard deviation.
-     */
-    virtual void set_proc_gyro_bias_std(double std) = 0;
-
-    /*!
-     * @brief Set accelerometer measurements standard deviation.
-     * @param std standard deviation.
-     */
-    virtual void set_meas_accel_std(double std) = 0;
-
-    /*!
-     * @brief Set magnetometer measurements standard deviation.
-     * @param std standard deviation.
-     */
-    virtual void set_meas_magn_std(double std) = 0;
-
-    /*!
-     * @brief Set initial qs estimate standard deviation.
-     * @param std standard deviation.
-     */
-    virtual void set_init_qs_std(double std) = 0;
-
-    /*!
-     * @brief Set initial qx estimate standard deviation.
-     * @param std standard deviation.
-     */
-    virtual void set_init_qx_std(double std) = 0;
-
-    /*!
-     * @brief Set initial qy estimate standard deviation.
-     * @param std standard deviation.
-     */
-    virtual void set_init_qy_std(double std) = 0;
-
-    /*!
-     * @brief Set initial qz estimate standard deviation.
-     * @param std standard deviation.
-     */
-    virtual void set_init_qz_std(double std) = 0;
-
-    /*!
-     * @brief Set initial bias estimate standard deviation.
-     * @param std standard deviation.
-     */
-    virtual void set_init_bias_std(double std) = 0;
-
-    /*!
-     * @brief Get process noise gyroscope bias standard deviation.
-     * @return standard deviation.
-     */
-    virtual double get_proc_gyro_std() const = 0;
-
-    /*!
-     * @brief Get process noise gyroscope bias standard deviation.
-     * @return standard deviation.
-     */
-    virtual double get_proc_gyro_bias_std() const = 0;
-
-    /*!
-     * @brief Get accelerometer measurements standard deviation.
-     * @return standard deviation.
-     */
-    virtual double get_meas_accel_std() const = 0;
-
-    /*!
-     * @brief Get magnetometer measurements standard deviation.
-     * @return standard deviation.
-     */
-    virtual double get_meas_magn_std() const = 0;
-
-    /*!
-     * @brief Get initial qs estimate standard deviation.
-     * @return standard deviation.
-     */
-    virtual double get_init_qs_std() const = 0;
-
-    /*!
-     * @brief Get initial qx estimate standard deviation.
-     * @return standard deviation.
-     */
-    virtual double get_init_qx_std() const = 0;
-
-    /*!
-     * @brief Get initial qy estimate standard deviation.
-     * @return standard deviation.
-     */
-    virtual double get_init_qy_std() const = 0;
-
-    /*!
-     * @brief Get initial qz estimate standard deviation.
-     * @return standard deviation.
-     */
-    virtual double get_init_qz_std() const = 0;
-
-    /*!
-     * @brief Get initial bias estimate standard deviation.
-     * @return standard deviation.
-     */
-    virtual double get_init_bias_std() const = 0;
+private:
+    virtual void do_set_proc_gyro_std(double std) = 0;
+    virtual void do_set_proc_gyro_bias_std(double std) = 0;
+    virtual void do_set_meas_accel_std(double std) = 0;
+    virtual void do_set_meas_magn_std(double std) = 0;
+    virtual void do_set_init_qs_std(double std) = 0;
+    virtual void do_set_init_qx_std(double std) = 0;
+    virtual void do_set_init_qy_std(double std) = 0;
+    virtual void do_set_init_qz_std(double std) = 0;
+    virtual void do_set_init_bias_std(double std) = 0;
+    virtual double do_get_proc_gyro_std() const = 0;
+    virtual double do_get_proc_gyro_bias_std() const = 0;
+    virtual double do_get_meas_accel_std() const = 0;
+    virtual double do_get_meas_magn_std() const = 0;
+    virtual double do_get_init_qs_std() const = 0;
+    virtual double do_get_init_qx_std() const = 0;
+    virtual double do_get_init_qy_std() const = 0;
+    virtual double do_get_init_qz_std() const = 0;
+    virtual double do_get_init_bias_std() const = 0;
 };
 
 #endif /* INCLUDE_IKALMANORIENTATIONFILTER_H_ */

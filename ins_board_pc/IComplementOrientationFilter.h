@@ -15,45 +15,71 @@
 struct IComplementOrientationFilter : IOrientationFilter
 {
     /*!
-     * @brief Class destructor.
-     */
-    ~IComplementOrientationFilter() override = default;
-
-    /*!
      * @brief Set static accelerometer measurements gain.
      * @param gain static accelerometer measurements gain.
      */
-    virtual void set_static_accel_gain(double gain) = 0;
+    void set_static_accel_gain(double gain)
+    {
+        do_set_static_accel_gain(gain);
+    }
 
     /*!
      * @brief Set static magnetometer measurements gain.
      * @param gain static magnetometer measurements gain.
      */
-    virtual void set_static_magn_gain(double gain) = 0;
+    void set_static_magn_gain(double gain)
+    {
+        do_set_static_magn_gain(gain);
+    }
 
     /*!
      * @brief Set bias gain.
      * @param gain bias gain.
      */
-    virtual void set_bias_gain(double gain) = 0;
+    void set_bias_gain(double gain)
+    {
+        do_set_bias_gain(gain);
+    }
 
     /*!
      * @brief Get static accelerometer measurements gain.
      * @return static accelerometer measurements gain.
      */
-    virtual double get_static_accel_gain() const = 0;
+    double get_static_accel_gain() const
+    {
+        return do_get_static_accel_gain();
+    }
 
     /*!
      * @brief Get static magnetometer measurements gain.
      * @return static magnetometer measurements gain.
      */
-    virtual double get_static_magn_gain() const = 0;
+    double get_static_magn_gain() const
+    {
+        return do_get_static_magn_gain();
+    }
 
     /*!
      * @brief Get bias gain.
      * @return bias gain.
      */
-    virtual double get_bias_gain() const = 0;
+    double get_bias_gain() const
+    {
+        return do_get_bias_gain();
+    }
+
+    /*!
+     * @brief Class destructor.
+     */
+    ~IComplementOrientationFilter() override = default;
+
+private:
+    virtual void do_set_static_accel_gain(double gain) = 0;
+    virtual void do_set_static_magn_gain(double gain) = 0;
+    virtual void do_set_bias_gain(double gain) = 0;
+    virtual double do_get_static_accel_gain() const = 0;
+    virtual double do_get_static_magn_gain() const = 0;
+    virtual double do_get_bias_gain() const = 0;
 };
 
 #endif /* INCLUDE_ICOMPLEMENTORIENTATIONFILTER_H_ */

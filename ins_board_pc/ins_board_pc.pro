@@ -54,7 +54,11 @@ SOURCES += main.cpp\
     horizon.cpp \
     quatutils.cpp \
     utils.cpp \
-    packets.cpp
+    packets.cpp \
+    orientationukf.cpp \
+    kalmanpositionfilterbase.cpp \
+    kalmanorientationfilterbase.cpp \
+    mixedkalmanfilterbase.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -85,6 +89,10 @@ HEADERS  += mainwindow.h \
     horizon.h \
     quatutils.h \
     quatfwd.h \
-    utils.h
+    utils.h \
+    orientationukf.h \
+    kalmanpositionfilterbase.h \
+    kalmanorientationfilterbase.h \
+    mixedkalmanfilterbase.h
 
 FORMS    += mainwindow.ui
