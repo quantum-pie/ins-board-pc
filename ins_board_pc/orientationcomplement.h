@@ -94,7 +94,7 @@ private:
     using state_type = StaticVector<state_size>;
     using F_type = StaticMatrix<state_size, state_size>;
     using V_type = quat::skew_type;
-    using K_type = quat::delta_type;
+    using D_type = quat::delta_type;
 
     /*!
      * @brief normalize filter state.

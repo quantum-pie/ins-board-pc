@@ -101,6 +101,8 @@ private:
     using H_type = StaticMatrix<measurement_size, state_size>;
     using S_type = R_type;
     using K_type = StaticMatrix<state_size, measurement_size>;
+    using V_type = quat::skew_type;
+    using D_type = quat::delta_type;
 
     /*!
      * @brief Create state transition matrix (F).

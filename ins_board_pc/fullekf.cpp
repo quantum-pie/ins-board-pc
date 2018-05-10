@@ -132,7 +132,7 @@ FullEKF::F_type FullEKF::create_transition_mtx(const FilterInput & z) const
     auto V = skew_symmetric(z.w);
 
     V *= dt_2;
-    V += StaticMatrix<4, 4>::Identity();
+    V += V_type::Identity();
 
     auto K = get_orientation_quaternion().delta_mtx(dt_2);
 
