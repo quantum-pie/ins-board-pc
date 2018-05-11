@@ -4,6 +4,7 @@
 #ifndef ORIENTATIONEKF_H
 #define ORIENTATIONEKF_H
 
+#include "IKalmanOrientationFilter.h"
 #include "kalmanorientationfilterbase.h"
 #include "qualitycontrol.h"
 #include "earth.h"
@@ -11,7 +12,8 @@
 /*!
  * @brief Concrete Kalman filter for orientation estimation.
  */
-class OrientationEKF final : public KalmanOrientationFilterBase
+class OrientationEKF final : public virtual IKalmanOrientationFilter,
+                             KalmanOrientationFilterBase
 {
 public:
     /*!
@@ -25,14 +27,14 @@ public:
      */
     ~OrientationEKF() override;
 
-    /* Interfaces implementation */
-    void step(const FilterInput & z) override;
-    void reset() override;
-
-    quat::Quaternion get_orientation_quaternion() const override;
-    Vector3D get_gyro_bias() const override;
-
 private:
+    /* Interfaces implementation */
+    void do_step(const FilterInput & z) override;
+    void do_reset() override;
+
+    quat::Quaternion do_get_orientation_quaternion() const override;
+    Vector3D do_get_gyro_bias() const override;
+
     /*!
      * @brief Step of initialized filter.
      * @param z filter input.

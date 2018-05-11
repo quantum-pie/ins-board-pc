@@ -8,6 +8,8 @@
 
 #include "IPositionFilter.h"
 
+#include <memory>
+
 /*!
  * @brief Concrete Kalman linear position filter bypass.
  */
@@ -24,19 +26,18 @@ public:
      */
     ~PositionBypass() override;
 
-    /* IPositionFilter interface implementation */
-    void step(const FilterInput & z) override;
-    void reset() override;
-
-	Vector3D get_cartesian() const override;
-    Ellipsoid get_ellipsoid() const override;
-	Vector3D get_velocity() const override;
-	Vector3D get_acceleration() const override;
-
 private:
-    static constexpr int state_size { 9 };        	//!< Size of state vector.
-    using state_type = StaticVector<state_size>;
-    state_type x;									//!< State vector.
+    /* IPositionFilter interface implementation */
+    void do_step(const FilterInput & z) override;
+    void do_reset() override;
+
+    Vector3D do_get_cartesian() const override;
+    Ellipsoid do_get_ellipsoid() const override;
+    Vector3D do_get_velocity() const override;
+    Vector3D do_get_acceleration() const override;
+
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
 };
 
 #endif /* INCLUDE_POSITIONBYPASS_H_ */

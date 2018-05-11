@@ -7,12 +7,16 @@
 #ifndef INCLUDE_POSITIONLKF_H_
 #define INCLUDE_POSITIONLKF_H_
 
+#include "IKalmanPositionFilter.h"
 #include "kalmanpositionfilterbase.h"
+
+#include <memory>
 
 /*!
  * @brief Concrete Kalman linear position filter.
  */
-class PositionLKF final : public KalmanPositionFilterBase
+class PositionLKF final : virtual public IKalmanPositionFilter,
+                          KalmanPositionFilterBase
 {
 public:
     /*!
@@ -26,36 +30,18 @@ public:
      */
     ~PositionLKF() override;
 
-    /* Interface implementation */
-    void step(const FilterInput & z) override;
-    void reset() override;
-
-	Vector3D get_cartesian() const override;
-    Ellipsoid get_ellipsoid() const override;
-	Vector3D get_velocity() const override;
-	Vector3D get_acceleration() const override;
-
 private:
-    /*!
-     * @brief Step of initialized filter.
-     * @param z filter input.
-     */
-    void step_initialized(const FilterInput & z);
+    /* Interface implementation */
+    void do_step(const FilterInput & z) override;
+    void do_reset() override;
 
-    /*!
-     * @brief Step of uninitialized filter.
-     * @param z filter input.
-     */
-    void step_uninitialized(const FilterInput & z);
+    Vector3D do_get_cartesian() const override;
+    Ellipsoid do_get_ellipsoid() const override;
+    Vector3D do_get_velocity() const override;
+    Vector3D do_get_acceleration() const override;
 
-    /* Useful aliases */
-    using state_type = StaticVector<state_size>;
-    using meas_type = StaticVector<measurement_size>;
-
-    bool is_initialized;                //!< Filter is initialized flag.
-
-    state_type x;                       //!< State vector.
-    P_type P;                        	//!< State estimate covariance matrix.
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
 };
 
 #endif /* INCLUDE_POSITIONLKF_H_ */

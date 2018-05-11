@@ -7,37 +7,46 @@
 #include "packets.h"
 #include "ellipsoid.h"
 
+struct PositionBypass::Impl
+{
+    Impl() : x{ state_type::Zero() } {}
+
+    static constexpr int state_size { 9 };        	//!< Size of state vector.
+    using state_type = StaticVector<state_size>;
+    state_type x;									//!< State vector.
+};
+
 PositionBypass::PositionBypass()
-	: x{ state_type::Zero() }
+    : pimpl{ std::make_unique<Impl>() }
 {}
 
 PositionBypass::~PositionBypass() = default;
 
-Ellipsoid PositionBypass::get_ellipsoid() const
+void PositionBypass::do_step(const FilterInput & z)
+{
+    pimpl->x.segment<3>(0) = z.pos;
+    pimpl->x.segment<3>(3) = z.v;
+    pimpl->x.segment<3>(6) = z.geo;
+}
+
+void PositionBypass::do_reset() {}
+
+Vector3D PositionBypass::do_get_cartesian() const
+{
+    return pimpl->x.segment<3>(0);
+}
+
+Ellipsoid PositionBypass::do_get_ellipsoid() const
 {
     return Ellipsoid::WGS84;
 }
 
-void PositionBypass::step(const FilterInput & z)
+Vector3D PositionBypass::do_get_velocity() const
 {
-	x.segment<3>(0) = z.pos;
-	x.segment<3>(3) = z.v;
-	x.segment<3>(6) = z.geo;
+    return pimpl->x.segment<3>(3);
 }
 
-void PositionBypass::reset() {}
-
-Vector3D PositionBypass::get_cartesian() const
-{
-    return x.segment<3>(0);
-}
-
-Vector3D PositionBypass::get_velocity() const
-{
-    return x.segment<3>(3);
-}
-
-Vector3D PositionBypass::get_acceleration() const
+Vector3D PositionBypass::do_get_acceleration() const
 {
     return Vector3D::Zero();
 }

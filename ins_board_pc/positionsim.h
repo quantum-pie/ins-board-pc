@@ -9,6 +9,8 @@
 
 #include "IPositionFilter.h"
 
+#include <memory>
+
 /*!
  * @brief Concrete Kalman linear position filter simulator.
  */
@@ -59,34 +61,18 @@ public:
      */
     double get_speed() const;
 
-    /* IPositionFilter interface implementation */
-    void step(const FilterInput & z) override;
-    void reset() override;
-
-	Vector3D get_cartesian() const override;
-    Ellipsoid get_ellipsoid() const override;
-	Vector3D get_velocity() const override;
-	Vector3D get_acceleration() const override;
-
 private:
-    /*!
-     * @brief Step of initialized filter.
-     * @param z filter input.
-     */
-    void step_initialized(const FilterInput & z);
+    /* IPositionFilter interface implementation */
+    void do_step(const FilterInput & z) override;
+    void do_reset() override;
 
-    /*!
-     * @brief Step of uninitialized filter.
-     * @param z filter input.
-     */
-    void step_uninitialized(const FilterInput & z);
+    Vector3D do_get_cartesian() const override;
+    Ellipsoid do_get_ellipsoid() const override;
+    Vector3D do_get_velocity() const override;
+    Vector3D do_get_acceleration() const override;
 
-    static constexpr int state_size { 9 };        	//!< Size of state vector.
-    using state_type = StaticVector<state_size>;
-
-    bool is_initialized;                            //!< Filter is initialized flag.
-    FilterParams params;                            //!< Filter parameters instance.
-    state_type x;                                   //!< Filter state.
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
 };
 
 #endif /* INCLUDE_POSITIONSIM_H_ */

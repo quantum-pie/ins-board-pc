@@ -10,9 +10,7 @@
 
 class Earth;
 
-class MixedKalmanFilterBase : virtual public IKalmanOrientationFilter,
-                              virtual public IKalmanPositionFilter,
-                              KalmanOrientationFilterBase,
+class MixedKalmanFilterBase : KalmanOrientationFilterBase,
                               KalmanPositionFilterBase
 {
     explicit MixedKalmanFilterBase(const KalmanOrientationFilterBase::FilterParams & ori_params,
@@ -33,8 +31,6 @@ class MixedKalmanFilterBase : virtual public IKalmanOrientationFilter,
     using Q_type = F_type;
     using R_type = StaticMatrix<measurement_size, measurement_size>;
     using H_type = StaticMatrix<measurement_size, state_size>;
-    using V_type = KalmanOrientationFilterBase::V_type;
-    using D_type = KalmanOrientationFilterBase::D_type;
 
     /*!
      * @brief Create state transition matrix (F).
