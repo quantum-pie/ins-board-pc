@@ -21,7 +21,7 @@ class UKFCorrector : virtual Base
         double alpha;       //!< Alpha.
     };
 
-    EKFCorrector(const UnscentedTransformParams & ut_params)
+    UKFCorrector(const UnscentedTransformParams & ut_params)
         : params{ ut_params }
     {
         double alpha_sq = params.alpha * params.alpha;
