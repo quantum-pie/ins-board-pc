@@ -93,6 +93,9 @@ HEADERS  += mainwindow.h \
     orientationukf.h \
     kalmanpositionfilterbase.h \
     kalmanorientationfilterbase.h \
-    mixedkalmanfilterbase.h
+    mixedkalmanfilterbase.h \
+    kfextrapolator.h \
+    ekfcorrector.h \
+    ukfcorrector.h
 
 FORMS    += mainwindow.ui

@@ -5,11 +5,48 @@
 #include "packets.h"
 
 MixedKalmanFilterBase::MixedKalmanFilterBase(const KalmanOrientationFilterBase::FilterParams & ori_params,
-                                             const KalmanPositionFilterBase::FilterParams & pos_params)
-                                                : KalmanOrientationFilterBase{ori_params}, KalmanPositionFilterBase{pos_params}
+                                             const KalmanPositionFilterBase::FilterParams & pos_params,
+                                             const Ellipsoid & ellip)
+                                                : KalmanOrientationFilterBase( ori_params, ellip ),
+                                                  KalmanPositionFilterBase( pos_params, ellip )
 {}
 
 MixedKalmanFilterBase::~MixedKalmanFilterBase() = default;
+
+MixedKalmanFilterBase::meas_type
+MixedKalmanFilterBase::true_measurement(const FilterInput & z) const
+{
+    meas_type meas;
+    meas << KalmanOrientationFilterBase::true_measurement(z), KalmanPositionFilterBase::true_measurement(z);
+    return meas;
+}
+
+MixedKalmanFilterBase::meas_type
+MixedKalmanFilterBase::predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const
+{
+    meas_type pred;
+    pred << KalmanOrientationFilterBase::predicted_measurement(geo, day), KalmanPositionFilterBase::predicted_measurement(geo, day);
+    return pred;
+}
+
+MixedKalmanFilterBase::state_type
+MixedKalmanFilterBase::get_state() const
+{
+    state_type state;
+    state << KalmanOrientationFilterBase::get_state(), KalmanPositionFilterBase::get_state();
+    return state;
+}
+
+void MixedKalmanFilterBase::set_state(const state_type & st)
+{
+    KalmanOrientationFilterBase::set_state(st.segment<ori_state_size>(0));
+    KalmanPositionFilterBase::set_state(st.segment<pos_state_size>(ori_state_size));
+}
+
+Vector3D MixedKalmanFilterBase::get_geodetic(const FilterInput & z) const
+{
+    return KalmanPositionFilterBase::get_geodetic(z);
+}
 
 MixedKalmanFilterBase::F_type
 MixedKalmanFilterBase::create_transition_mtx(const FilterInput & z) const
@@ -17,7 +54,7 @@ MixedKalmanFilterBase::create_transition_mtx(const FilterInput & z) const
     F_type F;
 
     F << KalmanOrientationFilterBase::create_transition_mtx(z), StaticMatrix<ori_state_size, pos_state_size>::Zero(),
-            StaticMatrix<pos_state_size, ori_state_size>::Zero(), KalmanPositionFilterBase::create_transition_mtx(z.dt);
+            StaticMatrix<pos_state_size, ori_state_size>::Zero(), KalmanPositionFilterBase::create_transition_mtx(z);
 
     return F;
 }
@@ -45,19 +82,18 @@ MixedKalmanFilterBase::create_proc_noise_cov_mtx(double dt) const
 }
 
 MixedKalmanFilterBase::R_type
-MixedKalmanFilterBase::create_meas_noise_cov_mtx(const Vector3D & geo, double mag_magn) const
+MixedKalmanFilterBase::create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
 {
     R_type R;
 
-    R << KalmanOrientationFilterBase::create_meas_noise_cov_mtx(mag_magn), StaticMatrix<ori_meas_size, pos_meas_size>::Zero(),
-            StaticMatrix<pos_meas_size, ori_meas_size>::Zero(), KalmanPositionFilterBase::create_meas_noise_cov_mtx(geo);
+    R << KalmanOrientationFilterBase::create_meas_noise_cov_mtx(geo, day), StaticMatrix<ori_meas_size, pos_meas_size>::Zero(),
+            StaticMatrix<pos_meas_size, ori_meas_size>::Zero(), KalmanPositionFilterBase::create_meas_noise_cov_mtx(geo, day);
 
     return R;
 }
 
 MixedKalmanFilterBase::H_type
-MixedKalmanFilterBase::create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day,
-                                                  const Earth & earth_model) const
+MixedKalmanFilterBase::create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
 {
     using namespace geom;
 
@@ -67,7 +103,7 @@ MixedKalmanFilterBase::create_meas_proj_mtx(const Vector3D & geo, const boost::g
     Vector3D a = get_acceleration() / Gravity::gf;
     Matrix3D Clb = get_orientation_quaternion().dcm_tr();
 
-    Matrix3D Dgeo_Dpos = dgeo_dpos(geo, earth_model.get_ellipsoid());
+    Matrix3D Dgeo_Dpos = dgeo_dpos(geo, get_ellipsoid());
     Matrix3D Ddcm_Dlat = dcm_lat_partial(geo);
     Matrix3D Ddcm_Dlon = dcm_lon_partial(geo);
 
@@ -93,8 +129,8 @@ MixedKalmanFilterBase::create_meas_proj_mtx(const Vector3D & geo, const boost::g
 
     // Merge
     H_type H;
-    H <<    KalmanOrientationFilterBase::create_meas_proj_mtx(earth_model.magnetic_vector(geo, day), earth_model.gravity(geo)), UR_filler,
-            StaticMatrix<pos_meas_size, ori_state_size>::Zero(), KalmanPositionFilterBase::create_meas_proj_mtx();
+    H <<    KalmanOrientationFilterBase::create_meas_proj_mtx(geo, day), UR_filler,
+            StaticMatrix<pos_meas_size, ori_state_size>::Zero(), KalmanPositionFilterBase::create_meas_proj_mtx(geo, day);
 
     return H;
 }

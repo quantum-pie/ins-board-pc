@@ -8,6 +8,40 @@
 
 #include <cmath>
 
+FullUKF::FullUKF(const MixedKalmanFilterBase::KalmanOrientationFilterBase::FilterParams & ori_params,
+                 const MixedKalmanFilterBase::KalmanPositionFilterBase::FilterParams & pos_params,
+                 const UKFCorrector::UnscentedTransformParams & ut_params,
+                 const Ellipsoid & ellip = Ellipsoid::WGS84)
+    : MixedKalmanFilterBase(ori_params, pos_params, ellip),
+      UKFCorrector<MixedKalmanFilterBase>(ut_params),
+      is_initialized{ false },
+      bias_ctrl{ 1000 },
+      P{ P_type::Identity() }
+{}
+
+void FullUKF::do_step(const FilterInput &z)
+{
+    if(is_initialized)
+    {
+        extrapolate(z, P);
+        correct(z, P);
+    }
+    else if(bias_ctrl.is_saturated())
+    {
+        initialize(z);
+    }
+    else
+    {
+        step_uninitialized(z);
+    }
+}
+
+void FullUKF::do_reset()
+{
+    bias_ctrl.set_sampling(1000);
+    is_initialized = false;
+}
+
 using namespace quat;
 using namespace geom;
 

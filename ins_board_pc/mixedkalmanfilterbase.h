@@ -8,13 +8,12 @@
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 
-class Earth;
-
 class MixedKalmanFilterBase : KalmanOrientationFilterBase,
                               KalmanPositionFilterBase
 {
-    explicit MixedKalmanFilterBase(const KalmanOrientationFilterBase::FilterParams & ori_params,
-                                   const KalmanPositionFilterBase::FilterParams & pos_params);
+    MixedKalmanFilterBase(const KalmanOrientationFilterBase::FilterParams & ori_params,
+                          const KalmanPositionFilterBase::FilterParams & pos_params,
+                          const Ellipsoid & ellip = Ellipsoid::WGS84);
 
     ~MixedKalmanFilterBase() override;
 
@@ -26,11 +25,22 @@ class MixedKalmanFilterBase : KalmanOrientationFilterBase,
     static constexpr std::size_t state_size { ori_state_size + pos_state_size };
     static constexpr std::size_t measurement_size { ori_meas_size + pos_meas_size };
 
+    using state_type = StaticVector<state_size>;
+    using meas_type = StaticVector<measurement_size>;
+
     using F_type = StaticMatrix<state_size, state_size>;
     using P_type = F_type;
     using Q_type = F_type;
     using R_type = StaticMatrix<measurement_size, measurement_size>;
     using H_type = StaticMatrix<measurement_size, state_size>;
+
+    meas_type true_measurement(const FilterInput & z) const;
+    meas_type predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const;
+
+    state_type get_state() const;
+    void set_state(const state_type & st);
+
+    Vector3D get_geodetic(const FilterInput & z) const;
 
     /*!
      * @brief Create state transition matrix (F).
@@ -59,7 +69,7 @@ class MixedKalmanFilterBase : KalmanOrientationFilterBase,
      * @param mag_magn magnetic field magnitude.
      * @return measurement noise covariance matrix.
      */
-    R_type create_meas_noise_cov_mtx(const Vector3D & geo, double mag_magn) const;
+    R_type create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 
     /*!
      * @brief Create state-to-measurement projection matrix (H).
@@ -67,8 +77,7 @@ class MixedKalmanFilterBase : KalmanOrientationFilterBase,
      * @param earth_model Earth model.
      * @return state-to-measurement projection matrix.
      */
-    H_type create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day,
-                                const Earth & earth_model) const;
+    H_type create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 };
 
 #endif // MIXEDKALMANFILTERBASE_H

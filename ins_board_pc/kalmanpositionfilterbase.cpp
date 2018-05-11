@@ -1,18 +1,51 @@
 #include "kalmanpositionfilterbase.h"
 #include "geometry.h"
+#include "packets.h"
 
-KalmanPositionFilterBase::KalmanPositionFilterBase(const FilterParams & params)
-    : params{params}
+KalmanPositionFilterBase::KalmanPositionFilterBase(const FilterParams & params, const Ellipsoid & ellip)
+    : ellip{ ellip },
+      params{ params },
+      x{ state_type::Zero() }
 {}
 
 KalmanPositionFilterBase::~KalmanPositionFilterBase() = default;
 
+KalmanPositionFilterBase::meas_type
+KalmanPositionFilterBase::true_measurement(const FilterInput & z) const
+{
+    meas_type meas;
+    meas << z.pos, z.v;
+    return meas;
+}
+
+KalmanPositionFilterBase::meas_type
+KalmanPositionFilterBase::predicted_measurement(const Vector3D&, const boost::gregorian::date&) const
+{
+    meas_type pred;
+    pred << get_cartesian(), get_velocity();
+    return pred;
+}
+
+KalmanPositionFilterBase::state_type KalmanPositionFilterBase::get_state() const
+{
+    return x;
+}
+
+void KalmanPositionFilterBase::set_state(const state_type & st)
+{
+    x = st;
+}
+
+Vector3D KalmanPositionFilterBase::get_geodetic(const FilterInput&) const
+{
+    return geom::cartesian_to_geodetic(get_cartesian(), get_ellipsoid());
+}
 
 KalmanPositionFilterBase::F_type
-KalmanPositionFilterBase::create_transition_mtx(double dt) const
+KalmanPositionFilterBase::create_transition_mtx(const FilterInput & z) const
 {
     /* useful constants */
-    const double dt_sq = dt * dt;
+    const double dt_sq = z.dt * z.dt;
     const double dt_sq_2 = dt_sq / 2;
 
     /* constructing state transition matrix */
@@ -20,8 +53,8 @@ KalmanPositionFilterBase::create_transition_mtx(double dt) const
 
     const auto I3 = Matrix3D::Identity();
 
-    F << I3, dt * I3, dt_sq_2 * I3,
-         StaticMatrix<3, 3>::Zero(), I3, dt * I3,
+    F << I3, z.dt * I3, dt_sq_2 * I3,
+         StaticMatrix<3, 3>::Zero(), I3, z.dt * I3,
          StaticMatrix<3, 6>::Zero(), I3;
 
     return F;
@@ -58,7 +91,7 @@ KalmanPositionFilterBase::create_proc_noise_cov_mtx(double dt) const
 }
 
 KalmanPositionFilterBase::R_type
-KalmanPositionFilterBase::create_meas_noise_cov_mtx(const Vector3D & geo) const
+KalmanPositionFilterBase::create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date&) const
 {
     double horizontal_linear_std = params.meas_params.gps_cep * 1.2;
     double altitude_std = horizontal_linear_std / 0.53;
@@ -82,7 +115,7 @@ KalmanPositionFilterBase::create_meas_noise_cov_mtx(const Vector3D & geo) const
 }
 
 KalmanPositionFilterBase::H_type
-KalmanPositionFilterBase::create_meas_proj_mtx() const
+KalmanPositionFilterBase::create_meas_proj_mtx(const Vector3D&, const boost::gregorian::date&) const
 {
     H_type H;
 
@@ -90,6 +123,26 @@ KalmanPositionFilterBase::create_meas_proj_mtx() const
             Matrix3D::Zero(), Matrix3D::Identity(), Matrix3D::Zero();
 
     return H;
+}
+
+Ellipsoid KalmanPositionFilterBase::do_get_ellipsoid() const
+{
+    return ellip;
+}
+
+Vector3D KalmanPositionFilterBase::do_get_cartesian() const
+{
+    return x.segment<3>(0);
+}
+
+Vector3D KalmanPositionFilterBase::do_get_velocity() const
+{
+    return x.segment<3>(3);
+}
+
+Vector3D KalmanPositionFilterBase::do_get_acceleration() const
+{
+    return x.segment<3>(6);
 }
 
 void KalmanPositionFilterBase::do_set_proc_accel_std(double std)
