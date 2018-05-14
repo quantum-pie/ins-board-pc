@@ -4,11 +4,12 @@
 #include "eigenaux.h"
 
 template<typename Base>
-class EKFCorrector : virtual Base
+class EKFCorrector : public Base
 {
-    void correct(const FilterInput & z, P_type & P)
+    void correct(const FilterInput & z)
     {
         state_type x = get_state();
+        P_type P = get_cov();
 
         if(z.gps_valid)
         {
@@ -28,7 +29,7 @@ class EKFCorrector : virtual Base
             set_state(x + K * y);
 
             auto tmp = P_type::Identity() - K * H;
-            P = tmp * P * tmp.transpose() + K * R * K.transpose();
+            set_cov(tmp * P * tmp.transpose() + K * R * K.transpose());
         }
     }
 }

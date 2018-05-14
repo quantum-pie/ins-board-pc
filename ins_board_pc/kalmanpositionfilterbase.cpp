@@ -5,7 +5,9 @@
 KalmanPositionFilterBase::KalmanPositionFilterBase(const FilterParams & params, const Ellipsoid & ellip)
     : ellip{ ellip },
       params{ params },
-      x{ state_type::Zero() }
+      x{ state_type::Zero() },
+      P{ P_type::Identity() },
+      initialized{ false }
 {}
 
 KalmanPositionFilterBase::~KalmanPositionFilterBase() = default;
@@ -36,10 +38,44 @@ void KalmanPositionFilterBase::set_state(const state_type & st)
     x = st;
 }
 
+KalmanPositionFilterBase::P_type
+KalmanPositionFilterBase::get_cov() const
+{
+    return P;
+}
+
+void KalmanPositionFilterBase::set_cov(const P_type & cov)
+{
+    P = cov;
+}
+
 Vector3D KalmanPositionFilterBase::get_geodetic(const FilterInput&) const
 {
     return geom::cartesian_to_geodetic(get_cartesian(), get_ellipsoid());
 }
+
+bool KalmanPositionFilterBase::is_initialized() const
+{
+    return initialized;
+}
+
+bool KalmanPositionFilterBase::is_ready_to_initialize() const
+{
+    return true;
+}
+
+void KalmanPositionFilterBase::initialize(const FilterInput & z)
+{
+    x.segment<3>(0) = z.pos;
+    x.segment<3>(3) = z.v;
+    x.segment<3>(6) = Vector3D::Zero();
+
+    P = create_init_cov_mtx();
+    initialized = true;
+}
+
+void KalmanPositionFilterBase::accumulate(const FilterInput &)
+{}
 
 KalmanPositionFilterBase::F_type
 KalmanPositionFilterBase::create_transition_mtx(const FilterInput & z) const
@@ -123,6 +159,11 @@ KalmanPositionFilterBase::create_meas_proj_mtx(const Vector3D&, const boost::gre
             Matrix3D::Zero(), Matrix3D::Identity(), Matrix3D::Zero();
 
     return H;
+}
+
+void KalmanPositionFilterBase::do_reset()
+{
+    initialized = false;
 }
 
 Ellipsoid KalmanPositionFilterBase::do_get_ellipsoid() const

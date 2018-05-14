@@ -3,6 +3,7 @@
 
 #include "IKalmanOrientationFilter.h"
 #include "quatfwd.h"
+#include "qualitycontrol.h"
 #include "earth.h"
 
 #include <boost/date_time/gregorian/gregorian.hpp>
@@ -73,7 +74,15 @@ public:
     state_type get_state() const;
     void set_state(const state_type & st);
 
+    P_type get_cov() const;
+    void set_cov(const P_type & P);
+
     Vector3D get_geodetic(const FilterInput & z) const;
+
+    bool is_initialized() const;
+    bool is_ready_to_initialize() const;
+    void initialize(const FilterInput & z);
+    void accumulate(const FilterInput & z);
 
     /*!
      * @brief Create state transition matrix (F).
@@ -113,6 +122,10 @@ public:
     H_type create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 
 private:
+    static constexpr std::size_t accum_size { 500 };
+
+    void do_reset() override;
+
     quat::Quaternion do_get_orientation_quaternion() const override;
     Vector3D do_get_gyro_bias() const override;
 
@@ -137,8 +150,16 @@ private:
     double do_get_init_bias_std() const override;
 
     const Earth earth_model;            //!< Reference Earth model.
-    FilterParams params;
     state_type x;
+    P_type P;
+
+    QualityControl<Vector3D> bias_ctrl;
+    bool initialized;
+
+    struct
+    {
+
+    } params;
 };
 
 #endif // KALMANORIENTATIONFILTERBASE_H

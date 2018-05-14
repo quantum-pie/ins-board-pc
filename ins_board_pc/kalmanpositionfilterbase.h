@@ -66,6 +66,14 @@ public:
     state_type get_state() const;
     void set_state(const state_type & st);
 
+    P_type get_cov() const;
+    void set_cov(const P_type & P);
+
+    bool is_initialized() const;
+    bool is_ready_to_initialize() const;
+    void initialize(const FilterInput & z);
+    void accumulate(const FilterInput & z);
+
     Vector3D get_geodetic(const FilterInput & z) const;
 
     /*!
@@ -106,6 +114,8 @@ public:
     H_type create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 
 private:
+    void do_reset() override;
+
     Ellipsoid do_get_ellipsoid() const override;
     Vector3D do_get_acceleration() const override;
     Vector3D do_get_velocity() const override;
@@ -128,6 +138,9 @@ private:
     const Ellipsoid ellip;
     FilterParams params; //!< Filter parameters.
     state_type x;
+    P_type P;
+
+    bool initialized;
 };
 
 #endif // KALMANPOSITIONFILTERBASE_H

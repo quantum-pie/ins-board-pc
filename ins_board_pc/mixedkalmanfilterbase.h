@@ -33,6 +33,8 @@ class MixedKalmanFilterBase : KalmanOrientationFilterBase,
     using Q_type = F_type;
     using R_type = StaticMatrix<measurement_size, measurement_size>;
     using H_type = StaticMatrix<measurement_size, state_size>;
+    using PLL_type = StaticMatrix<pos_state_size, ori_state_size>;
+    using PUR_type = StaticMatrix<ori_state_size, pos_state_size>;
 
     meas_type true_measurement(const FilterInput & z) const;
     meas_type predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const;
@@ -40,7 +42,15 @@ class MixedKalmanFilterBase : KalmanOrientationFilterBase,
     state_type get_state() const;
     void set_state(const state_type & st);
 
+    P_type get_cov() const;
+    void set_cov(const P_type & P);
+
     Vector3D get_geodetic(const FilterInput & z) const;
+
+    bool is_initialized() const;
+    bool is_ready_to_initialize() const;
+    void initialize(const FilterInput & z);
+    void accumulate(const FilterInput & z);
 
     /*!
      * @brief Create state transition matrix (F).
@@ -78,6 +88,12 @@ class MixedKalmanFilterBase : KalmanOrientationFilterBase,
      * @return state-to-measurement projection matrix.
      */
     H_type create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
+
+    PLL_type PLL;
+    PUR_type PUR;
+
+private:
+    void do_reset() override;
 };
 
 #endif // MIXEDKALMANFILTERBASE_H

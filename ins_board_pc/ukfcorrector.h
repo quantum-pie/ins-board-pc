@@ -9,7 +9,7 @@
 #include <Eigen/Dense>
 
 template<typename Base>
-class UKFCorrector : virtual Base
+class UKFCorrector : public Base
 {
     /*!
      * @brief Parameters of unscented transform.
@@ -37,9 +37,10 @@ class UKFCorrector : virtual Base
         }
     }
 
-    void correct(const FilterInput & z, P_type & P)
+    void correct(const FilterInput & z)
     {
         state_type x = get_state();
+        P_type P = get_cov();
 
         if(z.gps_valid)
         {
@@ -81,7 +82,7 @@ class UKFCorrector : virtual Base
             Pzz += R;
 
             K_type K = Pxz * Pzz.inverse();
-            P -= K * Pzz * K.transpose();
+            set_cov(P - K * Pzz * K.transpose());
 
             meas_type z_meas = true_measurements(z);
             set_state(sigma_p[0] + K * (z_meas - z_p));

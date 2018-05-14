@@ -8,7 +8,8 @@ MixedKalmanFilterBase::MixedKalmanFilterBase(const KalmanOrientationFilterBase::
                                              const KalmanPositionFilterBase::FilterParams & pos_params,
                                              const Ellipsoid & ellip)
                                                 : KalmanOrientationFilterBase( ori_params, ellip ),
-                                                  KalmanPositionFilterBase( pos_params, ellip )
+                                                  KalmanPositionFilterBase( pos_params, ellip ),
+                                                  PLL{ PLL_type::Zero() }, PUR{ PUR_type::Zero() }
 {}
 
 MixedKalmanFilterBase::~MixedKalmanFilterBase() = default;
@@ -37,6 +38,24 @@ MixedKalmanFilterBase::get_state() const
     return state;
 }
 
+MixedKalmanFilterBase::P_type
+MixedKalmanFilterBase::get_cov() const
+{
+    P_type P;
+    P << KalmanOrientationFilterBase::get_cov(), PUR,
+         PLL, KalmanPositionFilterBase::get_cov();
+
+    return P;
+}
+
+void MixedKalmanFilterBase::set_cov(const P_type & cov)
+{
+    KalmanOrientationFilterBase::set_cov(cov.block<ori_state_size, ori_state_size>(0, 0));
+    KalmanPositionFilterBase::set_cov(cov.block<pos_state_size, pos_state_size>(ori_state_size, ori_state_size));
+    PUR = cov.block<ori_state_size, pos_state_size>(0, ori_state_size);
+    PLL = cov.block<pos_state_size, ori_state_size>(ori_state_size, 0);
+}
+
 void MixedKalmanFilterBase::set_state(const state_type & st)
 {
     KalmanOrientationFilterBase::set_state(st.segment<ori_state_size>(0));
@@ -46,6 +65,30 @@ void MixedKalmanFilterBase::set_state(const state_type & st)
 Vector3D MixedKalmanFilterBase::get_geodetic(const FilterInput & z) const
 {
     return KalmanPositionFilterBase::get_geodetic(z);
+}
+
+bool MixedKalmanFilterBase::is_initialized() const
+{
+    return KalmanOrientationFilterBase::is_ready_to_initialize() &&
+            KalmanPositionFilterBase::is_ready_to_initialize();
+}
+
+bool MixedKalmanFilterBase::is_ready_to_initialize() const
+{
+    return KalmanOrientationFilterBase::is_ready_to_initialize() &&
+            KalmanPositionFilterBase::is_ready_to_initialize();
+}
+
+void MixedKalmanFilterBase::initialize(const FilterInput & z)
+{
+    KalmanOrientationFilterBase::initialize(z);
+    KalmanPositionFilterBase::initialize(z);
+}
+
+void MixedKalmanFilterBase::accumulate(const FilterInput & z)
+{
+    KalmanOrientationFilterBase::accumulate(z);
+    KalmanPositionFilterBase::accumulate(z);
 }
 
 MixedKalmanFilterBase::F_type
@@ -133,4 +176,10 @@ MixedKalmanFilterBase::create_meas_proj_mtx(const Vector3D & geo, const boost::g
             StaticMatrix<pos_meas_size, ori_state_size>::Zero(), KalmanPositionFilterBase::create_meas_proj_mtx(geo, day);
 
     return H;
+}
+
+void MixedKalmanFilterBase::do_reset()
+{
+    KalmanOrientationFilterBase::reset();
+    KalmanPositionFilterBase::reset();
 }

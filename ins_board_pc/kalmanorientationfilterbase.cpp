@@ -9,7 +9,10 @@ using namespace quat;
 KalmanOrientationFilterBase::KalmanOrientationFilterBase(const FilterParams & params, const Ellipsoid & el)
     : earth_model{ el },
       params{ params },
-      x{ state_type::Zero() }
+      x{ state_type::Zero() },
+      P{ P_type::Identity() },
+      bias_ctrl{ accum_size },
+      initialized{ false }
 {}
 
 KalmanOrientationFilterBase::~KalmanOrientationFilterBase() = default;
@@ -46,9 +49,47 @@ void KalmanOrientationFilterBase::set_state(const state_type & st)
     x.segment<4>(0) = static_cast<vector_form>(get_orientation_quaternion().normalize());
 }
 
+KalmanOrientationFilterBase::P_type
+KalmanOrientationFilterBase::get_cov() const
+{
+    return P;
+}
+
+void KalmanOrientationFilterBase::set_cov(const P_type & cov)
+{
+    P = cov;
+}
+
 Vector3D KalmanOrientationFilterBase::get_geodetic(const FilterInput & z) const
 {
     return z.geo;
+}
+
+bool KalmanOrientationFilterBase::is_initialized() const
+{
+    return initialized;
+}
+
+bool KalmanOrientationFilterBase::is_ready_to_initialize() const
+{
+    return bias_ctrl.is_saturated();
+}
+
+void KalmanOrientationFilterBase::initialize(const FilterInput & z)
+{
+    // TODO check and correct if wrong
+    x.segment<4>(0) = static_cast<vector_form>( accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
+    x.segment<3>(4) = bias_ctrl.get_mean();
+
+    P = create_init_cov_mtx();
+
+    initialized = true;
+    bias_ctrl.set_sampling(0); // free memory
+}
+
+void KalmanOrientationFilterBase::accumulate(const FilterInput & z)
+{
+    bias_ctrl.update(z.w);
 }
 
 KalmanOrientationFilterBase::F_type
@@ -159,6 +200,12 @@ KalmanOrientationFilterBase::create_meas_proj_mtx(const Vector3D & geo, const bo
             Dm_Dq, Matrix3D::Zero();
 
     return H;
+}
+
+void KalmanOrientationFilterBase::do_reset()
+{
+    initialized = false;
+    bias_ctrl.set_sampling(accum_size);
 }
 
 Quaternion KalmanOrientationFilterBase::do_get_orientation_quaternion() const
