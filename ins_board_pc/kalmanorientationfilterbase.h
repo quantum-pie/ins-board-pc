@@ -5,55 +5,15 @@
 #include "quatfwd.h"
 #include "qualitycontrol.h"
 #include "earth.h"
+#include "IFilterBase.h"
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 
-class KalmanOrientationFilterBase : virtual public IKalmanOrientationFilter
+class KalmanOrientationFilterBase;
+
+template<>
+struct FilterBaseTraits<KalmanOrientationFilterBase>
 {
-public:
-    /*!
-     * @brief Kalman filter process noise parameters.
-     */
-    struct ProcessNoiseParams
-    {
-        double gyro_std;        //!< Process noise gyroscope standard deviation.
-        double gyro_bias_std;   //!< Process noise gyroscope bias standard deviation.
-    };
-
-    /*!
-     * @brief Kalman filter measurement noise parameters.
-     */
-    struct MeasurementNoiseParams
-    {
-        double accel_std;           //!< accelerometer measurements std.
-        double magn_std;            //!< magnetometer measurements std.
-    };
-
-    /*!
-     * @brief Kalman filter initial state estimate covariance parameters.
-     */
-    struct InitCovParams
-    {
-        double qs_std;      //!< Initial qs estimate standard deviation.
-        double qx_std;      //!< Initial qx estimate standard deviation.
-        double qy_std;      //!< Initial qy estimate standard deviation.
-        double qz_std;      //!< Initial qz estimate standard deviation.
-        double bias_std;    //!< Initial gyro bias estimate standard deviation.
-    };
-
-    /*!
-     * @brief Kalman filter parameters structure.
-     */
-    struct FilterParams
-    {
-        ProcessNoiseParams proc_params;     //!< Process noise parameters instance.
-        MeasurementNoiseParams meas_params; //!< Measurement noise parameters instance.
-        InitCovParams init_params;          //!< Initial state estimate covariance parameters instance.
-    };
-
-    explicit KalmanOrientationFilterBase(const FilterParams & params, const Ellipsoid & ellip = Ellipsoid::WGS84);
-    ~KalmanOrientationFilterBase() override;
-
     static constexpr std::size_t state_size { 7 };
     static constexpr std::size_t measurement_size { 6 };
 
@@ -67,43 +27,67 @@ public:
     using H_type = StaticMatrix<measurement_size, state_size>;
     using V_type = quat::skew_type;
     using D_type = quat::delta_type;
+};
 
-    meas_type true_measurement(const FilterInput & z) const;
-    meas_type predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const;
+class KalmanOrientationFilterBase : virtual public IKalmanOrientationFilter,
+                                    public IFilterBase<KalmanOrientationFilterBase>
+{
+public:
+    explicit KalmanOrientationFilterBase(const Ellipsoid & ellip = Ellipsoid::WGS84);
+    ~KalmanOrientationFilterBase() override;
 
-    state_type get_state() const;
-    void set_state(const state_type & st);
+    using thy_traits = FilterBaseTraits<KalmanOrientationFilterBase>;
 
-    P_type get_cov() const;
-    void set_cov(const P_type & P);
+    using state_type = typename thy_traits::state_type;
+    using meas_type = typename thy_traits::meas_type;
 
-    Vector3D get_geodetic(const FilterInput & z) const;
+    using F_type = typename thy_traits::F_type;
+    using P_type = typename thy_traits::P_type;
+    using Q_type = typename thy_traits::Q_type;
+    using R_type = typename thy_traits::R_type;
+    using H_type = typename thy_traits::H_type;
+    using V_type = typename thy_traits::V_type;
+    using D_type = typename thy_traits::D_type;
 
-    bool is_initialized() const;
-    bool is_ready_to_initialize() const;
-    void initialize(const FilterInput & z);
-    void accumulate(const FilterInput & z);
+private:
+    friend class IFilterBase<KalmanOrientationFilterBase>;
+
+    meas_type do_get_true_measurement(const FilterInput & z) const;
+    meas_type do_get_predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const;
+
+    state_type do_get_state() const;
+    void do_set_state(const state_type & st);
+
+    P_type do_get_cov() const;
+    void do_set_cov(const P_type & P);
+
+    Vector3D do_get_geodetic(const FilterInput & z) const;
+
+    bool do_is_initialized() const;
+    bool do_is_ready_to_initialize() const;
+    void do_initialize(const FilterInput & z);
+    void do_accumulate(const FilterInput & z);
 
     /*!
      * @brief Create state transition matrix (F).
      * @param z filter input reference.
      * @return state transition matrix.
      */
-    F_type create_transition_mtx(const FilterInput & z) const;
+    F_type do_create_transition_mtx(const FilterInput & z) const;
 
     /*!
      * @brief Create initial state estimate covariance matrix (P).
      * @param dt time elapsed since the last step.
      * @return state transition matrix.
      */
-    P_type create_init_cov_mtx() const;
+    P_type do_create_init_cov_mtx() const;
 
     /*!
      * @brief Create process noise covariance matrix (Q).
      * @param dt time elapsed since the last step.
      * @return process noise covariance matrix.
      */
-    Q_type create_proc_noise_cov_mtx(double dt) const;
+    Q_type do_create_proc_noise_cov_mtx(double dt) const;
 
     /*!
      * @brief Create measurement noise covariance matrix (R).
@@ -111,7 +95,7 @@ public:
      * @param mag_magn magnetic field magnitude.
      * @return measurement noise covariance matrix.
      */
-    R_type create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
+    R_type do_create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 
     /*!
      * @brief Create state-to-measurement projection matrix (H).
@@ -119,9 +103,8 @@ public:
      * @param earth_model Earth model.
      * @return state-to-measurement projection matrix.
      */
-    H_type create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
+    H_type do_create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 
-private:
     static constexpr std::size_t accum_size { 500 };
 
     void do_reset() override;
@@ -158,7 +141,26 @@ private:
 
     struct
     {
+        struct
+        {
+            double gyro_std;        //!< Process noise gyroscope standard deviation.
+            double gyro_bias_std;   //!< Process noise gyroscope bias standard deviation.
+        } proc_params;
 
+        struct
+        {
+            double accel_std;           //!< accelerometer measurements std.
+            double magn_std;            //!< magnetometer measurements std.
+        } meas_params;
+
+        struct
+        {
+            double qs_std;      //!< Initial qs estimate standard deviation.
+            double qx_std;      //!< Initial qx estimate standard deviation.
+            double qy_std;      //!< Initial qy estimate standard deviation.
+            double qz_std;      //!< Initial qz estimate standard deviation.
+            double bias_std;    //!< Initial gyro bias estimate standard deviation.
+        } init_params;
     } params;
 };
 

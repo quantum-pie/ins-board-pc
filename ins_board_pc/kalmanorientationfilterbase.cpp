@@ -6,9 +6,8 @@
 
 using namespace quat;
 
-KalmanOrientationFilterBase::KalmanOrientationFilterBase(const FilterParams & params, const Ellipsoid & el)
+KalmanOrientationFilterBase::KalmanOrientationFilterBase(const Ellipsoid & el)
     : earth_model{ el },
-      params{ params },
       x{ state_type::Zero() },
       P{ P_type::Identity() },
       bias_ctrl{ accum_size },
@@ -18,7 +17,7 @@ KalmanOrientationFilterBase::KalmanOrientationFilterBase(const FilterParams & pa
 KalmanOrientationFilterBase::~KalmanOrientationFilterBase() = default;
 
 KalmanOrientationFilterBase::meas_type
-KalmanOrientationFilterBase::true_measurement(const FilterInput & z) const
+KalmanOrientationFilterBase::do_get_true_measurement(const FilterInput & z) const
 {
     meas_type meas;
     meas << z.a, z.m;
@@ -26,7 +25,7 @@ KalmanOrientationFilterBase::true_measurement(const FilterInput & z) const
 }
 
 KalmanOrientationFilterBase::meas_type
-KalmanOrientationFilterBase::predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const
+KalmanOrientationFilterBase::do_get_predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const
 {
     Vector3D predicted_acc = geom::predict_accelerometer(get_orientation_quaternion(), earth_model.gravity(geo));
     Vector3D predicted_magn = geom::predict_magnetometer(get_orientation_quaternion(), earth_model.magnetic_vector(geo, day));
@@ -38,47 +37,47 @@ KalmanOrientationFilterBase::predicted_measurement(const Vector3D & geo, const b
 }
 
 KalmanOrientationFilterBase::state_type
-KalmanOrientationFilterBase::get_state() const
+KalmanOrientationFilterBase::do_get_state() const
 {
     return x;
 }
 
-void KalmanOrientationFilterBase::set_state(const state_type & st)
+void KalmanOrientationFilterBase::do_set_state(const state_type & st)
 {
     x = st;
     x.segment<4>(0) = static_cast<vector_form>(get_orientation_quaternion().normalize());
 }
 
 KalmanOrientationFilterBase::P_type
-KalmanOrientationFilterBase::get_cov() const
+KalmanOrientationFilterBase::do_get_cov() const
 {
     return P;
 }
 
-void KalmanOrientationFilterBase::set_cov(const P_type & cov)
+void KalmanOrientationFilterBase::do_set_cov(const P_type & cov)
 {
     P = cov;
 }
 
-Vector3D KalmanOrientationFilterBase::get_geodetic(const FilterInput & z) const
+Vector3D KalmanOrientationFilterBase::do_get_geodetic(const FilterInput & z) const
 {
     return z.geo;
 }
 
-bool KalmanOrientationFilterBase::is_initialized() const
+bool KalmanOrientationFilterBase::do_is_initialized() const
 {
     return initialized;
 }
 
-bool KalmanOrientationFilterBase::is_ready_to_initialize() const
+bool KalmanOrientationFilterBase::do_is_ready_to_initialize() const
 {
     return bias_ctrl.is_saturated();
 }
 
-void KalmanOrientationFilterBase::initialize(const FilterInput & z)
+void KalmanOrientationFilterBase::do_initialize(const FilterInput & z)
 {
     // TODO check and correct if wrong
-    x.segment<4>(0) = static_cast<vector_form>( accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
+    x.segment<4>(0) = static_cast<vector_form>( geom::accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     P = create_init_cov_mtx();
@@ -87,13 +86,13 @@ void KalmanOrientationFilterBase::initialize(const FilterInput & z)
     bias_ctrl.set_sampling(0); // free memory
 }
 
-void KalmanOrientationFilterBase::accumulate(const FilterInput & z)
+void KalmanOrientationFilterBase::do_accumulate(const FilterInput & z)
 {
     bias_ctrl.update(z.w);
 }
 
 KalmanOrientationFilterBase::F_type
-KalmanOrientationFilterBase::create_transition_mtx(const FilterInput & z) const
+KalmanOrientationFilterBase::do_create_transition_mtx(const FilterInput & z) const
 {
     /* useful constants */
     double dt_2 = z.dt / 2;
@@ -114,7 +113,7 @@ KalmanOrientationFilterBase::create_transition_mtx(const FilterInput & z) const
 }
 
 KalmanOrientationFilterBase::P_type
-KalmanOrientationFilterBase::create_init_cov_mtx() const
+KalmanOrientationFilterBase::do_create_init_cov_mtx() const
 {
     P_type P;
 
@@ -129,7 +128,7 @@ KalmanOrientationFilterBase::create_init_cov_mtx() const
 }
 
 KalmanOrientationFilterBase::Q_type
-KalmanOrientationFilterBase::create_proc_noise_cov_mtx(double dt) const
+KalmanOrientationFilterBase::do_create_proc_noise_cov_mtx(double dt) const
 {
     /* useful constants */
     double dt_2 = dt / 2;
@@ -147,7 +146,7 @@ KalmanOrientationFilterBase::create_proc_noise_cov_mtx(double dt) const
 }
 
 KalmanOrientationFilterBase::R_type
-KalmanOrientationFilterBase::create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
+KalmanOrientationFilterBase::do_create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
 {
     auto Ra = params.meas_params.accel_std * params.meas_params.accel_std * Matrix3D::Identity();
 
@@ -162,7 +161,7 @@ KalmanOrientationFilterBase::create_meas_noise_cov_mtx(const Vector3D & geo, con
 }
 
 KalmanOrientationFilterBase::H_type
-KalmanOrientationFilterBase::create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
+KalmanOrientationFilterBase::do_create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
 {
     // 1
     StaticMatrix<3, 4> Dac_Dq;

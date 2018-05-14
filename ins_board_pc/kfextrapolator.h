@@ -1,20 +1,30 @@
 #ifndef KFEXTRAPOLATOR_H
 #define KFEXTRAPOLATOR_H
 
-template<typename Base>
-class KFExtrapolator : public Base
+#include "IFilterBase.h"
+#include "filterplugins.h"
+
+template<typename FilterBase>
+class KFExtrapolator : public IExtrapolator<KFExtrapolator<FilterBase>>,
+                       FilterBase
 {
-    void extrapolate(const FilterInput & z)
+    std::enable_if_t<std::is_base_of<IFilterBase<FilterBase>, FilterBase>::value>
+    do_extrapolate(const FilterInput & z)
     {
-        state_type x = get_state();
-        P_type P = get_cov();
+        typename FilterBase::state_type x = FilterBase::get_state();
+        typename FilterBase::P_type P = FilterBase::get_cov();
 
-        F_type F = create_transition_mtx(z);
-        Q_type Q = create_proc_noise_cov_mtx(z);
+        typename FilterBase::F_type F = FilterBase::create_transition_mtx(z);
+        typename FilterBase::Q_type Q = FilterBase::create_proc_noise_cov_mtx(z);
 
-        set_cov(F * P * F.transpose() + Q);
-        set_state(F * x);
+        FilterBase::set_cov(F * P * F.transpose() + Q);
+        FilterBase::set_state(F * x);
     }
-}
+
+    void do_step(const FilterInput & z) override
+    {
+
+    }
+};
 
 #endif // KFEXTRAPOLATOR_H

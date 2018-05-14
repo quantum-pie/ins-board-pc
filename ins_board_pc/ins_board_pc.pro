@@ -96,6 +96,8 @@ HEADERS  += mainwindow.h \
     mixedkalmanfilterbase.h \
     kfextrapolator.h \
     ekfcorrector.h \
-    ukfcorrector.h
+    ukfcorrector.h \
+    IFilterBase.h \
+    filterplugins.h
 
 FORMS    += mainwindow.ui
