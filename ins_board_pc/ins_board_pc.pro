@@ -30,38 +30,36 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
+INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
 
 SOURCES += main.cpp\
         mainwindow.cpp \
     qcustomplot.cpp \
     wmm/GeomagnetismLibrary.c \
-    eigenaux.cpp \
-    orientationcomplement.cpp \
     earth.cpp \
+    eigenaux.cpp \
     ellipsoid.cpp \
     geometry.cpp \
     gravity.cpp \
+    horizon.cpp \
     magncalibrator.cpp \
     magnetic.cpp \
+    packets.cpp \
     quaternion.cpp \
-    positionbypass.cpp \
-    positionsim.cpp \
-    horizon.cpp \
     quatutils.cpp \
     utils.cpp \
-    packets.cpp \
-    kalmanpositionfilterbase.cpp \
-    kalmanorientationfilterbase.cpp \
-    mixedkalmanfilterbase.cpp
-
+    filtering/filters/positionsim.cpp \
+    filtering/filters/positionbypass.cpp \
+    filtering/filters/orientationcomplement.cpp \
+    filtering/private_implementation/mixedkalmanfilterbase.cpp \
+    filtering/private_implementation/kalmanpositionfilterbase.cpp \
+    filtering/private_implementation/kalmanorientationfilterbase.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
     wmm/GeomagnetismHeader.h \
     qualitycontrol.h \
     eigenaux.h \
-    orientationcomplement.h \
     earth.h \
     ellipsoid.h \
     geometry.h \
@@ -69,27 +67,28 @@ HEADERS  += mainwindow.h \
     magncalibrator.h \
     magnetic.h \
     quaternion.h \
-    IComplementOrientationFilter.h \
-    IFilter.h \
-    IKalmanOrientationFilter.h \
-    IKalmanPositionFilter.h \
-    IOrientationFilter.h \
-    IPositionFilter.h \
-    positionbypass.h \
-    positionsim.h \
     packets.h \
     horizon.h \
     quatutils.h \
     quatfwd.h \
     utils.h \
-    kalmanpositionfilterbase.h \
-    kalmanorientationfilterbase.h \
-    mixedkalmanfilterbase.h \
-    kfextrapolator.h \
-    ekfcorrector.h \
-    ukfcorrector.h \
-    IFilterBase.h \
-    filterplugins.h \
-    generickalman.h
+    filtering/filters/generickalman.h \
+    filtering/filters/orientationcomplement.h \
+    filtering/filters/positionbypass.h \
+    filtering/filters/positionsim.h \
+    filtering/plugins/ekfcorrector.h \
+    filtering/plugins/filterplugins.h \
+    filtering/plugins/kfextrapolator.h \
+    filtering/plugins/ukfcorrector.h \
+    filtering/public_interfaces/IComplementOrientationFilter.h \
+    filtering/public_interfaces/IFilter.h \
+    filtering/public_interfaces/IKalmanOrientationFilter.h \
+    filtering/public_interfaces/IKalmanPositionFilter.h \
+    filtering/public_interfaces/IOrientationFilter.h \
+    filtering/public_interfaces/IPositionFilter.h \
+    filtering/private_implementation/IFilterBase.h \
+    filtering/private_implementation/kalmanorientationfilterbase.h \
+    filtering/private_implementation/kalmanpositionfilterbase.h \
+    filtering/private_implementation/mixedkalmanfilterbase.h
 
 FORMS    += mainwindow.ui
