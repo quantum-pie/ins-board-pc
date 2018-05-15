@@ -10,11 +10,8 @@
 #include "ekfcorrector.h"
 #include "ukfcorrector.h"
 
-struct IMixedKalmanFilter : virtual IKalmanOrientationFilter, virtual IKalmanPositionFilter {};
-
-template<typename Interface, typename Implementation>
-class GenericKalmanFilter : public virtual Interface,
-                            Implementation
+template<typename Implementation, typename... Interfaces>
+class GenericKalmanFilter : public virtual Interfaces..., Implementation
 {
     static_assert(std::is_base_of<IExtrapolator<typename Implementation::exptrapolator_base>, Implementation>::value &&
                   std::is_base_of<ICorrector<typename Implementation::corrector_base>, Implementation>::value,
@@ -40,11 +37,11 @@ class GenericKalmanFilter : public virtual Interface,
     }
 };
 
-using PositionEKF =     GenericKalmanFilter<IKalmanPositionFilter, EKFCorrector<KFExtrapolator<KalmanPositionFilterBase>>>;
-using PositionUKF =     GenericKalmanFilter<IKalmanPositionFilter, UKFCorrector<KFExtrapolator<KalmanPositionFilterBase>>>;
-using OrientationEKF =  GenericKalmanFilter<IKalmanOrientationFilter, EKFCorrector<KFExtrapolator<KalmanOrientationFilterBase>>>;
-using OrientationUKF =  GenericKalmanFilter<IKalmanOrientationFilter, UKFCorrector<KFExtrapolator<KalmanOrientationFilterBase>>>;
-using FullEKF =         GenericKalmanFilter<IMixedKalmanFilter, EKFCorrector<KFExtrapolator<MixedKalmanFilterBase>>>;
-using FullUKF =         GenericKalmanFilter<IMixedKalmanFilter, UKFCorrector<KFExtrapolator<MixedKalmanFilterBase>>>;
+using PositionEKF =     GenericKalmanFilter<EKFCorrector<KFExtrapolator<KalmanPositionFilterBase>>, IKalmanPositionFilter>;
+using PositionUKF =     GenericKalmanFilter<UKFCorrector<KFExtrapolator<KalmanPositionFilterBase>>, IKalmanPositionFilter>;
+using OrientationEKF =  GenericKalmanFilter<EKFCorrector<KFExtrapolator<KalmanOrientationFilterBase>>, IKalmanOrientationFilter>;
+using OrientationUKF =  GenericKalmanFilter<UKFCorrector<KFExtrapolator<KalmanOrientationFilterBase>>, IKalmanOrientationFilter>;
+using FullEKF =         GenericKalmanFilter<EKFCorrector<KFExtrapolator<MixedKalmanFilterBase>>, IKalmanOrientationFilter, IKalmanPositionFilter>;
+using FullUKF =         GenericKalmanFilter<UKFCorrector<KFExtrapolator<MixedKalmanFilterBase>>, IKalmanOrientationFilter, IKalmanPositionFilter>;
 
 #endif // GENERICKALMAN_H
