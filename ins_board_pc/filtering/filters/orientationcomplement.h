@@ -4,7 +4,8 @@
 #ifndef ORIENTATIONCOMPLEMENT_H
 #define ORIENTATIONCOMPLEMENT_H
 
-#include "IComplementOrientationFilter.h"
+#include "filtering/public_interfaces/IComplementOrientationFilter.h"
+
 #include "qualitycontrol.h"
 #include "earth.h"
 

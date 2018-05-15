@@ -6,7 +6,7 @@
 #ifndef INCLUDE_POSITIONBYPASS_H_
 #define INCLUDE_POSITIONBYPASS_H_
 
-#include "IPositionFilter.h"
+#include "filtering/public_interfaces/IPositionFilter.h"
 
 #include <memory>
 

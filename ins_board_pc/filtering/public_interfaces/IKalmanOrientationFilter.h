@@ -7,7 +7,7 @@
 #ifndef INCLUDE_IKALMANORIENTATIONFILTER_H_
 #define INCLUDE_IKALMANORIENTATIONFILTER_H_
 
-#include "IOrientationFilter.h"
+#include "filtering/public_interfaces/IOrientationFilter.h"
 
 /*!
  * @brief Kalman orientation filter interface.

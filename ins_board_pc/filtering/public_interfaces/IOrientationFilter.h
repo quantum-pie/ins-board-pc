@@ -7,8 +7,9 @@
 #ifndef INCLUDE_IORIENTATIONFILTER_H_
 #define INCLUDE_IORIENTATIONFILTER_H_
 
+#include "filtering/public_interfaces/IFilter.h"
+
 #include "quaternion.h"
-#include "IFilter.h"
 
 /*!
  * @brief Orientation filter interface.

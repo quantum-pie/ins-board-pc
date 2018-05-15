@@ -1,8 +1,8 @@
 #ifndef KALMANPOSITIONFILTERBASE_H
 #define KALMANPOSITIONFILTERBASE_H
 
-#include "IKalmanPositionFilter.h"
-#include "IFilterBase.h"
+#include "filtering/public_interfaces/IKalmanPositionFilter.h"
+#include "filtering/private_implementation/IFilterBase.h"
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 
@@ -152,9 +152,9 @@ private:
         InitCovParams init_params;
     } params;
 
-    static constexpr ProcessNoiseParams             default_proc_noise_params { 0.0001 };
-    static constexpr MeasurementNoiseParams         default_meas_noise_params { 0.1, 0.1 };
-    static constexpr InitCovParams                  default_init_cov_params { 0.00001, 0.0001, 0.001 };
+    static constexpr ProcessNoiseParams     default_proc_noise_params { 0.0001 };
+    static constexpr MeasurementNoiseParams default_meas_noise_params { 0.1, 0.1 };
+    static constexpr InitCovParams          default_init_cov_params { 0.00001, 0.0001, 0.001 };
 };
 
 #endif // KALMANPOSITIONFILTERBASE_H

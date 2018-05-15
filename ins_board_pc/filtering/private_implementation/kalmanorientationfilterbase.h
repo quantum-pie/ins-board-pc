@@ -1,11 +1,12 @@
 #ifndef KALMANORIENTATIONFILTERBASE_H
 #define KALMANORIENTATIONFILTERBASE_H
 
-#include "IKalmanOrientationFilter.h"
+#include "filtering/public_interfaces/IKalmanOrientationFilter.h"
+#include "filtering/private_implementation/IFilterBase.h"
+
 #include "quatfwd.h"
 #include "qualitycontrol.h"
 #include "earth.h"
-#include "IFilterBase.h"
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 
@@ -169,9 +170,9 @@ private:
         InitCovParams init_params;
     } params;
 
-    static constexpr ProcessNoiseParams 			default_proc_noise_params { 0.001, 0 };
-    static constexpr MeasurementNoiseParams 		default_meas_noise_params { 0.005, 1.2 };
-    static constexpr InitCovParams                  default_init_cov_params { 0.0001, 0.00001, 0.00001, 0.0001, 0 };
+    static constexpr ProcessNoiseParams 	default_proc_noise_params { 0.001, 0 };
+    static constexpr MeasurementNoiseParams default_meas_noise_params { 0.005, 1.2 };
+    static constexpr InitCovParams          default_init_cov_params { 0.0001, 0.00001, 0.00001, 0.0001, 0 };
 };
 
 #endif // KALMANORIENTATIONFILTERBASE_H

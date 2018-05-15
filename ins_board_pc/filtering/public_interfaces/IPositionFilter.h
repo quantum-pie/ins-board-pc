@@ -7,9 +7,10 @@
 #ifndef INCLUDE_IPOSITIONFILTER_H_
 #define INCLUDE_IPOSITIONFILTER_H_
 
+#include "filtering/public_interfaces/IFilter.h"
+
 #include "eigenaux.h"
 #include "ellipsoid.h"
-#include "IFilter.h"
 
 /*!
  * @brief Position filter interface.

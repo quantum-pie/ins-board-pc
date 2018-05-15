@@ -2,19 +2,18 @@
 #define UKFCORRECTOR_H
 
 #include "eigenaux.h"
+#include "packets.h"
+
+#include "filtering/private_implementation/IFilterBase.h"
+#include "filtering/plugins/filterplugins.h"
 
 #include <cmath>
 #include <array>
 
 #include <Eigen/Dense>
 
-#include "IFilterBase.h"
-#include "filterplugins.h"
-#include "packets.h"
-
 template<typename Base>
-struct UKFCorrector : ICorrector<UKFCorrector<Base>>,
-                      Base
+struct UKFCorrector : ICorrector<UKFCorrector<Base>>, Base
 {
     static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
                   "Base class do not inherit IFilterBase CRTP");
@@ -90,7 +89,7 @@ private:
     using K_type = typename Base::K_type;
 
     static constexpr int L { Base::thy_traits::state_size };    //!< Augmented state size.
-    double lambda;                                  //!< Unscented transform lambda parameter.
+    double lambda;                                              //!< Unscented transform lambda parameter.
 
     std::array<double, 2 * L + 1> Ws;
     std::array<double, 2 * L + 1> Wc;
@@ -108,7 +107,7 @@ private:
         double alpha;       //!< Alpha.
     } params;
 
-    static constexpr UnscentedTransformParams       default_ut_params{ 0, 2, 1e-3 };
+    static constexpr UnscentedTransformParams default_ut_params{ 0, 2, 1e-3 };
 };
 
 #endif // UKFCORRECTOR_H

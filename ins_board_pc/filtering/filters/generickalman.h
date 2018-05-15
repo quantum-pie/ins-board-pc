@@ -1,14 +1,16 @@
 #ifndef GENERICKALMAN_H
 #define GENERICKALMAN_H
 
-#include "IKalmanOrientationFilter.h"
-#include "IKalmanPositionFilter.h"
-#include "kalmanorientationfilterbase.h"
-#include "kalmanpositionfilterbase.h"
-#include "mixedkalmanfilterbase.h"
-#include "kfextrapolator.h"
-#include "ekfcorrector.h"
-#include "ukfcorrector.h"
+#include "filtering/public_interfaces/IKalmanOrientationFilter.h"
+#include "filtering/public_interfaces/IKalmanPositionFilter.h"
+
+#include "filtering/private_implementation/kalmanorientationfilterbase.h"
+#include "filtering/private_implementation/kalmanpositionfilterbase.h"
+#include "filtering/private_implementation/mixedkalmanfilterbase.h"
+
+#include "filtering/plugins/kfextrapolator.h"
+#include "filtering/plugins/ekfcorrector.h"
+#include "filtering/plugins/ukfcorrector.h"
 
 template<typename Implementation, typename... Interfaces>
 class GenericKalmanFilter : public virtual Interfaces..., Implementation

@@ -1,11 +1,12 @@
 #ifndef MIXEDKALMANFILTERBASE_H
 #define MIXEDKALMANFILTERBASE_H
 
-#include "IKalmanOrientationFilter.h"
-#include "IKalmanPositionFilter.h"
-#include "kalmanorientationfilterbase.h"
-#include "kalmanpositionfilterbase.h"
-#include "IFilterBase.h"
+#include "filtering/public_interfaces/IKalmanOrientationFilter.h"
+#include "filtering/public_interfaces/IKalmanPositionFilter.h"
+
+#include "filtering/private_implementation/IFilterBase.h"
+#include "filtering/private_implementation/kalmanorientationfilterbase.h"
+#include "filtering/private_implementation/kalmanpositionfilterbase.h"
 
 #include <boost/date_time/gregorian/gregorian.hpp>
 
@@ -65,6 +66,7 @@ public:
     using PLL_type = typename thy_traits::PLL_type;
     using PUR_type = typename thy_traits::PUR_type;
 
+    // Specify which CRTP base interface to use
     using CRTPBase = IFilterBase<MixedKalmanFilterBase>;
     using impl_type = CRTPBase::impl_type;
     using CRTPBase::accumulate;

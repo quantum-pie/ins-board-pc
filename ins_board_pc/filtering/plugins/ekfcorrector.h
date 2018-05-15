@@ -1,13 +1,13 @@
 #ifndef EKFCORRECTOR_H
 #define EKFCORRECTOR_H
 
-#include "IFilterBase.h"
-#include "filterplugins.h"
+#include "filtering/private_implementation/IFilterBase.h"
+#include "filtering/plugins/filterplugins.h"
+
 #include "packets.h"
 
 template<typename Base>
-struct EKFCorrector : ICorrector<EKFCorrector<Base>>,
-                     Base
+struct EKFCorrector : ICorrector<EKFCorrector<Base>>, Base
 {
     static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
                   "Base class do not inherit IFilterBase CRTP");

@@ -7,7 +7,7 @@
 #ifndef INCLUDE_IKALMANPOSITIONFILTERATTRIBUTES_H_
 #define INCLUDE_IKALMANPOSITIONFILTERATTRIBUTES_H_
 
-#include "IPositionFilter.h"
+#include "filtering/public_interfaces/IPositionFilter.h"
 
 /*!
  * @brief Kalman position filter interface.
