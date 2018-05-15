@@ -16,7 +16,8 @@ template<typename Base>
 struct UKFCorrector : ICorrector<UKFCorrector<Base>>,
                       Base
 {
-    static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value, "Base class do not inherit IFilterBase CRTP");
+    static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
+                  "Base class do not inherit IFilterBase CRTP");
 
     UKFCorrector() : params{ default_ut_params }
     {

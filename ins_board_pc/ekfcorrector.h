@@ -9,7 +9,8 @@ template<typename Base>
 struct EKFCorrector : ICorrector<EKFCorrector<Base>>,
                      Base
 {
-    static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value, "Base class do not inherit IFilterBase CRTP");
+    static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
+                  "Base class do not inherit IFilterBase CRTP");
 
     void do_correct(const FilterInput & z)
     {
