@@ -1,4 +1,0 @@
-#ifndef ORIENTATIONUKF_H
-#define ORIENTATIONUKF_H
-
-#endif // ORIENTATIONUKF_H

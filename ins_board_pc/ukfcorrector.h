@@ -8,21 +8,17 @@
 
 #include <Eigen/Dense>
 
-template<typename Base>
-class UKFCorrector : public Base
-{
-    /*!
-     * @brief Parameters of unscented transform.
-     */
-    struct UnscentedTransformParams
-    {
-        double kappa;       //!< Kappa.
-        double beta;        //!< Beta.
-        double alpha;       //!< Alpha.
-    };
+#include "IFilterBase.h"
+#include "filterplugins.h"
+#include "packets.h"
 
-    UKFCorrector(const UnscentedTransformParams & ut_params)
-        : params{ ut_params }
+template<typename Base>
+struct UKFCorrector : ICorrector<UKFCorrector<Base>>,
+                      Base
+{
+    static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value, "Base class do not inherit IFilterBase CRTP");
+
+    UKFCorrector() : params{ default_ut_params }
     {
         double alpha_sq = params.alpha * params.alpha;
         lambda = alpha_sq * (L + params.kappa) - L;
@@ -37,69 +33,81 @@ class UKFCorrector : public Base
         }
     }
 
-    void correct(const FilterInput & z)
+    void do_correct(const FilterInput & z)
     {
-        state_type x = get_state();
-        P_type P = get_cov();
+        auto x = this->get_state();
+        auto P = this->get_cov();
 
-        if(z.gps_valid)
+        sigma_p[0] = x;
+
+        P_type mtx_root = P.llt().matrixL();
+        mtx_root *= std::sqrt(L + lambda);
+
+        for(int i = 1; i <= L; ++i)
         {
-            // update (unscented version)
-            sigma_p[0] = x;
-
-            P_type mtx_root = P.llt().matrixL();
-            mtx_root *= std::sqrt(L + lambda);
-
-            for(int i = 1; i <= L; ++i)
-            {
-                sigma_p[i] = x + mtx_root.col(i - 1);
-                sigma_p[i + L] = x - mtx_root.col(i - 1);
-            }
-
-            meas_type z_p = meas_type::Zero();
-            for(int i = 0; i <= 2 * L; ++i)
-            {
-                set_state(sigma_p[i]);
-                Vector3D geo = get_geodetic(z);
-
-                sigma_z[i] = predicted_measurements(geo, z.day);
-                z_p += Ws[i] * sigma_z[i];
-            }
-
-            R_type Pzz = R_type::Zero();
-            K_type Pxz = K_type::Zero();
-
-            for(int i = 0; i <= 2 * L; ++i)
-            {
-                Pzz += Wc[i] * (sigma_z[i] - z_p) * (sigma_z[i] - z_p).transpose();
-                Pxz += Wc[i] * (sigma_p[i] - sigma_p[0] ) * (sigma_z[i] - z_p).transpose();
-            }
-
-            set_state(sigma_p[0]);
-            Vector3D geo = get_geodetic(z);
-
-            R_type R = create_meas_noise_cov_mtx(geo, z.day);
-            Pzz += R;
-
-            K_type K = Pxz * Pzz.inverse();
-            set_cov(P - K * Pzz * K.transpose());
-
-            meas_type z_meas = true_measurements(z);
-            set_state(sigma_p[0] + K * (z_meas - z_p));
+            sigma_p[i] = x + mtx_root.col(i - 1);
+            sigma_p[i + L] = x - mtx_root.col(i - 1);
         }
+
+        meas_type z_p = meas_type::Zero();
+        for(int i = 0; i <= 2 * L; ++i)
+        {
+            this->set_state(sigma_p[i]);
+            Vector3D geo = this->get_geodetic(z);
+
+            sigma_z[i] = this->get_predicted_measurement(geo, z.day);
+            z_p += Ws[i] * sigma_z[i];
+        }
+
+        R_type Pzz = R_type::Zero();
+        K_type Pxz = K_type::Zero();
+
+        for(int i = 0; i <= 2 * L; ++i)
+        {
+            Pzz += Wc[i] * (sigma_z[i] - z_p) * (sigma_z[i] - z_p).transpose();
+            Pxz += Wc[i] * (sigma_p[i] - sigma_p[0]) * (sigma_z[i] - z_p).transpose();
+        }
+
+        this->set_state(sigma_p[0]);
+        Vector3D geo = this->get_geodetic(z);
+
+        auto R = this->create_meas_noise_cov_mtx(geo, z.day);
+        Pzz += R;
+
+        auto K = Pxz * Pzz.inverse();
+        this->set_cov(P - K * Pzz * K.transpose());
+
+        auto z_meas = this->get_true_measurement(z);
+        this->set_state(sigma_p[0] + K * (z_meas - z_p));
     }
 
 private:
-    static constexpr int L { state_size };    //!< Augmented state size.
-    double lambda;                            //!< Unscented transform lambda parameter.
+    using state_type = typename Base::state_type;
+    using meas_type = typename Base::meas_type;
+    using P_type = typename Base::P_type;
+    using R_type = typename Base::R_type;
+    using K_type = typename Base::K_type;
 
-    UnscentedTransformParams params;
+    static constexpr int L { Base::thy_traits::state_size };    //!< Augmented state size.
+    double lambda;                                  //!< Unscented transform lambda parameter.
 
     std::array<double, 2 * L + 1> Ws;
     std::array<double, 2 * L + 1> Wc;
 
     std::array<state_type, 2 * L + 1> sigma_p;
     std::array<meas_type, 2 * L + 1> sigma_z;
-}
+
+    /*!
+     * @brief Parameters of unscented transform.
+     */
+    struct UnscentedTransformParams
+    {
+        double kappa;       //!< Kappa.
+        double beta;        //!< Beta.
+        double alpha;       //!< Alpha.
+    } params;
+
+    static constexpr UnscentedTransformParams       default_ut_params{ 0, 2, 1e-3 };
+};
 
 #endif // UKFCORRECTOR_H

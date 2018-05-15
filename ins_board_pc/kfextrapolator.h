@@ -3,27 +3,24 @@
 
 #include "IFilterBase.h"
 #include "filterplugins.h"
+#include "packets.h"
 
-template<typename FilterBase>
-class KFExtrapolator : public IExtrapolator<KFExtrapolator<FilterBase>>,
-                       FilterBase
+template<typename Base>
+struct KFExtrapolator : IExtrapolator<KFExtrapolator<Base>>,
+                        Base
 {
-    std::enable_if_t<std::is_base_of<IFilterBase<FilterBase>, FilterBase>::value>
-    do_extrapolate(const FilterInput & z)
+    static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value, "Base class do not inherit IFilterBase CRTP");
+
+    void do_extrapolate(const FilterInput & z)
     {
-        typename FilterBase::state_type x = FilterBase::get_state();
-        typename FilterBase::P_type P = FilterBase::get_cov();
+        auto x = this->get_state();
+        auto P = this->get_cov();
 
-        typename FilterBase::F_type F = FilterBase::create_transition_mtx(z);
-        typename FilterBase::Q_type Q = FilterBase::create_proc_noise_cov_mtx(z);
+        auto F = this->create_transition_mtx(z);
+        auto Q = this->create_proc_noise_cov_mtx(z.dt);
 
-        FilterBase::set_cov(F * P * F.transpose() + Q);
-        FilterBase::set_state(F * x);
-    }
-
-    void do_step(const FilterInput & z) override
-    {
-
+        this->set_cov(F * P * F.transpose() + Q);
+        this->set_state(F * x);
     }
 };
 

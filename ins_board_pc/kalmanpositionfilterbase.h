@@ -22,6 +22,7 @@ struct FilterBaseTraits<KalmanPositionFilterBase>
     using Q_type = F_type;
     using R_type = StaticMatrix<measurement_size, measurement_size>;
     using H_type = StaticMatrix<measurement_size, state_size>;
+    using K_type = StaticMatrix<state_size, measurement_size>;
 };
 
 class KalmanPositionFilterBase : virtual public IKalmanPositionFilter,
@@ -41,6 +42,7 @@ public:
     using Q_type = typename thy_traits::Q_type;
     using R_type = typename thy_traits::R_type;
     using H_type = typename thy_traits::H_type;
+    using K_type = typename thy_traits::K_type;
 
 private:
     friend class IFilterBase<KalmanPositionFilterBase>;
@@ -125,26 +127,34 @@ private:
 
     bool initialized;
 
+    struct ProcessNoiseParams
+    {
+        double accel_std;       //!< Process noise acceleration standard deviation.
+    };
+
+    struct MeasurementNoiseParams
+    {
+        double gps_cep;         //!< measured position CEP (GPS).
+        double gps_vel_std;     //!< measured velocity x std.
+    };
+
+    struct InitCovParams
+    {
+        double pos_std;     //!< Initial position estimate standard deviation.
+        double vel_std;     //!< Initial velocity estimate standard deviation.
+        double accel_std;   //!< Initial acceleration estimate standard deviation.
+    };
+
     struct
     {
-        struct
-        {
-            double accel_std;       //!< Process noise acceleration standard deviation.
-        } proc_params;
-
-        struct
-        {
-            double gps_cep;         //!< measured position CEP (GPS).
-            double gps_vel_std;     //!< measured velocity x std.
-        } meas_params;
-
-        struct
-        {
-            double pos_std;     //!< Initial position estimate standard deviation.
-            double vel_std;     //!< Initial velocity estimate standard deviation.
-            double accel_std;   //!< Initial acceleration estimate standard deviation.
-        } init_params;
+        ProcessNoiseParams proc_params;
+        MeasurementNoiseParams meas_params;
+        InitCovParams init_params;
     } params;
+
+    static constexpr ProcessNoiseParams             default_proc_noise_params { 0.0001 };
+    static constexpr MeasurementNoiseParams         default_meas_noise_params { 0.1, 0.1 };
+    static constexpr InitCovParams                  default_init_cov_params { 0.00001, 0.0001, 0.001 };
 };
 
 #endif // KALMANPOSITIONFILTERBASE_H

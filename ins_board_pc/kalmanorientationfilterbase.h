@@ -25,6 +25,7 @@ struct FilterBaseTraits<KalmanOrientationFilterBase>
     using Q_type = F_type;
     using R_type = StaticMatrix<measurement_size, measurement_size>;
     using H_type = StaticMatrix<measurement_size, state_size>;
+    using K_type = StaticMatrix<state_size, measurement_size>;
     using V_type = quat::skew_type;
     using D_type = quat::delta_type;
 };
@@ -46,6 +47,7 @@ public:
     using Q_type = typename thy_traits::Q_type;
     using R_type = typename thy_traits::R_type;
     using H_type = typename thy_traits::H_type;
+    using K_type = typename thy_traits::K_type;
     using V_type = typename thy_traits::V_type;
     using D_type = typename thy_traits::D_type;
 
@@ -139,29 +141,37 @@ private:
     QualityControl<Vector3D> bias_ctrl;
     bool initialized;
 
+    struct ProcessNoiseParams
+    {
+        double gyro_std;        //!< Process noise gyroscope standard deviation.
+        double gyro_bias_std;   //!< Process noise gyroscope bias standard deviation.
+    };
+
+    struct MeasurementNoiseParams
+    {
+        double accel_std;           //!< accelerometer measurements std.
+        double magn_std;            //!< magnetometer measurements std.
+    };
+
+    struct InitCovParams
+    {
+        double qs_std;      //!< Initial qs estimate standard deviation.
+        double qx_std;      //!< Initial qx estimate standard deviation.
+        double qy_std;      //!< Initial qy estimate standard deviation.
+        double qz_std;      //!< Initial qz estimate standard deviation.
+        double bias_std;    //!< Initial gyro bias estimate standard deviation.
+    };
+
     struct
     {
-        struct
-        {
-            double gyro_std;        //!< Process noise gyroscope standard deviation.
-            double gyro_bias_std;   //!< Process noise gyroscope bias standard deviation.
-        } proc_params;
-
-        struct
-        {
-            double accel_std;           //!< accelerometer measurements std.
-            double magn_std;            //!< magnetometer measurements std.
-        } meas_params;
-
-        struct
-        {
-            double qs_std;      //!< Initial qs estimate standard deviation.
-            double qx_std;      //!< Initial qx estimate standard deviation.
-            double qy_std;      //!< Initial qy estimate standard deviation.
-            double qz_std;      //!< Initial qz estimate standard deviation.
-            double bias_std;    //!< Initial gyro bias estimate standard deviation.
-        } init_params;
+        ProcessNoiseParams proc_params;
+        MeasurementNoiseParams meas_params;
+        InitCovParams init_params;
     } params;
+
+    static constexpr ProcessNoiseParams 			default_proc_noise_params { 0.001, 0 };
+    static constexpr MeasurementNoiseParams 		default_meas_noise_params { 0.005, 1.2 };
+    static constexpr InitCovParams                  default_init_cov_params { 0.0001, 0.00001, 0.00001, 0.0001, 0 };
 };
 
 #endif // KALMANORIENTATIONFILTERBASE_H

@@ -39,14 +39,14 @@ namespace eaux
  * @param vec vector to display.
  * @param name vector label.
  */
-void debug_vector(const DynamicVector & vec, std::string name);
+void debug_vector(const DynamicVector & vec, const std::string & name);
 
 /*!
  * @brief Display matrix.
  * @param mtx matrix to display.
  * @param name matrix label.
  */
-void debug_matrix(const DynamicMatrix & mtx, std::string name);
+void debug_matrix(const DynamicMatrix & mtx, const std::string & name);
 
 }
 

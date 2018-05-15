@@ -11,7 +11,8 @@ KalmanOrientationFilterBase::KalmanOrientationFilterBase(const Ellipsoid & el)
       x{ state_type::Zero() },
       P{ P_type::Identity() },
       bias_ctrl{ accum_size },
-      initialized{ false }
+      initialized{ false },
+      params{ default_proc_noise_params, default_meas_noise_params, default_init_cov_params }
 {}
 
 KalmanOrientationFilterBase::~KalmanOrientationFilterBase() = default;

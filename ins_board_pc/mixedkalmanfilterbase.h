@@ -28,6 +28,7 @@ struct FilterBaseTraits<MixedKalmanFilterBase>
     using Q_type = F_type;
     using R_type = StaticMatrix<measurement_size, measurement_size>;
     using H_type = StaticMatrix<measurement_size, state_size>;
+    using K_type = StaticMatrix<state_size, measurement_size>;
     using PLL_type = StaticMatrix<PositionBaseTraits::state_size, OrientationBaseTraits::state_size>;
     using PUR_type = StaticMatrix<OrientationBaseTraits::state_size, PositionBaseTraits::state_size>;
 };
@@ -60,13 +61,16 @@ public:
     using Q_type = typename thy_traits::Q_type;
     using R_type = typename thy_traits::R_type;
     using H_type = typename thy_traits::H_type;
+    using K_type = typename thy_traits::K_type;
     using PLL_type = typename thy_traits::PLL_type;
     using PUR_type = typename thy_traits::PUR_type;
 
     using CRTPBase = IFilterBase<MixedKalmanFilterBase>;
+    using impl_type = CRTPBase::impl_type;
     using CRTPBase::accumulate;
     using CRTPBase::create_init_cov_mtx;
     using CRTPBase::create_meas_noise_cov_mtx;
+    using CRTPBase::create_meas_proj_mtx;
     using CRTPBase::create_proc_noise_cov_mtx;
     using CRTPBase::create_transition_mtx;
     using CRTPBase::get_cov;

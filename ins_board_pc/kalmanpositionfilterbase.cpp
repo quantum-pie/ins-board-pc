@@ -6,7 +6,8 @@ KalmanPositionFilterBase::KalmanPositionFilterBase(const Ellipsoid & ellip)
     : ellip{ ellip },
       x{ state_type::Zero() },
       P{ P_type::Identity() },
-      initialized{ false }
+      initialized{ false },
+      params{ default_proc_noise_params, default_meas_noise_params, default_init_cov_params }
 {}
 
 KalmanPositionFilterBase::~KalmanPositionFilterBase() = default;

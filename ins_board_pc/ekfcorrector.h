@@ -1,37 +1,37 @@
 #ifndef EKFCORRECTOR_H
 #define EKFCORRECTOR_H
 
-#include "eigenaux.h"
+#include "IFilterBase.h"
+#include "filterplugins.h"
+#include "packets.h"
 
 template<typename Base>
-class EKFCorrector : public Base
+struct EKFCorrector : ICorrector<EKFCorrector<Base>>,
+                     Base
 {
-    void correct(const FilterInput & z)
+    static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value, "Base class do not inherit IFilterBase CRTP");
+
+    void do_correct(const FilterInput & z)
     {
-        state_type x = get_state();
-        P_type P = get_cov();
+        auto x = this->get_state();
+        auto P = this->get_cov();
 
-        if(z.gps_valid)
-        {
-            Vector3D geo = get_geodetic(z);
+        Vector3D geo = this->get_geodetic(z);
 
-            meas_type z_meas = true_measurements(z);
-            meas_type z_pr = predicted_measurements(geo, z.day);
+        auto z_meas = this->get_true_measurement(z);
+        auto z_pr = this->get_predicted_measurement(geo, z.day);
 
-            auto y = z_meas - z_pr;
+        auto R = this->create_meas_noise_cov_mtx(geo, z.day);
+        auto H = this->create_meas_proj_mtx(geo, z.day);
 
-            R_type R = create_meas_noise_cov_mtx(geo, z.day);
-            H_type H = create_meas_proj_mtx(geo, z.day);
+        auto S = H * P * H.transpose() + R;
+        auto K = P * H.transpose() * S.inverse();
 
-            auto S = H * P * H.transpose() + R;
-            auto K = P * H.transpose() * S.inverse();
+        this->set_state(x + K * (z_meas - z_pr));
 
-            set_state(x + K * y);
-
-            auto tmp = P_type::Identity() - K * H;
-            set_cov(tmp * P * tmp.transpose() + K * R * K.transpose());
-        }
+        auto tmp = Base::P_type::Identity() - K * H;
+        this->set_cov(tmp * P * tmp.transpose() + K * R * K.transpose());
     }
-}
+};
 
 #endif // EKFCORRECTOR_H

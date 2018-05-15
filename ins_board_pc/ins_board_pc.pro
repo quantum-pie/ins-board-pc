@@ -30,18 +30,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
+INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/tools/Eigen3/include/eigen3 += C:/tools/boost_1_66_0
 
 SOURCES += main.cpp\
         mainwindow.cpp \
     qcustomplot.cpp \
     wmm/GeomagnetismLibrary.c \
     eigenaux.cpp \
-    fullekf.cpp \
-    fullukf.cpp \
-    positionlkf.cpp \
     orientationcomplement.cpp \
-    orientationekf.cpp \
     earth.cpp \
     ellipsoid.cpp \
     geometry.cpp \
@@ -55,21 +51,17 @@ SOURCES += main.cpp\
     quatutils.cpp \
     utils.cpp \
     packets.cpp \
-    orientationukf.cpp \
     kalmanpositionfilterbase.cpp \
     kalmanorientationfilterbase.cpp \
     mixedkalmanfilterbase.cpp
+
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
     wmm/GeomagnetismHeader.h \
     qualitycontrol.h \
     eigenaux.h \
-    positionlkf.h \
     orientationcomplement.h \
-    orientationekf.h \
-    fullukf.h \
-    fullekf.h \
     earth.h \
     ellipsoid.h \
     geometry.h \
@@ -90,7 +82,6 @@ HEADERS  += mainwindow.h \
     quatutils.h \
     quatfwd.h \
     utils.h \
-    orientationukf.h \
     kalmanpositionfilterbase.h \
     kalmanorientationfilterbase.h \
     mixedkalmanfilterbase.h \
@@ -98,6 +89,7 @@ HEADERS  += mainwindow.h \
     ekfcorrector.h \
     ukfcorrector.h \
     IFilterBase.h \
-    filterplugins.h
+    filterplugins.h \
+    generickalman.h
 
 FORMS    += mainwindow.ui

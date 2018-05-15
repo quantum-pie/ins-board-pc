@@ -361,20 +361,14 @@ private:
 
     QualityControl<Vector3D>                                                speed_control;
 
-    static constexpr IKalmanPositionFilter::ProcessNoiseParams              default_pos_proc_noise_params { 0.0001 };
-    static constexpr IKalmanPositionFilter::MeasurementNoiseParams          default_pos_meas_noise_params { 0.1, 0.1 };
-    static constexpr IKalmanPositionFilter::InitCovParams                   default_pos_init_cov_params { 0.00001, 0.0001, 0.001 };
-
     static constexpr double default_sim_speed { 30 };
     static constexpr double default_sim_angle { 0 };
 
-    static constexpr FullUKF::UnscentedTransformParams                      default_ut_params{ 0, 2, 1e-3 };
+
 
     static constexpr OrientationCF::FilterParams                            default_ori_params { 0.005, 0.00005, 0.00001, 500 };
 
-    static constexpr IKalmanOrientationFilter::ProcessNoiseParams 			default_ori_proc_noise_params { 0.001, 0 };
-    static constexpr IKalmanOrientationFilter::MeasurementNoiseParams 		default_ori_meas_noise_params { 0.005, 1.2 };
-    static constexpr IKalmanOrientationFilter::InitCovParams 				default_ori_init_cov_params { 0.0001, 0.00001, 0.00001, 0.0001, 0 };
+
 };
 
 #endif // MAINWINDOW_H

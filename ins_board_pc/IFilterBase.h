@@ -13,25 +13,11 @@ class FilterInput;
 template<typename Derived>
 struct IFilterBase
 {
+    using impl_type = Derived;
     using derived_traits = FilterBaseTraits<Derived>;
 
-    using meas_type =   typename derived_traits::meas_type;
     using state_type =  typename derived_traits::state_type;
     using P_type =      typename derived_traits::P_type;
-    using F_type =      typename derived_traits::F_type;
-    using Q_type =      typename derived_traits::Q_type;
-    using R_type =      typename derived_traits::R_type;
-    using H_type =      typename derived_traits::H_type;
-
-    meas_type get_true_measurement(const FilterInput & z) const
-    {
-        return derived().do_get_true_measurement(z);
-    }
-
-    meas_type get_predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const
-    {
-        return derived().do_get_predicted_measurement(geo, day);
-    }
 
     state_type get_state() const
     {
@@ -51,6 +37,16 @@ struct IFilterBase
     void set_cov(const P_type & P)
     {
         derived().do_set_cov(P);
+    }
+
+    auto get_true_measurement(const FilterInput & z) const
+    {
+        return derived().do_get_true_measurement(z);
+    }
+
+    auto get_predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const
+    {
+        return derived().do_get_predicted_measurement(geo, day);
     }
 
     Vector3D get_geodetic(const FilterInput & z) const
@@ -83,7 +79,7 @@ struct IFilterBase
      * @param z filter input reference.
      * @return state transition matrix.
      */
-    F_type create_transition_mtx(const FilterInput & z) const
+    auto create_transition_mtx(const FilterInput & z) const
     {
         return derived().do_create_transition_mtx(z);
     }
@@ -93,7 +89,7 @@ struct IFilterBase
      * @param dt time elapsed since the last step.
      * @return state transition matrix.
      */
-    P_type create_init_cov_mtx() const
+    auto create_init_cov_mtx() const
     {
         return derived().do_create_init_cov_mtx();
     }
@@ -103,7 +99,7 @@ struct IFilterBase
      * @param dt time elapsed since the last step.
      * @return process noise covariance matrix.
      */
-    Q_type create_proc_noise_cov_mtx(double dt) const
+    auto create_proc_noise_cov_mtx(double dt) const
     {
         return derived().do_create_proc_noise_cov_mtx(dt);
     }
@@ -114,7 +110,7 @@ struct IFilterBase
      * @param mag_magn magnetic field magnitude.
      * @return measurement noise covariance matrix.
      */
-    R_type create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
+    auto create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
     {
         return derived().do_create_meas_noise_cov_mtx(geo, day);
     }
@@ -125,7 +121,7 @@ struct IFilterBase
      * @param earth_model Earth model.
      * @return state-to-measurement projection matrix.
      */
-    H_type create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
+    auto create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const
     {
         return derived().do_create_meas_proj_mtx(geo, day);
     }
