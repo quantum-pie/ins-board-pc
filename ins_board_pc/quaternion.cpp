@@ -11,6 +11,9 @@ namespace quat
 
 const Quaternion Quaternion::identity {1.0, 0, 0, 0};
 
+Quaternion::Quaternion() : qs{1}, qx{0}, qy{0}, qz{0}
+{}
+
 Quaternion::Quaternion(double qs, double qx, double qy, double qz)
 						: qs{qs}, qx{qx}, qy{qy}, qz{qz}
 {}

@@ -18,6 +18,11 @@ namespace quat
 class Quaternion
 {
 public:
+    /*!
+     * @brief Default constructor.
+     */
+    Quaternion();
+
 	/*!
 	 * @brief Class constructor from quaternion elements.
 	 * @param qs qs.
