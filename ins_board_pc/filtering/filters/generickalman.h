@@ -20,7 +20,7 @@
  * @tparam Interfaces interfaces to implement.
  */
 template<typename Implementation, typename... Interfaces>
-class GenericKalmanFilter : public virtual Interfaces..., Implementation
+class GenericKalmanFilter final : public virtual Interfaces..., Implementation
 {
     // Ensure that provided implementation has IExtrapolator and ICorrector plugins.
     static_assert(std::is_base_of<IExtrapolator<typename Implementation::exptrapolator_base>, Implementation>::value &&

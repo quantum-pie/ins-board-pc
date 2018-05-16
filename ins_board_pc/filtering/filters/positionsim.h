@@ -11,6 +11,8 @@
 
 #include <memory>
 
+// TODO refactor
+
 /*!
  * @brief Concrete Kalman linear position filter simulator.
  */

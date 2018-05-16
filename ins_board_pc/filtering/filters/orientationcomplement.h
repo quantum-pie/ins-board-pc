@@ -9,6 +9,8 @@
 #include "qualitycontrol.h"
 #include "earth.h"
 
+// TODO refactor
+
 /*!
  * @brief Concrete complementary orientation filter class.
  */
