@@ -6,9 +6,14 @@
 
 #include "packets.h"
 
+/*!
+ * @brief Extended Kalman filter correction prccedure mixin.
+ * @tparam Base base filter implementation.
+ */
 template<typename Base>
 struct EKFCorrector : ICorrector<EKFCorrector<Base>>, Base
 {
+    // Ensure that provided Base implements IFilterBase CRTP interface.
     static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
                   "Base class do not inherit IFilterBase CRTP");
 

@@ -12,12 +12,20 @@
 
 #include <Eigen/Dense>
 
+/*!
+ * @brief Unscented Kalman filter correction prccedure mixin.
+ * @tparam Base base filter implementation.
+ */
 template<typename Base>
 struct UKFCorrector : ICorrector<UKFCorrector<Base>>, Base
 {
+    // Ensure that provided Base implements IFilterBase CRTP interface.
     static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
                   "Base class do not inherit IFilterBase CRTP");
 
+    /*!
+     * @brief Class constructor.
+     */
     UKFCorrector() : params{ default_ut_params }
     {
         double alpha_sq = params.alpha * params.alpha;
@@ -82,6 +90,7 @@ struct UKFCorrector : ICorrector<UKFCorrector<Base>>, Base
     }
 
 private:
+    // Borrow aliases from Base.
     using state_type = typename Base::state_type;
     using meas_type = typename Base::meas_type;
     using P_type = typename Base::P_type;

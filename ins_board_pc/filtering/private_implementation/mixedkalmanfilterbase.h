@@ -12,6 +12,9 @@
 
 class MixedKalmanFilterBase;
 
+/*!
+ * @brief Kalman mixed filter base traits specialization.
+ */
 template<>
 struct FilterBaseTraits<MixedKalmanFilterBase>
 {
@@ -34,25 +37,32 @@ struct FilterBaseTraits<MixedKalmanFilterBase>
     using PUR_type = StaticMatrix<OrientationBaseTraits::state_size, PositionBaseTraits::state_size>;
 };
 
-
+/*!
+ * @brief Kalman mixed filter base implementation.
+ */
 class MixedKalmanFilterBase : public IFilterBase<MixedKalmanFilterBase>,
                               KalmanOrientationFilterBase,
                               KalmanPositionFilterBase
 {
 public:
-    MixedKalmanFilterBase(const Ellipsoid & ellip = Ellipsoid::WGS84);
+    /*!
+     * @brief Class constructor.
+     * @param ellip Earth ellipsoid.
+     */
+    explicit MixedKalmanFilterBase(const Ellipsoid & ellip = Ellipsoid::WGS84);
 
+    /*!
+     * @brief Class destructor.
+     */
     ~MixedKalmanFilterBase() override;
 
+    //! Traits of this implementation alias.
     using thy_traits = FilterBaseTraits<MixedKalmanFilterBase>;
 
     static constexpr std::size_t ori_state_size { thy_traits::OrientationBaseTraits::state_size };
     static constexpr std::size_t pos_state_size { thy_traits::PositionBaseTraits::state_size };
     static constexpr std::size_t ori_meas_size { thy_traits::OrientationBaseTraits::measurement_size };
     static constexpr std::size_t pos_meas_size { thy_traits::PositionBaseTraits::measurement_size };
-
-    static constexpr std::size_t state_size { thy_traits::state_size };
-    static constexpr std::size_t measurement_size { thy_traits::measurement_size };
 
     using state_type = typename thy_traits::state_type;
     using meas_type = typename thy_traits::meas_type;
@@ -89,6 +99,7 @@ public:
 private:
     friend class IFilterBase<MixedKalmanFilterBase>;
 
+    // Static polymorphism implementation
     meas_type do_get_true_measurement(const FilterInput & z) const;
     meas_type do_get_predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const;
 
@@ -105,47 +116,17 @@ private:
     void do_initialize(const FilterInput & z);
     void do_accumulate(const FilterInput & z);
 
-    /*!
-     * @brief Create state transition matrix (F).
-     * @param z filter input reference.
-     * @return state transition matrix.
-     */
     F_type do_create_transition_mtx(const FilterInput & z) const;
-
-    /*!
-     * @brief Create initial state estimate covariance matrix (P).
-     * @param dt time elapsed since the last step.
-     * @return state transition matrix.
-     */
     P_type do_create_init_cov_mtx() const;
-
-    /*!
-     * @brief Create process noise covariance matrix (Q).
-     * @param dt time elapsed since the last step.
-     * @return process noise covariance matrix.
-     */
     Q_type do_create_proc_noise_cov_mtx(double dt) const;
-
-    /*!
-     * @brief Create measurement noise covariance matrix (R).
-     * @param geo geodetic coordinates.
-     * @param mag_magn magnetic field magnitude.
-     * @return measurement noise covariance matrix.
-     */
     R_type do_create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
-
-    /*!
-     * @brief Create state-to-measurement projection matrix (H).
-     * @param geo geodetic coordinates.
-     * @param earth_model Earth model.
-     * @return state-to-measurement projection matrix.
-     */
     H_type do_create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 
+    // Dynamic polymorphism implementation
     void do_reset() override;
 
-    PLL_type PLL;
-    PUR_type PUR;
+    PLL_type PLL;   //!< Lower left state estimate covariance matrix block.
+    PUR_type PUR;   //!< Upper right state estimate covariance matrix block.
 };
 
 #endif // MIXEDKALMANFILTERBASE_H

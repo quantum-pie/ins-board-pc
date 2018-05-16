@@ -12,9 +12,17 @@
 #include "filtering/plugins/ekfcorrector.h"
 #include "filtering/plugins/ukfcorrector.h"
 
+/*!
+ * @brief Generic Kalman filter class.
+ *
+ * This class implements Kalman filter interface privately inheriting from specific implementation.
+ * @tparam Implementation implementation class.
+ * @tparam Interfaces interfaces to implement.
+ */
 template<typename Implementation, typename... Interfaces>
 class GenericKalmanFilter : public virtual Interfaces..., Implementation
 {
+    // Ensure that provided implementation has IExtrapolator and ICorrector plugins.
     static_assert(std::is_base_of<IExtrapolator<typename Implementation::exptrapolator_base>, Implementation>::value &&
                   std::is_base_of<ICorrector<typename Implementation::corrector_base>, Implementation>::value,
                   "Extrapolator and Corrector interfaces are not implemented");
@@ -39,6 +47,7 @@ class GenericKalmanFilter : public virtual Interfaces..., Implementation
     }
 };
 
+// Typedefs for concrete Kalman filters.
 using PositionEKF =     GenericKalmanFilter<EKFCorrector<KFExtrapolator<KalmanPositionFilterBase>>, IKalmanPositionFilter>;
 using PositionUKF =     GenericKalmanFilter<UKFCorrector<KFExtrapolator<KalmanPositionFilterBase>>, IKalmanPositionFilter>;
 using OrientationEKF =  GenericKalmanFilter<EKFCorrector<KFExtrapolator<KalmanOrientationFilterBase>>, IKalmanOrientationFilter>;

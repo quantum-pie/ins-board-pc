@@ -6,9 +6,14 @@
 
 #include "packets.h"
 
+/*!
+ * @brief Extended Kalman filter extrapolation prccedure mixin.
+ * @tparam Base base filter implementation.
+ */
 template<typename Base>
 struct KFExtrapolator : IExtrapolator<KFExtrapolator<Base>>, Base
 {
+    // Ensure that provided Base implements IFilterBase CRTP interface.
     static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
                   "Base class do not inherit IFilterBase CRTP");
 

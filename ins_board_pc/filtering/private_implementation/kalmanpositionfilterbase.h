@@ -8,6 +8,9 @@
 
 class KalmanPositionFilterBase;
 
+/*!
+ * @brief Kalman position filter base traits specialization.
+ */
 template<>
 struct FilterBaseTraits<KalmanPositionFilterBase>
 {
@@ -25,13 +28,25 @@ struct FilterBaseTraits<KalmanPositionFilterBase>
     using K_type = StaticMatrix<state_size, measurement_size>;
 };
 
+/*!
+ * @brief Kalman position filter base implementation.
+ */
 class KalmanPositionFilterBase : virtual public IKalmanPositionFilter,
                                  public IFilterBase<KalmanPositionFilterBase>
 {
 public:
+    /*!
+     * @brief Class constructor.
+     * @param ellip Earth ellipsoid.
+     */
     explicit KalmanPositionFilterBase(const Ellipsoid & ellip = Ellipsoid::WGS84);
+
+    /*!
+     * @brief Class destructor.
+     */
     ~KalmanPositionFilterBase() override;
 
+    //! Traits of this implementation alias.
     using thy_traits = FilterBaseTraits<KalmanPositionFilterBase>;
 
     using state_type = typename thy_traits::state_type;
@@ -47,6 +62,7 @@ public:
 private:
     friend class IFilterBase<KalmanPositionFilterBase>;
 
+    // Static polymorphism implementation
     meas_type do_get_true_measurement(const FilterInput & z) const;
     meas_type do_get_predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const;
 
@@ -63,43 +79,13 @@ private:
 
     Vector3D do_get_geodetic(const FilterInput & z) const;
 
-    /*!
-     * @brief Create state transition matrix (F).
-     * @param z filter input reference.
-     * @return state transition matrix.
-     */
     F_type do_create_transition_mtx(const FilterInput & z) const;
-
-    /*!
-     * @brief Create initial state estimate covariance matrix (P).
-     * @param dt time elapsed since the last step.
-     * @return state transition matrix.
-     */
     P_type do_create_init_cov_mtx() const;
-
-    /*!
-     * @brief Create process noise covariance matrix (Q).
-     * @param dt time elapsed since the last step.
-     * @return process noise covariance matrix.
-     */
     Q_type do_create_proc_noise_cov_mtx(double dt) const;
-
-    /*!
-     * @brief Create measurement noise covariance matrix (R).
-     * @param geo geodetic coordinates.
-     * @param mag_magn magnetic field magnitude.
-     * @return measurement noise covariance matrix.
-     */
     R_type do_create_meas_noise_cov_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
-
-    /*!
-     * @brief Create state-to-measurement projection matrix (H).
-     * @param geo geodetic coordinates.
-     * @param earth_model Earth model.
-     * @return state-to-measurement projection matrix.
-     */
     H_type do_create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 
+    // Dynamic polymorphism implementation
     void do_reset() override;
 
     Ellipsoid do_get_ellipsoid() const override;
@@ -121,11 +107,11 @@ private:
     double do_get_init_vel_std() const override;
     double do_get_init_accel_std() const override;
 
-    const Ellipsoid ellip;
-    state_type x;
-    P_type P;
+    const Ellipsoid ellip;      //!< Reference Earth model.
+    state_type x;               //!< Filter state.
+    P_type P;                   //!< State estimate covariance matrix.
 
-    bool initialized;
+    bool initialized;           //!< Filter is initialized flag.
 
     struct ProcessNoiseParams
     {
