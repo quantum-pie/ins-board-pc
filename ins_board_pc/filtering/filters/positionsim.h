@@ -11,8 +11,6 @@
 
 #include <memory>
 
-// TODO refactor
-
 /*!
  * @brief Concrete Kalman linear position filter simulator.
  */
@@ -20,24 +18,15 @@ class PositionSim final : public IPositionFilter
 {
 public:
     /*!
-     * @brief Simulator parameters structure.
-     */
-    struct FilterParams
-    {
-        double initial_track;       //!< Start track angle.
-        double speed;               //!< Movement speed.
-    };
-
-    /*!
      * @brief Class constructor.
      * @param params filter parameters.
      */
-    explicit PositionSim(const FilterParams & params);
+    PositionSim();
 
     /*!
      * @brief Class destructor.
      */
-    ~PositionSim() override;
+    ~PositionSim() override = default;
 
 	/*!
 	 * @brief Set start track angle.

@@ -8,10 +8,6 @@
 
 #include "filtering/public_interfaces/IPositionFilter.h"
 
-#include <memory>
-
-// TODO refactor
-
 /*!
  * @brief Concrete Kalman linear position filter bypass.
  */
@@ -26,7 +22,7 @@ public:
     /*!
      * @brief Class destructor.
      */
-    ~PositionBypass() override;
+    ~PositionBypass() override = default;
 
 private:
     /* IPositionFilter interface implementation */
@@ -38,8 +34,8 @@ private:
     Vector3D do_get_velocity() const override;
     Vector3D do_get_acceleration() const override;
 
-    struct Impl;
-    std::unique_ptr<Impl> pimpl;
+    Vector3D pos;
+    Vector3D vel;
 };
 
 #endif /* INCLUDE_POSITIONBYPASS_H_ */
