@@ -15,7 +15,7 @@
 /*!
  * @brief Position filter interface.
  */
-struct IPositionFilter : virtual IFilter
+struct IPositionFilter : IFilter
 {
     /*!
      * @brief Get ECEF coordinates vector.

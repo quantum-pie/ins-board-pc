@@ -14,7 +14,7 @@
 /*!
  * @brief Orientation filter interface.
  */
-struct IOrientationFilter : virtual IFilter
+struct IOrientationFilter : IFilter
 {
     /*!
      * @brief Get current orientation quaternion.
