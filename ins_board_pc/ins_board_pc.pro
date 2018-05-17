@@ -30,12 +30,25 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
+INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    qcustomplot.cpp \
-    wmm/GeomagnetismLibrary.c \
+SOURCES += filtering/filters/orientationcomplement.cpp \
+    filtering/filters/positionbypass.cpp \
+    filtering/filters/positionsim.cpp \
+    filtering/private_implementation/kalmanorientationfilterbase.cpp \
+    filtering/private_implementation/kalmanpositionfilterbase.cpp \
+    filtering/private_implementation/mixedkalmanfilterbase.cpp \
+    models/complorientationfilteringmodel.cpp \
+    models/kalmanorientationfilteringmodel.cpp \
+    models/kalmanpositionfilteringmodel.cpp \
+    models/orientationfilteringmodel.cpp \
+    models/positionfilteringmodel.cpp \
+    models/simpositionfilteringmodel.cpp \
+    views/enupositionview.cpp \
+    views/rpyorientationview.cpp \
+    views/xdorientationview.cpp \
+    basefilteringmodel.cpp \
+    basefilteringview.cpp \
     earth.cpp \
     eigenaux.cpp \
     ellipsoid.cpp \
@@ -44,34 +57,17 @@ SOURCES += main.cpp\
     horizon.cpp \
     magncalibrator.cpp \
     magnetic.cpp \
+    main.cpp \
+    mainwindow.cpp \
     packets.cpp \
+    qcustomplot.cpp \
     quaternion.cpp \
     quatutils.cpp \
     utils.cpp \
-    filtering/filters/positionsim.cpp \
-    filtering/filters/positionbypass.cpp \
-    filtering/filters/orientationcomplement.cpp \
-    filtering/private_implementation/mixedkalmanfilterbase.cpp \
-    filtering/private_implementation/kalmanpositionfilterbase.cpp \
-    filtering/private_implementation/kalmanorientationfilterbase.cpp
+    wmm/GeomagnetismLibrary.c
 
-HEADERS  += mainwindow.h \
-    qcustomplot.h \
-    wmm/GeomagnetismHeader.h \
-    qualitycontrol.h \
-    eigenaux.h \
-    earth.h \
-    ellipsoid.h \
-    geometry.h \
-    gravity.h \
-    magncalibrator.h \
-    magnetic.h \
-    quaternion.h \
-    packets.h \
-    horizon.h \
-    quatutils.h \
-    quatfwd.h \
-    utils.h \
+HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
+    controllers/kalmanpositionfilteringcontroller.h \
     filtering/filters/generickalman.h \
     filtering/filters/orientationcomplement.h \
     filtering/filters/positionbypass.h \
@@ -80,15 +76,46 @@ HEADERS  += mainwindow.h \
     filtering/plugins/filterplugins.h \
     filtering/plugins/kfextrapolator.h \
     filtering/plugins/ukfcorrector.h \
+    filtering/private_implementation/IFilterBase.h \
+    filtering/private_implementation/kalmanorientationfilterbase.h \
+    filtering/private_implementation/kalmanpositionfilterbase.h \
+    filtering/private_implementation/mixedkalmanfilterbase.h \
     filtering/public_interfaces/IComplementOrientationFilter.h \
     filtering/public_interfaces/IFilter.h \
     filtering/public_interfaces/IKalmanOrientationFilter.h \
     filtering/public_interfaces/IKalmanPositionFilter.h \
     filtering/public_interfaces/IOrientationFilter.h \
     filtering/public_interfaces/IPositionFilter.h \
-    filtering/private_implementation/IFilterBase.h \
-    filtering/private_implementation/kalmanorientationfilterbase.h \
-    filtering/private_implementation/kalmanpositionfilterbase.h \
-    filtering/private_implementation/mixedkalmanfilterbase.h
+    models/complorientationfilteringmodel.h \
+    models/kalmanorientationfilteringmodel.h \
+    models/kalmanpositionfilteringmodel.h \
+    models/orientationfilteringmodel.h \
+    models/positionfilteringmodel.h \
+    models/simpositionfilteringmodel.h \
+    views/enupositionview.h \
+    views/rpyorientationview.h \
+    views/xdorientationview.h \
+    wmm/GeomagnetismHeader.h \
+    basefilteringmodel.h \
+    basefilteringview.h \
+    earth.h \
+    eigenaux.h \
+    ellipsoid.h \
+    geometry.h \
+    gravity.h \
+    horizon.h \
+    magncalibrator.h \
+    magnetic.h \
+    mainwindow.h \
+    packets.h \
+    qcustomplot.h \
+    qualitycontrol.h \
+    quaternion.h \
+    quatfwd.h \
+    quatutils.h \
+    utils.h \
+    controllers/IFilteringController.h \
+    controllers/mixedkalmanfilteringcontroller.h \
+    models/basefilteringmodel.h
 
 FORMS    += mainwindow.ui
