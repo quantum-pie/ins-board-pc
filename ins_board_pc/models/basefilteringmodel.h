@@ -2,7 +2,6 @@
 #define IFILTERINGMODEL_H
 
 #include <QObject>
-#include <memory>
 
 class FilterInput;
 
@@ -12,12 +11,15 @@ class BaseFilteringModel : QObject
     Q_OBJECT
 
 public:
-    BaseFilteringModel(QObject *parent = nullptr)
-        : QObject(parent) {}
+    using filter_type = Filter;
 
-    void set_strategy(std::shared_ptr<Filter> other_filter)
+    BaseFilteringModel()
+        : QObject{ nullptr } {}
+
+    void set_strategy(Filter * other_filter)
     {
         filtering_strategy = other_filter;
+        emit strategy_changed();
     }
 
     void step(const FilterInput & z)
@@ -33,9 +35,10 @@ public:
 
 signals:
     void refreshed() const;
+    void strategy_changed() const;
 
 protected:
-    std::shared_ptr<Filter> filtering_strategy;
+    Filter * filtering_strategy;
 };
 
 #endif // IFILTERINGMODEL_H

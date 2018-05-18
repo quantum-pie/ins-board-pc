@@ -1,7 +1,7 @@
 #ifndef KALMANPOSITIONFILTERINGMODEL_H
 #define KALMANPOSITIONFILTERINGMODEL_H
 
-#include "positionfilteringmodel.h"
+#include "models/positionfilteringmodel.h"
 #include "filtering/public_interfaces/IKalmanPositionFilter.h"
 
 struct KalmanPositionFilteringModel : PositionFilteringModel<IKalmanPositionFilter>
