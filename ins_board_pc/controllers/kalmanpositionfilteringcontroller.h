@@ -5,61 +5,27 @@
 #include "controllers/basefilteringcontroller.h"
 #include "models/kalmanpositionfilteringmodel.h"
 
-class KalmanPositionFilteringController :
-        public BaseFilteringController<KalmanPositionFilteringModel>
+class KalmanPositionFilteringController : public BaseFilteringController
 {
 public:
-    using model_type = KalmanPositionFilteringModel;
-    using base_type = BaseFilteringController<model_type>;
-    using base_type::handle_strategy;
+    explicit KalmanPositionFilteringController(KalmanPositionFilteringModel & model);
+    void handle_kp_strategy(IKalmanPositionFilter * other_filter);
 
-    KalmanPositionFilteringController(model_type & model)
-        : base_type{ model } {}
+    using BaseFilteringController::handle_input;
+    using BaseFilteringController::handle_start;
 
 public slots:
-    void handle_strategy(int combobox_idx)
-    {
-        if(combobox_idx == 0)
-        {
-            model.set_strategy(&ekf_filter);
-        }
-        else if(combobox_idx == 1)
-        {
-            model.set_strategy(&ukf_filter);
-        }
-    }
-
-    void on_proc_accel_std(double std)
-    {
-        model.set_proc_accel_std(std);
-    }
-
-    void on__meas_pos_std(double std)
-    {
-        model.set_meas_pos_std(std);
-    }
-
-    void on_meas_vel_std(double std)
-    {
-        model.set_meas_vel_std(std);
-    }
-
-    void on_init_pos_std(double std)
-    {
-        model.set_init_pos_std(std);
-    }
-
-    void on_init_vel_std(double std)
-    {
-        model.set_init_vel_std(std);
-    }
-
-    void on_init_accel_std(double std)
-    {
-        model.set_init_accel_std(std);
-    }
+    void handle_kp_strategy(int combobox_idx);
+    void on_proc_accel_std(double std);
+    void on__meas_pos_std(double std);
+    void on_meas_vel_std(double std);
+    void on_init_pos_std(double std);
+    void on_init_vel_std(double std);
+    void on_init_accel_std(double std);
 
 private:
+    KalmanPositionFilteringModel & model;
+
     PositionEKF ekf_filter;
     PositionUKF ukf_filter;
 };

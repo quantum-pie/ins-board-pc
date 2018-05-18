@@ -1,52 +1,26 @@
 #ifndef IFILTERINGCONTROLLER_H
 #define IFILTERINGCONTROLLER_H
 
-#include "models/basefilteringmodel.h"
+#include "models/filteringmodelbase.h"
 
 #include <QObject>
 
 class FilterInput;
 
-template<typename Model>
 class BaseFilteringController : public QObject
 {
     Q_OBJECT
 
 public:
-    BaseFilteringController(Model & model)
-        : QObject{ nullptr },
-          model { model },
-          is_running{ false }
-    {}
-
-    void handle_strategy(typename Model::filter_type * filter)
-    {
-        model.set_strategy(filter);
-        model.reset();
-    }
+    explicit BaseFilteringController(BaseFilteringModel & model);
+    void handle_strategy(IFilter * filter);
 
 public slots:
-    void handle_start(bool en)
-    {
-        is_running = en;
-        if(en)
-        {
-            model.reset();
-        }
-    }
-
-    void handle_input(const FilterInput & z)
-    {
-        if(is_running)
-        {
-            model.step(z);
-        }
-    }
-
-protected:
-    Model & model;
+    void handle_start(bool en);
+    void handle_input(const FilterInput & z);
 
 private:
+    BaseFilteringModel & model;
     bool is_running;
 };
 

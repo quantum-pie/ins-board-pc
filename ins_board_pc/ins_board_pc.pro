@@ -30,7 +30,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
+INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
 
 SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/filters/positionbypass.cpp \
@@ -41,8 +41,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     models/complorientationfilteringmodel.cpp \
     models/kalmanorientationfilteringmodel.cpp \
     models/kalmanpositionfilteringmodel.cpp \
-    models/orientationfilteringmodel.cpp \
-    models/positionfilteringmodel.cpp \
     models/simpositionfilteringmodel.cpp \
     views/enupositionview.cpp \
     views/rpyorientationview.cpp \
@@ -62,7 +60,13 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     quaternion.cpp \
     quatutils.cpp \
     utils.cpp \
-    wmm/GeomagnetismLibrary.c
+    wmm/GeomagnetismLibrary.c \
+    controllers/kalmanfilteringmetacontroller.cpp \
+    controllers/kalmanorientationfilteringcontroller.cpp \
+    controllers/kalmanpositionfilteringcontroller.cpp \
+    views/attrkalmanorientationview.cpp \
+    views/attrkalmanpositionview.cpp \
+    controllers/basefilteringcontroller.cpp
 
 HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     controllers/kalmanpositionfilteringcontroller.h \
@@ -87,10 +91,7 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     models/complorientationfilteringmodel.h \
     models/kalmanorientationfilteringmodel.h \
     models/kalmanpositionfilteringmodel.h \
-    models/orientationfilteringmodel.h \
-    models/positionfilteringmodel.h \
     models/simpositionfilteringmodel.h \
-    models/basefilteringmodel.h \
     views/enupositionview.h \
     views/rpyorientationview.h \
     views/xdorientationview.h \
@@ -114,6 +115,9 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     controllers/basefilteringcontroller.h \
     controllers/kalmanfilteringmetacontroller.h \
     views/attrkalmanpositionview.h \
-    views/attrkalmanorientationview.h
+    views/attrkalmanorientationview.h \
+    views/baseorientationview.h \
+    models/IFilteringModel.h \
+    models/filteringmodelbase.h
 
 FORMS    += mainwindow.ui

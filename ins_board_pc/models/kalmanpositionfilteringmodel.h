@@ -1,73 +1,43 @@
 #ifndef KALMANPOSITIONFILTERINGMODEL_H
 #define KALMANPOSITIONFILTERINGMODEL_H
 
-#include "models/positionfilteringmodel.h"
+#include "models/IFilteringModel.h"
 #include "filtering/public_interfaces/IKalmanPositionFilter.h"
 
-struct KalmanPositionFilteringModel : PositionFilteringModel<IKalmanPositionFilter>
+struct KalmanPositionFilteringModel : IFilteringModel<IKalmanPositionFilter>
 {
-    KalmanPositionFilteringModel()
-        : PositionFilteringModel<IKalmanPositionFilter>() {}
+    KalmanPositionFilteringModel(IKalmanPositionFilter * filter)
+        : filtering_strategy{ filter } {}
 
-    void set_proc_accel_std(double std)
-    {
-        filtering_strategy->set_proc_accel_std(std);
-    }
+    void set_strategy(IKalmanPositionFilter * other_filter);
 
-    void set_meas_pos_std(double std)
-    {
-        filtering_strategy->set_meas_pos_std(std);
-    }
+signals:
+    void strategy_changed() const;
 
-    void set_meas_vel_std(double std)
-    {
-        filtering_strategy->set_meas_vel_std(std);
-    }
+private:
+    void do_step(const FilterInput & z) override;
+    void do_reset() override;
 
-    void set_init_pos_std(double std)
-    {
-        filtering_strategy->set_init_pos_std(std);
-    }
+    Vector3D do_get_cartesian() const override;
+    Ellipsoid do_get_ellipsoid() const override;
+    Vector3D do_get_velocity() const override;
+    Vector3D do_get_acceleration() const override;
 
-    void set_init_vel_std(double std)
-    {
-        filtering_strategy->set_init_vel_std(std);
-    }
+    void do_set_proc_accel_std(double std) override;
+    void do_set_meas_pos_std(double std) override;
+    void do_set_meas_vel_std(double std) override;
+    void do_set_init_pos_std(double std) override;
+    void do_set_init_vel_std(double std) override;
+    void do_set_init_accel_std(double std) override;
 
-    void set_init_accel_std(double std)
-    {
-        filtering_strategy->set_init_accel_std(std);
-    }
+    double do_get_proc_accel_std() const override;
+    double do_get_meas_pos_std() const override;
+    double do_get_meas_vel_std() const override;
+    double do_get_init_pos_std() const override;
+    double do_get_init_vel_std() const override;
+    double do_get_init_accel_std() const override;
 
-    double get_proc_accel_std() const
-    {
-        return filtering_strategy->get_proc_accel_std();
-    }
-
-    double get_meas_pos_std() const
-    {
-        return filtering_strategy->get_meas_pos_std();
-    }
-
-    double get_meas_vel_std() const
-    {
-        return filtering_strategy->get_meas_vel_std();
-    }
-
-    double get_init_pos_std() const
-    {
-        return filtering_strategy->get_init_pos_std();
-    }
-
-    double get_init_vel_std() const
-    {
-        return filtering_strategy->get_init_vel_std();
-    }
-
-    double get_init_accel_std() const
-    {
-        return filtering_strategy->get_init_accel_std();
-    }
+    IKalmanPositionFilter * filtering_strategy;
 };
 
 #endif // KALMANPOSITIONFILTERINGMODEL_H
