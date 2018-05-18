@@ -30,7 +30,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
+INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
 
 SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/filters/positionbypass.cpp \
@@ -47,8 +47,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     views/enupositionview.cpp \
     views/rpyorientationview.cpp \
     views/xdorientationview.cpp \
-    basefilteringmodel.cpp \
-    basefilteringview.cpp \
     earth.cpp \
     eigenaux.cpp \
     ellipsoid.cpp \
@@ -92,12 +90,11 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     models/orientationfilteringmodel.h \
     models/positionfilteringmodel.h \
     models/simpositionfilteringmodel.h \
+    models/basefilteringmodel.h \
     views/enupositionview.h \
     views/rpyorientationview.h \
     views/xdorientationview.h \
     wmm/GeomagnetismHeader.h \
-    basefilteringmodel.h \
-    basefilteringview.h \
     earth.h \
     eigenaux.h \
     ellipsoid.h \
@@ -114,8 +111,9 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     quatfwd.h \
     quatutils.h \
     utils.h \
-    controllers/IFilteringController.h \
-    controllers/mixedkalmanfilteringcontroller.h \
-    models/basefilteringmodel.h
+    controllers/basefilteringcontroller.h \
+    controllers/kalmanfilteringmetacontroller.h \
+    views/attrkalmanpositionview.h \
+    views/attrkalmanorientationview.h
 
 FORMS    += mainwindow.ui
