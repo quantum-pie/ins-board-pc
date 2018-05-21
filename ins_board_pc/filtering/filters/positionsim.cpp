@@ -3,6 +3,7 @@
  *
  *      Author: Ermakov_P
  */
+#include "eigenaux.h"
 #include "positionsim.h"
 #include "ellipsoid.h"
 #include "packets.h"
@@ -76,26 +77,6 @@ PositionSim::PositionSim()
     : pimpl{ std::make_unique<Impl>() }
 {}
 
-void PositionSim::set_initial_track(double radians)
-{
-    pimpl->params.initial_track = radians;
-}
-
-void PositionSim::set_speed(double ms)
-{
-    pimpl->params.speed = ms;
-}
-
-double PositionSim::get_initial_track() const
-{
-    return pimpl->params.initial_track;
-}
-
-double PositionSim::get_speed() const
-{
-    return pimpl->params.speed;
-}
-
 void PositionSim::do_step(const FilterInput & z)
 {
     if(pimpl->is_initialized)
@@ -131,4 +112,24 @@ Vector3D PositionSim::do_get_velocity() const
 Vector3D PositionSim::do_get_acceleration() const
 {
     return pimpl->acc;
+}
+
+void PositionSim::do_set_initial_track(double radians)
+{
+    pimpl->params.initial_track = radians;
+}
+
+void PositionSim::do_set_speed(double ms)
+{
+    pimpl->params.speed = ms;
+}
+
+double PositionSim::do_get_initial_track() const
+{
+    return pimpl->params.initial_track;
+}
+
+double PositionSim::do_get_speed() const
+{
+    return pimpl->params.speed;
 }

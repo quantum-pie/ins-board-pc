@@ -7,14 +7,13 @@
 #ifndef INCLUDE_IFILTER_H_
 #define INCLUDE_IFILTER_H_
 
-class FilterInput;
+#include "core/IFilterCore.h"
 
 /*!
  * @brief Filter interface.
  */
-struct IFilter
+struct IFilter : private IFilterCore
 {
-public:
     /*!
      * @brief Make step.
      * @param z filter input.
@@ -36,10 +35,6 @@ public:
      * @brief Class desctructor.
      */
     virtual ~IFilter() = default;
-
-private:
-    virtual void do_step(const FilterInput & z) = 0;
-    virtual void do_reset() = 0;
 };
 
 #endif /* INCLUDE_IFILTER_H_ */

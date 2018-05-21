@@ -8,11 +8,15 @@
 #define INCLUDE_IKALMANPOSITIONFILTERATTRIBUTES_H_
 
 #include "filtering/public_interfaces/IPositionFilter.h"
+#include "core/IKalmanPositionAttrSetCore.h"
+#include "core/IKalmanPositionAttrGetCore.h"
 
 /*!
  * @brief Kalman position filter interface.
  */
-struct IKalmanPositionFilter : IPositionFilter
+struct IKalmanPositionFilter : IPositionFilter,
+                                private IKalmanPositionAttrSetCore,
+                                private IKalmanPositionAttrGetCore
 {
     /*!
      * @brief Set process noise acceleration standard deviation.
@@ -126,20 +130,6 @@ struct IKalmanPositionFilter : IPositionFilter
      * @brief Class destructor.
      */
     ~IKalmanPositionFilter() override = default;
-
-private:
-    virtual void do_set_proc_accel_std(double std) = 0;
-    virtual void do_set_meas_pos_std(double std) = 0;
-    virtual void do_set_meas_vel_std(double std) = 0;
-    virtual void do_set_init_pos_std(double std) = 0;
-    virtual void do_set_init_vel_std(double std) = 0;
-    virtual void do_set_init_accel_std(double std) = 0;
-    virtual double do_get_proc_accel_std() const = 0;
-    virtual double do_get_meas_pos_std() const = 0;
-    virtual double do_get_meas_vel_std() const = 0;
-    virtual double do_get_init_pos_std() const = 0;
-    virtual double do_get_init_vel_std() const = 0;
-    virtual double do_get_init_accel_std() const = 0;
 };
 
 #endif /* INCLUDE_IKALMANPOSITIONFILTERATTRIBUTES_H_ */

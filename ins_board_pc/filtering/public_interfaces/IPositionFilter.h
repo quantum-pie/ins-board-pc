@@ -8,6 +8,7 @@
 #define INCLUDE_IPOSITIONFILTER_H_
 
 #include "filtering/public_interfaces/IFilter.h"
+#include "core/IPositionProviderCore.h"
 
 #include "eigenaux.h"
 #include "ellipsoid.h"
@@ -15,7 +16,7 @@
 /*!
  * @brief Position filter interface.
  */
-struct IPositionFilter : IFilter
+struct IPositionFilter : IFilter, private IPositionProviderCore
 {
     /*!
      * @brief Get ECEF coordinates vector.
@@ -57,12 +58,6 @@ struct IPositionFilter : IFilter
 	 * @brief Class destructor.
 	 */
 	~IPositionFilter() override = default;
-
-private:
-    virtual Vector3D do_get_cartesian() const = 0;
-    virtual Ellipsoid do_get_ellipsoid() const = 0;
-    virtual Vector3D do_get_velocity() const = 0;
-    virtual Vector3D do_get_acceleration() const = 0;
 };
 
 #endif /* INCLUDE_IPOSITIONFILTER_H_ */

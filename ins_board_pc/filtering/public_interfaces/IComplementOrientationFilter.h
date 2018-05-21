@@ -8,11 +8,15 @@
 #define INCLUDE_ICOMPLEMENTORIENTATIONFILTER_H_
 
 #include "filtering/public_interfaces/IOrientationFilter.h"
+#include "core/IComplementOrientationAttrSetCore.h"
+#include "core/IComplementOrientationAttrGetCore.h"
 
 /*!
  * @brief Complementary orientation filter interface.
  */
-struct IComplementOrientationFilter : IOrientationFilter
+struct IComplementOrientationFilter : IOrientationFilter,
+                                        private IComplementOrientationAttrSetCore,
+                                        private IComplementOrientationAttrGetCore
 {
     /*!
      * @brief Set static accelerometer measurements gain.
@@ -72,14 +76,6 @@ struct IComplementOrientationFilter : IOrientationFilter
      * @brief Class destructor.
      */
     ~IComplementOrientationFilter() override = default;
-
-private:
-    virtual void do_set_static_accel_gain(double gain) = 0;
-    virtual void do_set_static_magn_gain(double gain) = 0;
-    virtual void do_set_bias_gain(double gain) = 0;
-    virtual double do_get_static_accel_gain() const = 0;
-    virtual double do_get_static_magn_gain() const = 0;
-    virtual double do_get_bias_gain() const = 0;
 };
 
 #endif /* INCLUDE_ICOMPLEMENTORIENTATIONFILTER_H_ */

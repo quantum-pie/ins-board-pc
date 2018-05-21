@@ -34,6 +34,8 @@ struct FilterBaseTraits<KalmanOrientationFilterBase>
     using D_type = quat::delta_type;
 };
 
+// TODO do we need virtual?
+
 /*!
  * @brief Kalman orientation filter base implementation.
  */

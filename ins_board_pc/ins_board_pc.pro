@@ -118,6 +118,20 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     views/attrkalmanorientationview.h \
     views/baseorientationview.h \
     models/IFilteringModel.h \
-    models/filteringmodelbase.h
+    models/filteringmodelbase.h \
+    core/IFilterCore.h \
+    core/IPositionProviderCore.h \
+    core/IOrientationProviderCore.h \
+    core/IKalmanPositionAttrGetCore.h \
+    core/IKalmanPositionAttrSetCore.h \
+    core/IKalmanOrientationAttrGetCore.h \
+    core/IKalmanOrientationAttrSetCore.h \
+    core/IComplementOrientationAttrGetCore.h \
+    core/IComplementOrientationAttrSetCore.h \
+    core/ISimPositionAttrGetCore.h \
+    core/ISimPositionAttrSetCore.h \
+    filtering/public_interfaces/ISimPositionFilter.h \
+    models/IPositionFilteringModel.h \
+    models/iorientationfilteringmodel.h
 
 FORMS    += mainwindow.ui
