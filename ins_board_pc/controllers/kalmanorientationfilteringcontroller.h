@@ -2,7 +2,7 @@
 #define KALMANORIENTATIONFILTERINGCONTROLLER_H
 
 #include "filtering/filters/generickalman.h"
-#include "controllers/basefilteringcontroller.h"
+#include "controllers/filteringcontroller.h"
 #include "models/kalmanorientationfilteringmodel.h"
 
 class KalmanOrientationFilteringController : private BaseFilteringController

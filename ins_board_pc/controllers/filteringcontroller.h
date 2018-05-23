@@ -1,26 +1,33 @@
 #ifndef IFILTERINGCONTROLLER_H
 #define IFILTERINGCONTROLLER_H
 
-#include "models/filteringmodelbase.h"
+#include "models/filteringmodel.h"
 
 #include <QObject>
 
+#include <memory>
+
 class FilterInput;
 
-class BaseFilteringController : public QObject
+class FilteringController : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit BaseFilteringController(BaseFilteringModel & model);
+    using model_ptr = std::shared_ptr<FilteringModel>;
+
+    explicit FilteringController(model_ptr model);
     void handle_strategy(IFilter * filter);
 
 public slots:
     void handle_start(bool en);
     void handle_input(const FilterInput & z);
 
+signals:
+    void model_switched();
+
 private:
-    BaseFilteringModel & model;
+    model_ptr model;
     bool is_running;
 };
 

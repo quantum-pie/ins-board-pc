@@ -2,7 +2,7 @@
 #define KALMANPOSITIONFILTERINGCONTROLLER_H
 
 #include "filtering/filters/generickalman.h"
-#include "controllers/basefilteringcontroller.h"
+#include "controllers/filteringcontroller.h"
 #include "models/kalmanpositionfilteringmodel.h"
 
 class KalmanPositionFilteringController : public BaseFilteringController

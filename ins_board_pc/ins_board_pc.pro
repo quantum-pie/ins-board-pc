@@ -38,10 +38,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/private_implementation/kalmanorientationfilterbase.cpp \
     filtering/private_implementation/kalmanpositionfilterbase.cpp \
     filtering/private_implementation/mixedkalmanfilterbase.cpp \
-    models/complorientationfilteringmodel.cpp \
-    models/kalmanorientationfilteringmodel.cpp \
-    models/kalmanpositionfilteringmodel.cpp \
-    models/simpositionfilteringmodel.cpp \
     views/enupositionview.cpp \
     views/rpyorientationview.cpp \
     views/xdorientationview.cpp \
@@ -112,13 +108,10 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     quatfwd.h \
     quatutils.h \
     utils.h \
-    controllers/basefilteringcontroller.h \
     controllers/kalmanfilteringmetacontroller.h \
     views/attrkalmanpositionview.h \
     views/attrkalmanorientationview.h \
     views/baseorientationview.h \
-    models/IFilteringModel.h \
-    models/filteringmodelbase.h \
     core/IFilterCore.h \
     core/IPositionProviderCore.h \
     core/IOrientationProviderCore.h \
@@ -131,7 +124,11 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     core/ISimPositionAttrGetCore.h \
     core/ISimPositionAttrSetCore.h \
     filtering/public_interfaces/ISimPositionFilter.h \
-    models/IPositionFilteringModel.h \
-    models/iorientationfilteringmodel.h
+    models/filteringmodel.h \
+    models/positionfilteringmodel.h \
+    models/orientationfilteringmodel.h \
+    controllers/filteringcontroller.h \
+    models/IObservablePositionProvider.h \
+    models/IObservableOrientationProvider.h
 
 FORMS    += mainwindow.ui

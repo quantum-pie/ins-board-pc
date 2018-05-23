@@ -1,4 +1,4 @@
-#include "controllers/basefilteringcontroller.h"
+#include "controllers/filteringcontroller.h"
 
 BaseFilteringController::BaseFilteringController(BaseFilteringModel & model)
     : QObject{ nullptr },
