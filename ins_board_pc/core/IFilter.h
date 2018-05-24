@@ -1,18 +1,9 @@
-/*
- * IFilter.h
- *
- *      Author: Ermakov_P
- */
+#ifndef IFILTER_H
+#define IFILTER_H
 
-#ifndef INCLUDE_IFILTER_H_
-#define INCLUDE_IFILTER_H_
+class FilterInput;
 
-#include "core/IFilterCore.h"
-
-/*!
- * @brief Filter interface.
- */
-struct IFilter : private IFilterCore
+struct IFilter
 {
     /*!
      * @brief Make step.
@@ -35,6 +26,10 @@ struct IFilter : private IFilterCore
      * @brief Class desctructor.
      */
     virtual ~IFilter() = default;
+
+private:
+    virtual void do_step(const FilterInput & z) = 0;
+    virtual void do_reset() = 0;
 };
 
-#endif /* INCLUDE_IFILTER_H_ */
+#endif // IFILTER_H

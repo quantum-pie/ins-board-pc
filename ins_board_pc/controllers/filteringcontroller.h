@@ -1,34 +1,55 @@
 #ifndef IFILTERINGCONTROLLER_H
 #define IFILTERINGCONTROLLER_H
 
-#include "models/filteringmodel.h"
+#include "controllers/filteringcontrollerbase.h"
+#include "receiver.h"
+#include <QPushButton>
 
-#include <QObject>
-
-#include <memory>
-
-class FilterInput;
-
-class FilteringController : public QObject
+template<typename Model, typename View>
+class FilteringController : public FilteringControllerBase
 {
-    Q_OBJECT
-
 public:
-    using model_ptr = std::shared_ptr<FilteringModel>;
+    FilteringController(const QPushButton * start_button,
+                        const Receiver * receiver)
+        : model{ nullptr }, is_running{ start_button->isChecked() }, is_enabled{ false }
+    {
+        connect(start_button, SIGNAL(toggled(bool)), this, SLOT(handle_start(bool)));
+        connect(receiver, SIGNAL(raw_sample_received(FilterInput)), this, SLOT(handle_input(FilterInput)));
+    }
 
-    explicit FilteringController(model_ptr model);
-    void handle_strategy(IFilter * filter);
+    void set_model(Model * new_model)
+    {
+        model = new_model;
+    }
 
-public slots:
-    void handle_start(bool en);
-    void handle_input(const FilterInput & z);
+    void handle_start(bool en) override
+    {
+        if(is_enabled)
+        {
+            is_running = en;
+            if(en && model)
+            {
+                model->reset();
+            }
+        }
+    }
 
-signals:
-    void model_switched();
+    void handle_input(const FilterInput & z) override
+    {
+        if(model)
+        {
+            if(is_running)
+            {
+                model->step(z);
+            }
+
+        }
+    }
 
 private:
-    model_ptr model;
+    Model * model;
     bool is_running;
+    bool is_enabled;
 };
 
 #endif // IFILTERINGCONTROLLER_H

@@ -7,53 +7,14 @@
 #ifndef INCLUDE_IPOSITIONFILTER_H_
 #define INCLUDE_IPOSITIONFILTER_H_
 
-#include "filtering/public_interfaces/IFilter.h"
-#include "core/IPositionProviderCore.h"
-
-#include "eigenaux.h"
-#include "ellipsoid.h"
+#include "core/IFilter.h"
+#include "core/IPositionProvider.h"
 
 /*!
  * @brief Position filter interface.
  */
-struct IPositionFilter : IFilter, private IPositionProviderCore
+struct IPositionFilter : IFilter, IPositionProvider
 {
-    /*!
-     * @brief Get ECEF coordinates vector.
-     * @return position vector.
-     */
-    Vector3D get_cartesian() const
-    {
-        return do_get_cartesian();
-    }
-
-    /*!
-     * @brief Get underlying Earth ellipsoid model.
-     * @return ellipsoid model reference.
-     */
-    Ellipsoid get_ellipsoid() const
-    {
-        return do_get_ellipsoid();
-    }
-
-    /*!
-     * @brief Get ECEF velocity vector.
-     * @return velocity vector.
-     */
-    Vector3D get_velocity() const
-    {
-        return do_get_velocity();
-    }
-
-    /*!
-     * @brief Get ECEF acceleration vector.
-     * @return acceleration vector.
-     */
-    Vector3D get_acceleration() const
-    {
-        return do_get_acceleration();
-    }
-
 	/*!
 	 * @brief Class destructor.
 	 */

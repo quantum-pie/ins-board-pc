@@ -30,7 +30,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
+INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
 
 SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/filters/positionbypass.cpp \
@@ -79,15 +79,10 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     filtering/private_implementation/kalmanpositionfilterbase.h \
     filtering/private_implementation/mixedkalmanfilterbase.h \
     filtering/public_interfaces/IComplementOrientationFilter.h \
-    filtering/public_interfaces/IFilter.h \
     filtering/public_interfaces/IKalmanOrientationFilter.h \
     filtering/public_interfaces/IKalmanPositionFilter.h \
     filtering/public_interfaces/IOrientationFilter.h \
     filtering/public_interfaces/IPositionFilter.h \
-    models/complorientationfilteringmodel.h \
-    models/kalmanorientationfilteringmodel.h \
-    models/kalmanpositionfilteringmodel.h \
-    models/simpositionfilteringmodel.h \
     views/enupositionview.h \
     views/rpyorientationview.h \
     views/xdorientationview.h \
@@ -112,23 +107,17 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     views/attrkalmanpositionview.h \
     views/attrkalmanorientationview.h \
     views/baseorientationview.h \
-    core/IFilterCore.h \
-    core/IPositionProviderCore.h \
-    core/IOrientationProviderCore.h \
-    core/IKalmanPositionAttrGetCore.h \
-    core/IKalmanPositionAttrSetCore.h \
-    core/IKalmanOrientationAttrGetCore.h \
-    core/IKalmanOrientationAttrSetCore.h \
-    core/IComplementOrientationAttrGetCore.h \
-    core/IComplementOrientationAttrSetCore.h \
-    core/ISimPositionAttrGetCore.h \
-    core/ISimPositionAttrSetCore.h \
     filtering/public_interfaces/ISimPositionFilter.h \
-    models/filteringmodel.h \
-    models/positionfilteringmodel.h \
-    models/orientationfilteringmodel.h \
     controllers/filteringcontroller.h \
-    models/IObservablePositionProvider.h \
-    models/IObservableOrientationProvider.h
+    core/IComplementOrientationAttr.h \
+    core/IFilter.h \
+    core/IKalmanOrientationAttr.h \
+    core/IKalmanPositionAttr.h \
+    core/IOrientationProvider.h \
+    core/IPositionProvider.h \
+    core/ISimPositionAttr.h \
+    controllers/filteringcontrollerbase.h \
+    receiver.h \
+    controllers/positionviewmixin.h
 
 FORMS    += mainwindow.ui
