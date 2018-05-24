@@ -30,7 +30,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
+INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += C:/tools/boost_1_62_0
 
 SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/filters/positionbypass.cpp \
@@ -58,14 +58,13 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     utils.cpp \
     wmm/GeomagnetismLibrary.c \
     controllers/kalmanfilteringmetacontroller.cpp \
-    controllers/kalmanorientationfilteringcontroller.cpp \
-    controllers/kalmanpositionfilteringcontroller.cpp \
     views/attrkalmanorientationview.cpp \
     views/attrkalmanpositionview.cpp \
-    controllers/basefilteringcontroller.cpp
+    controllers/kalmanorientationattrcontroller.cpp \
+    controllers/kalmanpositionattrcontroller.cpp \
+    controllers/simpositionattrcontroller.cpp
 
-HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
-    controllers/kalmanpositionfilteringcontroller.h \
+HEADERS  += \
     filtering/filters/generickalman.h \
     filtering/filters/orientationcomplement.h \
     filtering/filters/positionbypass.h \
@@ -106,7 +105,6 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     controllers/kalmanfilteringmetacontroller.h \
     views/attrkalmanpositionview.h \
     views/attrkalmanorientationview.h \
-    views/baseorientationview.h \
     filtering/public_interfaces/ISimPositionFilter.h \
     controllers/filteringcontroller.h \
     core/IComplementOrientationAttr.h \
@@ -116,8 +114,18 @@ HEADERS  += controllers/kalmanorientationfilteringcontroller.h \
     core/IOrientationProvider.h \
     core/IPositionProvider.h \
     core/ISimPositionAttr.h \
-    controllers/filteringcontrollerbase.h \
     receiver.h \
-    controllers/positionviewmixin.h
+    views/IBaseView.h \
+    controllers/simpositionattrcontroller.h \
+    controllers/kalmanpositionattrcontroller.h \
+    controllers/kalmanorientationattrcontroller.h \
+    controllers/attrcontrollerbase.h \
+    controllers/controllerbase.h \
+    controllers/filteringcontrollercommon.h \
+    controllers/modelswitchbase.h \
+    controllers/singlemodelswitchbase.h \
+    controllers/positionmodelswitch.h \
+    controllers/orientationmodelswitch.h \
+    controllers/mixedmodelswitch.h
 
 FORMS    += mainwindow.ui

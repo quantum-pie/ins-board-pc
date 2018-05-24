@@ -1,17 +1,15 @@
 #ifndef XDORIENTATIONVIEW_H
 #define XDORIENTATIONVIEW_H
 
-#include "models/orientationfilteringmodel.h"
+#include "views/IBaseView.h"
+#include "core/IOrientationProvider.h"
 
-template<typename OrientationFilter>
-class XDOrientationView
+struct XDOrientationView : IOrientationView
 {
-public:
-    using model_type = OrientationFilteringModel<OrientationFilter>;
-    XDOrientationView(const model_type & model);
+    void update(IOrientationProvider * pvd) override
+    {
 
-private:
-    model_type & model;
-}
+    }
+};
 
 #endif // XDORIENTATIONVIEW_H

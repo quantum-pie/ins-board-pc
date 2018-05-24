@@ -22,7 +22,7 @@ public:
     /*!
      * @brief Class destructor.
      */
-    ~OrientationCF() override = default;
+    ~OrientationCF() override;
 
 private:
     /* IComplementOrientationFilter interface implementation */

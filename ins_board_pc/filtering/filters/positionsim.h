@@ -26,7 +26,7 @@ public:
     /*!
      * @brief Class destructor.
      */
-    ~PositionSim() override = default;
+    ~PositionSim() override;
 
 private:
     /* IPositionFilter interface implementation */

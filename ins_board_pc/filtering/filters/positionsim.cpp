@@ -77,6 +77,8 @@ PositionSim::PositionSim()
     : pimpl{ std::make_unique<Impl>() }
 {}
 
+PositionSim::~PositionSim() = default;
+
 void PositionSim::do_step(const FilterInput & z)
 {
     if(pimpl->is_initialized)

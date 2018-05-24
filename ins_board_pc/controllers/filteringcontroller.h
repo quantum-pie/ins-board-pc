@@ -1,55 +1,74 @@
-#ifndef IFILTERINGCONTROLLER_H
-#define IFILTERINGCONTROLLER_H
+#ifndef FILTERINGCONTROLLER_H
+#define FILTERINGCONTROLLER_H
 
-#include "controllers/filteringcontrollerbase.h"
+#include "controllers/filteringcontrollercommon.h"
+#include "controllers/controllerbase.h"
 #include "receiver.h"
 #include <QPushButton>
 
+#include "views/IBaseView.h"
+#include "filtering/public_interfaces/IOrientationFilter.h"
+#include "filtering/public_interfaces/IPositionFilter.h"
+
 template<typename Model, typename View>
-class FilteringController : public FilteringControllerBase
+class FilteringController : public FilteringControllerCommon, public ControllerBase<Model>
 {
 public:
     FilteringController(const QPushButton * start_button,
                         const Receiver * receiver)
-        : model{ nullptr }, is_running{ start_button->isChecked() }, is_enabled{ false }
+        : FilteringControllerCommon{ start_button->isChecked() }
     {
         connect(start_button, SIGNAL(toggled(bool)), this, SLOT(handle_start(bool)));
         connect(receiver, SIGNAL(raw_sample_received(FilterInput)), this, SLOT(handle_input(FilterInput)));
     }
 
-    void set_model(Model * new_model)
+    void attach_view(View & view)
     {
-        model = new_model;
+        views.push_back(view);
     }
 
-    void handle_start(bool en) override
+    void clear_views()
     {
-        if(is_enabled)
+        views.clear();
+    }
+
+    void handle_start(bool en)
+    {
+        if(filtering_is_enabled())
         {
-            is_running = en;
-            if(en && model)
+            set_running(en);
+            if(en && this->model_is_set())
             {
-                model->reset();
+                this->get_model()->reset();
             }
         }
     }
 
-    void handle_input(const FilterInput & z) override
+    void handle_input(const FilterInput & z)
     {
-        if(model)
+        if(this->model_is_set())
         {
-            if(is_running)
+            if(is_runnign() && filtering_is_enabled())
             {
-                model->step(z);
+                this->get_model()->step(z);
             }
-
+            update_views(this->get_model());
         }
     }
 
 private:
-    Model * model;
-    bool is_running;
-    bool is_enabled;
+    void update_views(Model * model)
+    {
+        for(auto view : views)
+        {
+            view.get().update(model);
+        }
+    }
+
+    std::vector<std::reference_wrapper<View>> views;
 };
 
-#endif // IFILTERINGCONTROLLER_H
+using PositionFilteringController = FilteringController<IPositionFilter, IPositionView>;
+using OrientationFilteringController = FilteringController<IOrientationFilter, IOrientationView>;
+
+#endif // FILTERINGCONTROLLER_H

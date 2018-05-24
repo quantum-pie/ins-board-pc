@@ -1,6 +1,6 @@
 #include "controllers/kalmanfilteringmetacontroller.h"
-#include "controllers/kalmanorientationfilteringcontroller.h"
-#include "controllers/kalmanpositionfilteringcontroller.h"
+#include "controllers/kalmanorientationattrcontroller.h"
+#include "controllers/kalmanpositionattrcontroller.h"
 
 KalmanFilteringMetaController::KalmanFilteringMetaController(KalmanOrientationFilteringController &ori_ctrl,
                                                              KalmanPositionFilteringController &pos_ctrl)

@@ -123,6 +123,8 @@ OrientationCF::OrientationCF()
     : pimpl{ std::make_unique<Impl>() }
 {}
 
+OrientationCF::~OrientationCF() = default;
+
 void OrientationCF::do_reset()
 {
     pimpl->is_initialized = false;
