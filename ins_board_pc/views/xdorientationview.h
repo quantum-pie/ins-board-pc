@@ -6,10 +6,7 @@
 
 struct XDOrientationView : IOrientationView
 {
-    void update(IOrientationProvider * pvd) override
-    {
-
-    }
+    void update(IOrientationProvider * pvd) override;
 };
 
 #endif // XDORIENTATIONVIEW_H

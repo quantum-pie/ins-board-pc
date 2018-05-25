@@ -1,4 +1,12 @@
-#ifndef ATTRPOSITIONVIEW_H
-#define ATTRPOSITIONVIEW_H
+#ifndef ATTRKALMANPOSITIONVIEW_H
+#define ATTRKALMANPOSITIONVIEW_H
 
-#endif // ATTRPOSITIONVIEW_H
+#include "core/IKalmanPositionAttr.h"
+#include "views/IBaseView.h"
+
+struct AttrKalmanPositionView : IBaseView<IKalmanPositionAttr>
+{
+    void update(IKalmanPositionAttr * pvd) override;
+};
+
+#endif // ATTRKALMANPOSITIONVIEW_H

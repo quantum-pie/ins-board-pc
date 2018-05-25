@@ -6,10 +6,7 @@
 
 struct RPYOrientationView : IOrientationView
 {
-    void update(IOrientationProvider * pvd) override
-    {
-
-    }
+    void update(IOrientationProvider * pvd) override;
 };
 
 #endif // RPYORIENTATIONVIEW_H

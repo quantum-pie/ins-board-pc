@@ -10,11 +10,10 @@
 #include "controllers/switches/positionmodelswitch.h"
 #include "controllers/switches/orientationmodelswitch.h"
 #include "controllers/metacontroller.h"
+#include "receiver.h"
 
 #include <QLineEdit>
 #include <QComboBox>
-
-#include "receiver.h"
 
 #include <QApplication>
 

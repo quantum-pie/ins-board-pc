@@ -1,4 +1,12 @@
-#ifndef ATTRORIENTATIONVIEW_H
-#define ATTRORIENTATIONVIEW_H
+#ifndef ATTRKALMANORIENTATIONVIEW_H
+#define ATTRKALMANORIENTATIONVIEW_H
 
-#endif // ATTRORIENTATIONVIEW_H
+#include "core/IKalmanOrientationAttr.h"
+#include "views/IBaseView.h"
+
+struct AttrKalmanOrientationView : IBaseView<IKalmanOrientationAttr>
+{
+    void update(IKalmanOrientationAttr * pvd) override;
+};
+
+#endif // ATTRKALMANORIENTATIONVIEW_H

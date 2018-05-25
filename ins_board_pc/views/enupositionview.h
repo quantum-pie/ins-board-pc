@@ -6,10 +6,7 @@
 
 struct ENUPositionView : IPositionView
 {
-    void update(IPositionProvider * pvd) override
-    {
-
-    }
+    void update(IPositionProvider * pvd) override;
 };
 
 #endif // ENUPOSITIONVIEW_H
