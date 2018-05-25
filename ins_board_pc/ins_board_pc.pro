@@ -64,11 +64,11 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     controllers/direct/attributes/simpositionattrcontroller.cpp \
     controllers/direct/attributes/modelswitchbase.cpp \
     controllers/switches/modelswitchbase.cpp \
-    controllers/switches/orienttionmodelswitch.cpp \
     controllers/switches/positionmodelswitch.cpp \
     controllers/switches/mixedmodelswitch.cpp \
     controllers/metacontroller.cpp \
-    controllers/direct/filtering/filteringcontrollercommon.cpp
+    controllers/direct/filtering/filteringcontrollercommon.cpp \
+    controllers/switches/orientationmodelswitch.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
