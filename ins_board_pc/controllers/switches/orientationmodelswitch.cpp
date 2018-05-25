@@ -1,5 +1,5 @@
 #include "controllers/switches/orientationmodelswitch.h"
-#include "controllers/direct/filtering/filteringcontroller.h"
+#include "controllers/direct/filtering/filteringcontrollersfwd.h"
 #include "controllers/direct/attributes/kalmanorientationattrcontroller.h"
 
 #include <QComboBox>

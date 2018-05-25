@@ -1,11 +1,9 @@
 #ifndef POSITIONMODELSWITCH_H
 #define POSITIONMODELSWITCH_H
 
-#include "filtering/filters/generickalman.h"
+#include "filtering/filters/filtersfwd.h"
+#include "controllers/direct/filtering/filteringcontrollersfwd.h"
 #include "controllers/switches/singlemodelswitchbase.h"
-
-class PositionFilteringController;
-class KalmanPositionAttrController;
 
 struct PositionModelSwitch : SingleModelSwitchBase<IPositionFilter, IKalmanPositionAttr>
 {

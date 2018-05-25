@@ -1,13 +1,14 @@
 #ifndef METACONTROLLER_H
 #define METACONTROLLER_H
 
+#include "controllers/direct/filtering/filteringcontrollersfwd.h"
+
 #include <QObject>
 
 class QComboBox;
 class PositionModelSwitch;
 class OrientationModelSwitch;
 class MixedModelSwitch;
-class PositionFilteringController;
 
 class MetaController : public QObject
 {

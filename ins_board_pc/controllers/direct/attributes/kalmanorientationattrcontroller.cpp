@@ -1,4 +1,4 @@
-#include "controllers/kalmanorientationattrcontroller.h"
+#include "controllers/direct/attributes/kalmanorientationattrcontroller.h"
 #include <QLineEdit>
 
 KalmanOrientationAttrController::KalmanOrientationAttrController(QLineEdit * proc_gyro_le, QLineEdit * proc_gyro_bias_le,

@@ -5,10 +5,6 @@
 #include "controllers/direct/controllerbase.h"
 #include "receiver.h"
 
-#include "views/IBaseView.h"
-#include "filtering/public_interfaces/IOrientationFilter.h"
-#include "filtering/public_interfaces/IPositionFilter.h"
-
 #include <QPushButton>
 
 template<typename Model, typename View>
@@ -66,8 +62,5 @@ private:
 
     std::vector<std::reference_wrapper<View>> views;
 };
-
-using PositionFilteringController = FilteringController<IPositionFilter, IPositionView>;
-using OrientationFilteringController = FilteringController<IOrientationFilter, IOrientationView>;
 
 #endif // FILTERINGCONTROLLER_H

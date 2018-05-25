@@ -1,4 +1,4 @@
-#include "controllers/kalmanpositionattrcontroller.h"
+#include "controllers/direct/attributes/kalmanpositionattrcontroller.h"
 #include <QLineEdit>
 
 KalmanPositionAttrController::KalmanPositionAttrController(QLineEdit *proc_accel_std_le,

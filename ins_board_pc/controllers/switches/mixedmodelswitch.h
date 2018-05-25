@@ -2,7 +2,7 @@
 #define MIXEDMODELSWITCH_H
 
 #include "controllers/switches/modelswitchbase.h"
-#include "filtering/filters/generickalman.h"
+#include "filtering/filters/filtersfwd.h"
 
 class PositionModelSwitch;
 class OrientationModelSwitch;

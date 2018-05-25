@@ -30,7 +30,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
+INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
 
 SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/filters/positionbypass.cpp \
@@ -62,7 +62,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     controllers/direct/attributes/kalmanorientationattrcontroller.cpp \
     controllers/direct/attributes/kalmanpositionattrcontroller.cpp \
     controllers/direct/attributes/simpositionattrcontroller.cpp \
-    controllers/direct/attributes/modelswitchbase.cpp \
     controllers/switches/modelswitchbase.cpp \
     controllers/switches/positionmodelswitch.cpp \
     controllers/switches/mixedmodelswitch.cpp \
@@ -132,6 +131,8 @@ HEADERS  += \
     controllers/switches/orientationmodelswitch.h \
     controllers/switches/positionmodelswitch.h \
     controllers/switches/singlemodelswitchbase.h \
-    controllers/switches/modelswitchbase.h
+    controllers/switches/modelswitchbase.h \
+    filtering/filters/filtersfwd.h \
+    controllers/direct/filtering/filteringcontrollersfwd.h
 
 FORMS    += mainwindow.ui

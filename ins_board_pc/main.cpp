@@ -3,7 +3,7 @@
 #include "views/enupositionview.h"
 #include "views/xdorientationview.h"
 #include "views/rpyorientationview.h"
-#include "controllers/direct/filtering/filteringcontroller.h"
+#include "controllers/direct/filtering/filteringcontrollersfwd.h"
 #include "controllers/direct/attributes/kalmanorientationattrcontroller.h"
 #include "controllers/direct/attributes/kalmanpositionattrcontroller.h"
 #include "controllers/switches/mixedmodelswitch.h"
