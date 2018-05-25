@@ -2,7 +2,8 @@
 #define KALMANPOSITIONATTRCONTROLLER_H
 
 #include "core/IKalmanPositionAttr.h"
-#include "controllers/attrcontrollerbase.h"
+#include "controllers/direct/attributes/attrcontrollerbase.h"
+
 #include <QObject>
 
 class QLineEdit;

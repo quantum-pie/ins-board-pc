@@ -1,21 +1,20 @@
 #ifndef FILTERINGCONTROLLER_H
 #define FILTERINGCONTROLLER_H
 
-#include "controllers/filteringcontrollercommon.h"
-#include "controllers/controllerbase.h"
+#include "controllers/direct/filtering/filteringcontrollercommon.h"
+#include "controllers/direct/controllerbase.h"
 #include "receiver.h"
-#include <QPushButton>
 
 #include "views/IBaseView.h"
 #include "filtering/public_interfaces/IOrientationFilter.h"
 #include "filtering/public_interfaces/IPositionFilter.h"
 
+#include <QPushButton>
+
 template<typename Model, typename View>
-class FilteringController : public FilteringControllerCommon, public ControllerBase<Model>
+struct FilteringController : FilteringControllerCommon, ControllerBase<Model>
 {
-public:
-    FilteringController(const QPushButton * start_button,
-                        const Receiver * receiver)
+    FilteringController(const QPushButton * start_button, const Receiver * receiver)
         : FilteringControllerCommon{ start_button->isChecked() }
     {
         connect(start_button, SIGNAL(toggled(bool)), this, SLOT(handle_start(bool)));
@@ -48,7 +47,7 @@ public:
     {
         if(this->model_is_set())
         {
-            if(is_runnign() && filtering_is_enabled())
+            if(is_running() && filtering_is_enabled())
             {
                 this->get_model()->step(z);
             }

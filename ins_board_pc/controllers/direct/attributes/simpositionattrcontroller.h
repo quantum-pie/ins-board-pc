@@ -2,7 +2,8 @@
 #define SIMPOSITIONATTRCONTROLLER_H
 
 #include "core/ISimPositionAttr.h"
-#include "controllers/attrcontrollerbase.h"
+#include "controllers/direct/attributes/attrcontrollerbase.h"
+
 #include <QObject>
 
 class QLineEdit;

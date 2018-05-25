@@ -2,20 +2,21 @@
 #define BASEMODELSWITCH_H
 
 #include <QObject>
-#include <QComboBox>
+
+class QComboBox;
 
 class ModelSwitchBase : public QObject
 {
     Q_OBJECT
 
 public:
-    ModelSwitchBase(QComboBox * sw) : sw{ sw } {}
+    ModelSwitchBase(QComboBox * sw);
 
-    void enable() { sw->setEnabled(true); }
-    void disable() { sw->setEnabled(false); }
+    void enable();
+    void disable();
 
 public slots:
-    void switch_model(int cb_idx) {}
+    void switch_model(int) {}
 
 private:
     QComboBox * sw;

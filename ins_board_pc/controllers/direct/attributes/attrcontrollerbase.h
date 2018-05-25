@@ -1,7 +1,8 @@
 #ifndef ATTRCONTROLLERBASE_H
 #define ATTRCONTROLLERBASE_H
 
-#include "controllers/controllerbase.h"
+#include "controllers/direct/controllerbase.h"
+
 #include <QString>
 
 template<typename Model>

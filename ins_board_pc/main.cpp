@@ -1,17 +1,18 @@
 //#include "mainwindow.h"
-//#include "models/kalmanpositionfilteringmodel.h"
-//#include "controllers/kalmanpositionfilteringcontroller.h"
-#include "filtering/filters/generickalman.h"
-#include "filtering/filters/positionsim.h"
 
 #include "views/enupositionview.h"
 #include "views/xdorientationview.h"
 #include "views/rpyorientationview.h"
-#include "controllers/filteringcontroller.h"
-#include "controllers/kalmanorientationattrcontroller.h"
-#include "controllers/simpositionattrcontroller.h"
+#include "controllers/direct/filtering/filteringcontroller.h"
+#include "controllers/direct/attributes/kalmanorientationattrcontroller.h"
+#include "controllers/direct/attributes/kalmanpositionattrcontroller.h"
+#include "controllers/switches/mixedmodelswitch.h"
+#include "controllers/switches/positionmodelswitch.h"
+#include "controllers/switches/orientationmodelswitch.h"
+#include "controllers/metacontroller.h"
 
 #include <QLineEdit>
+#include <QComboBox>
 
 #include "receiver.h"
 
@@ -23,10 +24,6 @@ int main(int argc, char *argv[])
     //MainWindow w;
     //w.show();
 
-    FullEKF ekf_flt;
-    PositionEKF ekfpos;
-    PositionSim pos_sim;
-
     ENUPositionView pos_view;
     XDOrientationView ori_xd;
     RPYOrientationView rpy_ori;
@@ -34,20 +31,30 @@ int main(int argc, char *argv[])
     QPushButton new_btn("Dummy");
     Receiver recv;
 
+    QComboBox cb;
+
     PositionFilteringController pos_ctrl(&new_btn, &recv);
-    pos_ctrl.set_model(&ekf_flt);
     pos_ctrl.attach_view(pos_view);
 
     OrientationFilteringController ori_ctrl(&new_btn, &recv);
-    ori_ctrl.set_model(&ekf_flt);
     ori_ctrl.attach_view(ori_xd);
+    ori_ctrl.attach_view(rpy_ori);
 
     QLineEdit le;
     KalmanOrientationAttrController attr_ctrl(&le,&le,&le,&le,&le,&le,&le,&le,&le);
-    attr_ctrl.set_model(&ekf_flt);
+    KalmanPositionAttrController pos_attr_ctrl(&le,&le,&le,&le,&le,&le);
 
-    SimPositionAttrController sim_ctr(&le, &le);
-    sim_ctr.set_model(&pos_sim);
+
+    PositionModelSwitch pos_sw(&cb, pos_ctrl, pos_attr_ctrl);
+
+    OrientationModelSwitch ori_sw(&cb, ori_ctrl, attr_ctrl);
+
+    MixedModelSwitch mix_sw(&cb, pos_sw, ori_sw);
+
+    MetaController meta_ctrl(&cb, pos_sw, ori_sw, mix_sw, pos_ctrl);
+
+    meta_ctrl.configure_control(0);
+    meta_ctrl.configure_control(1);
 
     return a.exec();
 }

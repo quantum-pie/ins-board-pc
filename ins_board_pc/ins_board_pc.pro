@@ -30,7 +30,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += C:/tools/boost_1_62_0
+INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
 
 SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/filters/positionbypass.cpp \
@@ -57,12 +57,18 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     quatutils.cpp \
     utils.cpp \
     wmm/GeomagnetismLibrary.c \
-    controllers/kalmanfilteringmetacontroller.cpp \
     views/attrkalmanorientationview.cpp \
     views/attrkalmanpositionview.cpp \
-    controllers/kalmanorientationattrcontroller.cpp \
-    controllers/kalmanpositionattrcontroller.cpp \
-    controllers/simpositionattrcontroller.cpp
+    controllers/direct/attributes/kalmanorientationattrcontroller.cpp \
+    controllers/direct/attributes/kalmanpositionattrcontroller.cpp \
+    controllers/direct/attributes/simpositionattrcontroller.cpp \
+    controllers/direct/attributes/modelswitchbase.cpp \
+    controllers/switches/modelswitchbase.cpp \
+    controllers/switches/orienttionmodelswitch.cpp \
+    controllers/switches/positionmodelswitch.cpp \
+    controllers/switches/mixedmodelswitch.cpp \
+    controllers/metacontroller.cpp \
+    controllers/direct/filtering/filteringcontrollercommon.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -102,11 +108,9 @@ HEADERS  += \
     quatfwd.h \
     quatutils.h \
     utils.h \
-    controllers/kalmanfilteringmetacontroller.h \
     views/attrkalmanpositionview.h \
     views/attrkalmanorientationview.h \
     filtering/public_interfaces/ISimPositionFilter.h \
-    controllers/filteringcontroller.h \
     core/IComplementOrientationAttr.h \
     core/IFilter.h \
     core/IKalmanOrientationAttr.h \
@@ -116,16 +120,18 @@ HEADERS  += \
     core/ISimPositionAttr.h \
     receiver.h \
     views/IBaseView.h \
-    controllers/simpositionattrcontroller.h \
-    controllers/kalmanpositionattrcontroller.h \
-    controllers/kalmanorientationattrcontroller.h \
-    controllers/attrcontrollerbase.h \
-    controllers/controllerbase.h \
-    controllers/filteringcontrollercommon.h \
-    controllers/modelswitchbase.h \
-    controllers/singlemodelswitchbase.h \
-    controllers/positionmodelswitch.h \
-    controllers/orientationmodelswitch.h \
-    controllers/mixedmodelswitch.h
+    controllers/metacontroller.h \
+    controllers/direct/controllerbase.h \
+    controllers/direct/attributes/attrcontrollerbase.h \
+    controllers/direct/attributes/kalmanorientationattrcontroller.h \
+    controllers/direct/attributes/kalmanpositionattrcontroller.h \
+    controllers/direct/attributes/simpositionattrcontroller.h \
+    controllers/direct/filtering/filteringcontroller.h \
+    controllers/direct/filtering/filteringcontrollercommon.h \
+    controllers/switches/mixedmodelswitch.h \
+    controllers/switches/orientationmodelswitch.h \
+    controllers/switches/positionmodelswitch.h \
+    controllers/switches/singlemodelswitchbase.h \
+    controllers/switches/modelswitchbase.h
 
 FORMS    += mainwindow.ui

@@ -2,7 +2,8 @@
 #define KALMANORIENTATIONATTRCONTROLLER_H
 
 #include "core/IKalmanOrientationAttr.h"
-#include "controllers/attrcontrollerbase.h"
+#include "controllers/direct/attributes/attrcontrollerbase.h"
+
 #include <QObject>
 
 class QLineEdit;
