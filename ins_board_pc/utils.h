@@ -7,12 +7,16 @@
 #ifndef INCLUDE_UTILS_H_
 #define INCLUDE_UTILS_H_
 
+#include "eigenaux.h"
+
 #include <cstdint>
 #include <string>
 
 class FilterInput;
 class RawPacket;
 class MagnCalibrator;
+class QCustomPlot;
+class QString;
 
 /*!
  * @brief This namespace holds various general purpose utilities.
@@ -68,6 +72,12 @@ int32_t angle_to_fixed(double radians);
  * @return speed in knots.
  */
 double ms_to_knots(double ms);
+
+void update_3axis_plot(QCustomPlot * plot, const Vector3D & vec);
+
+void clear_3axis_plot(QCustomPlot * plot);
+
+QString double_view(double val, std::size_t digits = 2);
 
 }
 

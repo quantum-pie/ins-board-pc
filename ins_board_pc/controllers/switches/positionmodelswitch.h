@@ -5,6 +5,8 @@
 #include "controllers/direct/filtering/filteringcontrollersfwd.h"
 #include "controllers/switches/singlemodelswitchbase.h"
 
+class KalmanPositionAttrController;
+
 struct PositionModelSwitch : SingleModelSwitchBase<IPositionFilter, IKalmanPositionAttr>
 {
     using base_type = SingleModelSwitchBase<IPositionFilter, IKalmanPositionAttr>;

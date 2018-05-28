@@ -5,6 +5,8 @@
 #include "controllers/direct/filtering/filteringcontrollersfwd.h"
 #include "controllers/switches/singlemodelswitchbase.h"
 
+class KalmanOrientationAttrController;
+
 struct OrientationModelSwitch : SingleModelSwitchBase<IOrientationFilter, IKalmanOrientationAttr>
 {
     using base_type = SingleModelSwitchBase<IOrientationFilter, IKalmanOrientationAttr>;

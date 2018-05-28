@@ -19,6 +19,10 @@ struct SingleModelSwitchBase : ModelSwitchBase
     {
         fctrl.set_model(new_model);
         actrl.set_model(new_model);
+        // TODO force attributes to apply (actrl.apply_attributes())
+        // TODO force filtering to start if was running (fctrl.apply_start())
+        // TODO or move to set_model (not likely )
+        // TODO not here - augment in concrete switches
     }
 
 private:

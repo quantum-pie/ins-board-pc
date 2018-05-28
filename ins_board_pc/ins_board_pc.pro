@@ -68,7 +68,8 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     controllers/metacontroller.cpp \
     controllers/direct/filtering/filteringcontrollercommon.cpp \
     controllers/switches/orientationmodelswitch.cpp \
-    views/attrsimpositionview.cpp
+    views/attrsimpositionview.cpp \
+    views/stdorientationview.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -135,6 +136,7 @@ HEADERS  += \
     controllers/switches/modelswitchbase.h \
     filtering/filters/filtersfwd.h \
     controllers/direct/filtering/filteringcontrollersfwd.h \
-    views/attrsimpositionview.h
+    views/attrsimpositionview.h \
+    views/stdorientationview.h
 
 FORMS    += mainwindow.ui

@@ -4,9 +4,12 @@
  *      Author: Ermakov_P
  */
 #include "utils.h"
+#include "qcustomplot.h"
 
 #include <cmath>
 #include <limits>
+
+#include <QString>
 
 namespace utils
 {
@@ -64,6 +67,36 @@ int32_t angle_to_fixed(double radians)
 double ms_to_knots(double ms)
 {
 	return ms * ms2knots;
+}
+
+void update_3axis_plot(QCustomPlot * plot, const Vector3D & vec)
+{
+    int pts = plot->graph(0)->dataCount();
+    if(pts < plot->xAxis->range().upper)
+    {
+        plot->graph(0)->addData(pts, vec[0]);
+        plot->graph(1)->addData(pts, vec[1]);
+        plot->graph(2)->addData(pts, vec[2]);
+        plot->replot();
+    }
+    else
+    {
+        plot->graph(0)->data()->clear();
+        plot->graph(1)->data()->clear();
+        plot->graph(2)->data()->clear();
+    }
+}
+
+void clear_3axis_plot(QCustomPlot * plot)
+{
+    plot->graph(0)->data().clear();
+    plot->graph(1)->data().clear();
+    plot->graph(2)->data().clear();
+}
+
+QString double_view(double val, std::size_t digits)
+{
+    return QString::number(val, 'f', digits);
 }
 
 }

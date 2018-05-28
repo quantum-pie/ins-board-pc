@@ -4,7 +4,9 @@
 template<typename Provider>
 struct IBaseView
 {
+    virtual ~IBaseView() = default;
     virtual void update(Provider * pvd) = 0;
+    virtual void clear() = 0;
 };
 
 struct IPositionProvider;
