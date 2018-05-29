@@ -3,28 +3,19 @@
 
 #include "controllers/direct/filtering/filteringcontrollercommon.h"
 #include "controllers/direct/controllerbase.h"
+#include "controllers/direct/observablebase.h"
 #include "receiver.h"
 
 #include <QPushButton>
 
 template<typename Model, typename View>
-struct FilteringController : FilteringControllerCommon, ControllerBase<Model>
+struct FilteringController : FilteringControllerCommon, ControllerBase<Model>, ObservableBase<View>
 {
     FilteringController(const QPushButton * start_button, const Receiver * receiver)
         : FilteringControllerCommon{ start_button->isChecked() }
     {
         connect(start_button, SIGNAL(toggled(bool)), this, SLOT(handle_start(bool)));
         connect(receiver, SIGNAL(raw_sample_received(FilterInput)), this, SLOT(handle_input(FilterInput)));
-    }
-
-    void attach_view(View & view)
-    {
-        views.push_back(view);
-    }
-
-    void clear_views()
-    {
-        views.clear();
     }
 
     void handle_start(bool en)
@@ -47,20 +38,9 @@ struct FilteringController : FilteringControllerCommon, ControllerBase<Model>
             {
                 this->get_model()->step(z);
             }
-            update_views(this->get_model());
+            this->update_views(typename View::ViewModel{*this->get_model(), z});
         }
     }
-
-private:
-    void update_views(Model * model)
-    {
-        for(auto view : views)
-        {
-            view.get().update(model);
-        }
-    }
-
-    std::vector<std::reference_wrapper<View>> views;
 };
 
 #endif // FILTERINGCONTROLLER_H

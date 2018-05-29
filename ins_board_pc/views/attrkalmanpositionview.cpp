@@ -1,1 +1,0 @@
-#include "views/attrkalmanpositionview.h"

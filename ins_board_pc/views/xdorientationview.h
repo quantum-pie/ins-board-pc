@@ -17,7 +17,7 @@ struct XDOrientationView : IOrientationView
     XDOrientationView(QWidget * dummy_plot, QGridLayout * container_layout);
     ~XDOrientationView() override = default;
 
-    void update(IOrientationProvider * pvd) override;
+    void update(const ViewModel & pvd) override;
     void clear() override;
 
     void bring_up();

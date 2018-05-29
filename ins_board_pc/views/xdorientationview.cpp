@@ -137,11 +137,11 @@ void XDOrientationView::bring_up()
     is_brought_up = true;
 }
 
-void XDOrientationView::update(IOrientationProvider *pvd)
+void XDOrientationView::update(const ViewModel & vm)
 {
     if(is_brought_up)
     {
-        auto quat_vec = static_cast<quat::vector_form>(pvd->get_orientation_quaternion());
+        auto quat_vec = static_cast<quat::vector_form>(vm.pvd_ref.get_orientation_quaternion());
         QQuaternion qquat(quat_vec[0], quat_vec[1], quat_vec[2], quat_vec[3]);
 
         body_transform.setRotation(qquat);

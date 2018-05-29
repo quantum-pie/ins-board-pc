@@ -12,9 +12,9 @@ void StdOrientationView::set_accumulator_capacity(std::size_t new_capacity)
     rpy_ctrl.set_sampling(new_capacity);
 }
 
-void StdOrientationView::update(IOrientationProvider *pvd)
+void StdOrientationView::update(const ViewModel & vm)
 {
-    rpy_ctrl.update(pvd->get_orientation_quaternion().rpy());
+    rpy_ctrl.update(vm.pvd_ref.get_orientation_quaternion().rpy());
     if(rpy_ctrl.is_saturated())
     {
         auto rpy_std = rpy_ctrl.get_std().unaryExpr(&utils::radians_to_degrees);

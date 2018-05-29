@@ -1,4 +1,5 @@
 #include "views/enupositionview.h"
+#include "packets.h"
 #include "geometry.h"
 
 ENUPositionView::ENUPositionView(QCustomPlot *plot)
@@ -30,26 +31,35 @@ ENUPositionView::ENUPositionView(QCustomPlot *plot)
     plot->legend->setBrush(Qt::lightGray);
 }
 
-void ENUPositionView::update(IPositionProvider *pvd)
+void ENUPositionView::update(const ViewModel & vm)
 {
     if(is_initialized)
     {
-        Vector3D enu = geom::ecef_to_enu(pvd->get_cartesian(), start_geo);
-        NumVector enu = curr_pf->get_position_enu();
+        Vector3D enu_flt = geom::ecef_to_enu(vm.pvd_ref.get_cartesian(), start_geo);
+        Vector3D enu_raw = geom::ecef_to_enu(vm.raw_ref.pos, start_geo);
 
-        NumVector raw_pos(3);
-        raw_pos << in.gps.x, in.gps.y, in.gps.z;
-        NumVector enu_raw = curr_pf->get_position_enu(raw_pos);
+        smoothed_track.addData(enu_flt[0], enu_flt[1]);
+        raw_track.addData(enu_raw[0], enu_raw[1]);
 
-        kalman_smooth_track->addData(enu[0], enu[1]);
-        kalman_raw_track->addData(enu_raw[0], enu_raw[1]);
+        plot->rescaleAxes();
 
-        update_enu_plot(ui->plot5);
+        double expected_y_span = plot->xAxis->range().size() * plot->axisRect()->height() / plot->axisRect()->width();
+
+        if(plot->yAxis->range().size() < expected_y_span)
+        {
+            plot->yAxis->setScaleRatio(plot->xAxis, 1);
+        }
+        else
+        {
+            plot->xAxis->setScaleRatio(plot->yAxis, 1);
+        }
+
+        plot->replot();
     }
     else
     {
         is_initialized = true;
-        start_geo = geom::cartesian_to_geodetic(pvd->get_cartesian(), pvd->get_ellipsoid());
+        start_geo = geom::cartesian_to_geodetic(vm.pvd_ref.get_cartesian(), vm.pvd_ref.get_ellipsoid());
     }
 
 }

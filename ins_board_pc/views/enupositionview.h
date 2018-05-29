@@ -10,7 +10,7 @@ struct ENUPositionView : IPositionView
 {
     ENUPositionView(QCustomPlot * plot);
     ~ENUPositionView() override = default;
-    void update(IPositionProvider * pvd) override;
+    void update(const ViewModel & pvd) override;
     void clear() override;
 
 private:

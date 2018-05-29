@@ -12,7 +12,7 @@ struct StdOrientationView : IOrientationView
     StdOrientationView(QLineEdit * roll_std_le, QLineEdit * pitch_std_le, QLineEdit * yaw_std_le);
     ~StdOrientationView() override = default;
 
-    void update(IOrientationProvider * pvd) override;
+    void update(const ViewModel & pvd) override;
     void clear() override;
 
     void set_accumulator_capacity(std::size_t new_capacity);

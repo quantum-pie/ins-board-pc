@@ -10,6 +10,8 @@
 #include "controllers/switches/positionmodelswitch.h"
 #include "controllers/switches/orientationmodelswitch.h"
 #include "controllers/metacontroller.h"
+#include "controllers/direct/rawcontroller.h"
+
 #include "receiver.h"
 
 #include <QLineEdit>
@@ -23,9 +25,10 @@ int main(int argc, char *argv[])
     //MainWindow w;
     //w.show();
 
-    ENUPositionView pos_view;
-    XDOrientationView ori_xd;
-    RPYOrientationView rpy_ori;
+    QCustomPlot plott;
+    //ENUPositionView pos_view;
+    //XDOrientationView ori_xd;
+    //RPYOrientationView rpy_ori;
 
     QPushButton new_btn("Dummy");
     Receiver recv;
@@ -33,11 +36,11 @@ int main(int argc, char *argv[])
     QComboBox cb;
 
     PositionFilteringController pos_ctrl(&new_btn, &recv);
-    pos_ctrl.attach_view(pos_view);
+    //pos_ctrl.attach_view(pos_view);
 
     OrientationFilteringController ori_ctrl(&new_btn, &recv);
-    ori_ctrl.attach_view(ori_xd);
-    ori_ctrl.attach_view(rpy_ori);
+    //ori_ctrl.attach_view(ori_xd);
+    //ori_ctrl.attach_view(rpy_ori);
 
     QLineEdit le;
     KalmanOrientationAttrController attr_ctrl(&le,&le,&le,&le,&le,&le,&le,&le,&le);
@@ -54,6 +57,8 @@ int main(int argc, char *argv[])
 
     meta_ctrl.configure_control(0);
     meta_ctrl.configure_control(1);
+
+    RawController raw_ctrl(&recv);
 
     return a.exec();
 }

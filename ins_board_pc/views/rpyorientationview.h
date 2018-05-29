@@ -10,7 +10,7 @@ struct RPYOrientationView : IOrientationView
 {
     RPYOrientationView(QCustomPlot * plot);
     ~RPYOrientationView() override = default;
-    void update(IOrientationProvider * pvd) override;
+    void update(const ViewModel & pvd) override;
     void clear() override;
 
 private:

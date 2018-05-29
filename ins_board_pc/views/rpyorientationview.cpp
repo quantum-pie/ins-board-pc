@@ -32,9 +32,9 @@ RPYOrientationView::RPYOrientationView(QCustomPlot * plot) : plot{ plot }
     plot->legend->setBrush(Qt::lightGray);
 }
 
-void RPYOrientationView::update(IOrientationProvider *pvd)
+void RPYOrientationView::update(const ViewModel & vm)
 {
-    Vector3D rpy = pvd->get_orientation_quaternion().rpy();
+    Vector3D rpy = vm.pvd_ref.get_orientation_quaternion().rpy();
     utils::update_3axis_plot(plot, rpy.unaryExpr(&utils::radians_to_degrees));
 }
 

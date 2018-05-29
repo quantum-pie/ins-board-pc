@@ -57,8 +57,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     quatutils.cpp \
     utils.cpp \
     wmm/GeomagnetismLibrary.c \
-    views/attrkalmanorientationview.cpp \
-    views/attrkalmanpositionview.cpp \
     controllers/direct/attributes/kalmanorientationattrcontroller.cpp \
     controllers/direct/attributes/kalmanpositionattrcontroller.cpp \
     controllers/direct/attributes/simpositionattrcontroller.cpp \
@@ -68,7 +66,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     controllers/metacontroller.cpp \
     controllers/direct/filtering/filteringcontrollercommon.cpp \
     controllers/switches/orientationmodelswitch.cpp \
-    views/attrsimpositionview.cpp \
     views/stdorientationview.cpp
 
 HEADERS  += \
@@ -109,8 +106,6 @@ HEADERS  += \
     quatfwd.h \
     quatutils.h \
     utils.h \
-    views/attrkalmanpositionview.h \
-    views/attrkalmanorientationview.h \
     filtering/public_interfaces/ISimPositionFilter.h \
     core/IComplementOrientationAttr.h \
     core/IFilter.h \
@@ -136,7 +131,9 @@ HEADERS  += \
     controllers/switches/modelswitchbase.h \
     filtering/filters/filtersfwd.h \
     controllers/direct/filtering/filteringcontrollersfwd.h \
-    views/attrsimpositionview.h \
-    views/stdorientationview.h
+    views/stdorientationview.h \
+    controllers/direct/observablebase.h \
+    controllers/direct/filtering/rawcontroller.h \
+    controllers/direct/rawcontroller.h
 
 FORMS    += mainwindow.ui

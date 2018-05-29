@@ -1,18 +1,32 @@
 #ifndef BASEVIEW_H
 #define BASEVIEW_H
 
-template<typename Provider>
+class FilterInput;
+
+template<typename Model>
 struct IBaseView
 {
+    using ViewModel = Model;
+
     virtual ~IBaseView() = default;
-    virtual void update(Provider * pvd) = 0;
+    virtual void update(const ViewModel & pvd) = 0;
     virtual void clear() = 0;
 };
 
 struct IPositionProvider;
 struct IOrientationProvider;
 
-using IPositionView = IBaseView<IPositionProvider>;
-using IOrientationView = IBaseView<IOrientationProvider>;
+template<typename Model>
+struct FilteringViewModel
+{
+    const Model & pvd_ref;
+    const FilterInput & raw_ref;
+};
+
+using PositionFilteringViewModel = FilteringViewModel<IPositionProvider>;
+using OrientationFilteringViewModel = FilteringViewModel<IOrientationProvider>;
+
+using IPositionView = IBaseView<PositionFilteringViewModel>;
+using IOrientationView = IBaseView<OrientationFilteringViewModel>;
 
 #endif // BASEORIENTATIONVIEW_H
