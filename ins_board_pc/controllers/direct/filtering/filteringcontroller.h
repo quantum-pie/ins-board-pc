@@ -27,6 +27,7 @@ struct FilteringController : FilteringControllerCommon, ControllerBase<Model>, O
             {
                 this->get_model()->reset();
             }
+            this->clear_views();
         }
     }
 
