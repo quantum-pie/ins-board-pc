@@ -38,9 +38,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/private_implementation/kalmanorientationfilterbase.cpp \
     filtering/private_implementation/kalmanpositionfilterbase.cpp \
     filtering/private_implementation/mixedkalmanfilterbase.cpp \
-    views/enupositionview.cpp \
-    views/rpyorientationview.cpp \
-    views/xdorientationview.cpp \
     earth.cpp \
     eigenaux.cpp \
     ellipsoid.cpp \
@@ -66,7 +63,19 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     controllers/metacontroller.cpp \
     controllers/direct/filtering/filteringcontrollercommon.cpp \
     controllers/switches/orientationmodelswitch.cpp \
-    views/stdorientationview.cpp
+    views/orientation/rpyorientationview.cpp \
+    views/orientation/stdorientationview.cpp \
+    views/orientation/xdorientationview.cpp \
+    views/position/enupositionview.cpp \
+    views/position/trackpositionview.cpp \
+    controllers/direct/rawcontroller.cpp \
+    views/raw/xdrawmagnview.cpp \
+    views/raw/rawaccelview.cpp \
+    views/raw/rawgpsview.cpp \
+    views/raw/rawgyroview.cpp \
+    views/raw/rawmagnview.cpp \
+    controllers/direct/attributes/complorientationattrcontroller.cpp \
+    controllers/direct/magncalibrationcontroller.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -86,9 +95,6 @@ HEADERS  += \
     filtering/public_interfaces/IKalmanPositionFilter.h \
     filtering/public_interfaces/IOrientationFilter.h \
     filtering/public_interfaces/IPositionFilter.h \
-    views/enupositionview.h \
-    views/rpyorientationview.h \
-    views/xdorientationview.h \
     wmm/GeomagnetismHeader.h \
     earth.h \
     eigenaux.h \
@@ -131,9 +137,20 @@ HEADERS  += \
     controllers/switches/modelswitchbase.h \
     filtering/filters/filtersfwd.h \
     controllers/direct/filtering/filteringcontrollersfwd.h \
-    views/stdorientationview.h \
     controllers/direct/observablebase.h \
-    controllers/direct/filtering/rawcontroller.h \
-    controllers/direct/rawcontroller.h
+    controllers/direct/rawcontroller.h \
+    views/orientation/rpyorientationview.h \
+    views/orientation/stdorientationview.h \
+    views/orientation/xdorientationview.h \
+    views/position/enupositionview.h \
+    views/raw/rawaccelview.h \
+    views/raw/rawgpsview.h \
+    views/raw/rawgyroview.h \
+    views/raw/rawmagnview.h \
+    views/position/trackpositionview.h \
+    views/raw/xdrawmagnview.h \
+    views/xdaxisplotview.h \
+    controllers/direct/attributes/complorientationattrcontroller.h \
+    controllers/direct/magncalibrationcontroller.h
 
 FORMS    += mainwindow.ui

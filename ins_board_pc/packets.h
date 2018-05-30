@@ -69,6 +69,8 @@ struct RawPacket
 	double et;					//!< Elapsed time.
 };
 
+// TODO move to receiver
+
 /*!
  * @brief Convert raw input data to filter input structure.
  * @param in raw input data instance.

@@ -9,7 +9,7 @@ class QLineEdit;
 
 struct StdOrientationView : IOrientationView
 {
-    StdOrientationView(QLineEdit * roll_std_le, QLineEdit * pitch_std_le, QLineEdit * yaw_std_le);
+    StdOrientationView(QLineEdit * roll_std_le, QLineEdit * pitch_std_le, QLineEdit * yaw_std_le, QLineEdit * magnetic_heading_le);
     ~StdOrientationView() override = default;
 
     void update(const ViewModel & pvd) override;
@@ -23,6 +23,7 @@ private:
     QLineEdit * roll_std_le;
     QLineEdit * pitch_std_le;
     QLineEdit * yaw_std_le;
+    QLineEdit * magnetic_heading_le;
 };
 
 #endif // RPYTEXTVIEW_H

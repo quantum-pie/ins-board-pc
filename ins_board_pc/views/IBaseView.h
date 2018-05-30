@@ -15,6 +15,7 @@ struct IBaseView
 
 struct IPositionProvider;
 struct IOrientationProvider;
+struct RawPacket;
 
 template<typename Model>
 struct FilteringViewModel
@@ -28,5 +29,6 @@ using OrientationFilteringViewModel = FilteringViewModel<IOrientationProvider>;
 
 using IPositionView = IBaseView<PositionFilteringViewModel>;
 using IOrientationView = IBaseView<OrientationFilteringViewModel>;
+using IRawView = IBaseView<RawPacket>;
 
 #endif // BASEORIENTATIONVIEW_H

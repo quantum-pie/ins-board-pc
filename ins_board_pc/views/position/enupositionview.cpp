@@ -1,4 +1,4 @@
-#include "views/enupositionview.h"
+#include "views/position/enupositionview.h"
 #include "packets.h"
 #include "geometry.h"
 

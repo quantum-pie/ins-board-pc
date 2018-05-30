@@ -1,4 +1,4 @@
-#include "views/xdorientationview.h"
+#include "views/orientation/xdorientationview.h"
 #include "quaternion.h"
 
 #include <QWidget>
