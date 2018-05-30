@@ -75,7 +75,8 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     views/raw/rawgyroview.cpp \
     views/raw/rawmagnview.cpp \
     controllers/direct/attributes/complorientationattrcontroller.cpp \
-    controllers/direct/magncalibrationcontroller.cpp
+    controllers/direct/magncalibrationcontroller.cpp \
+    views/calibrationview.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -151,6 +152,7 @@ HEADERS  += \
     views/raw/xdrawmagnview.h \
     views/xdaxisplotview.h \
     controllers/direct/attributes/complorientationattrcontroller.h \
-    controllers/direct/magncalibrationcontroller.h
+    controllers/direct/magncalibrationcontroller.h \
+    views/calibrationview.h
 
 FORMS    += mainwindow.ui
