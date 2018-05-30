@@ -11,7 +11,7 @@ struct ObservableBase
         views.push_back(view);
     }
 
-    void clear_views()
+    void remove_views()
     {
         views.clear();
     }
@@ -22,6 +22,14 @@ protected:
         for(auto view : views)
         {
             view.get().update(model);
+        }
+    }
+
+    void clear_views()
+    {
+        for(auto view : views)
+        {
+            view.get().clear();
         }
     }
 
