@@ -1,7 +1,7 @@
 #include "views/raw/rawaccelview.h"
 #include "qcustomplot.h"
 
-RawAccelView::RawAccelView(QCustomPlot * plot) : RawPlotView{ plot }
+RawAccelView::RawAccelView(QCustomPlot * plot) : XDAxisPlot{ plot }
 {
     plot->plotLayout()->insertRow(0);
     plot->plotLayout()->addElement(0, 0, new QCPTextElement(plot, "Acceleration sensor data"));
@@ -20,4 +20,9 @@ RawAccelView::RawAccelView(QCustomPlot * plot) : RawPlotView{ plot }
 void RawAccelView::update(const ViewModel & vm)
 {
     update_plot(vm.a * 1e3);
+}
+
+void RawAccelView::clear()
+{
+    clear_plot();
 }

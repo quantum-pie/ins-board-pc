@@ -2,7 +2,7 @@
 #include "qcustomplot.h"
 #include "utils.h"
 
-RPYOrientationView::RPYOrientationView(QCustomPlot * plot) : OrientationPlotView{ plot }
+RPYOrientationView::RPYOrientationView(QCustomPlot * plot) : XDAxisPlot{ plot }
 {
     plot->plotLayout()->insertRow(0);
     plot->plotLayout()->addElement(0, 0, new QCPTextElement(plot, "Roll Pitch Yaw"));
@@ -22,4 +22,9 @@ void RPYOrientationView::update(const ViewModel & vm)
 {
     Vector3D rpy = vm.pvd_ref.get_orientation_quaternion().rpy().unaryExpr(&utils::radians_to_degrees);
     update_plot(rpy);
+}
+
+void RPYOrientationView::clear()
+{
+    clear_plot();
 }
