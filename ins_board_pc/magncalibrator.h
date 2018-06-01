@@ -15,6 +15,8 @@
 class MagnCalibrator
 {
 public:
+    using meas_iter = std::vector<Vector3D>::const_iterator;
+
     /*!
      * @brief Class constructor.
      */
@@ -64,6 +66,10 @@ public:
      * @return magnetometer calibration matrix.
      */
     Matrix3D get_scale() const;
+
+    meas_iter meas_begin() const;
+    meas_iter meas_end() const;
+    void clear_meas();
 
     MagnCalibrator(MagnCalibrator const&) = delete;
     MagnCalibrator& operator =(MagnCalibrator const&) = delete;

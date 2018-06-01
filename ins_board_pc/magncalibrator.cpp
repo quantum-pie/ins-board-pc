@@ -117,7 +117,20 @@ void MagnCalibrator::fit()
     Matrix3D tmp = M.llt().matrixU();
 
     scale = tmp / std::sqrt(0.25 * n.transpose() * M_inv * n - d);
+}
 
+MagnCalibrator::meas_iter MagnCalibrator::meas_begin() const
+{
+    return meas.cbegin();
+}
+
+MagnCalibrator::meas_iter MagnCalibrator::meas_end() const
+{
+    return meas.cend();
+}
+
+void MagnCalibrator::clear_meas()
+{
     meas.resize(0);
 }
 
