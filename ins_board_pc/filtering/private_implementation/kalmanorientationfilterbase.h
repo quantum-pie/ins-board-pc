@@ -34,15 +34,12 @@ struct FilterBaseTraits<KalmanOrientationFilterBase>
     using D_type = quat::delta_type;
 };
 
-// TODO do we need virtual?
-
 /*!
  * @brief Kalman orientation filter base implementation.
  */
-class KalmanOrientationFilterBase : virtual public IKalmanOrientationFilter,
-                                    public IFilterBase<KalmanOrientationFilterBase>
+struct KalmanOrientationFilterBase : virtual IKalmanOrientationFilter,
+                                     IFilterBase<KalmanOrientationFilterBase>
 {
-public:
     /*!
      * @brief Class constructor.
      * @param ellip Earth ellipsoid.

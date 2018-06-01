@@ -31,10 +31,9 @@ struct FilterBaseTraits<KalmanPositionFilterBase>
 /*!
  * @brief Kalman position filter base implementation.
  */
-class KalmanPositionFilterBase : virtual public IKalmanPositionFilter,
-                                 public IFilterBase<KalmanPositionFilterBase>
+struct KalmanPositionFilterBase : virtual IKalmanPositionFilter,
+                                  IFilterBase<KalmanPositionFilterBase>
 {
-public:
     /*!
      * @brief Class constructor.
      * @param ellip Earth ellipsoid.

@@ -40,9 +40,9 @@ struct FilterBaseTraits<MixedKalmanFilterBase>
 /*!
  * @brief Kalman mixed filter base implementation.
  */
-class MixedKalmanFilterBase : public IFilterBase<MixedKalmanFilterBase>,
-                              KalmanOrientationFilterBase,
-                              KalmanPositionFilterBase
+struct MixedKalmanFilterBase : IFilterBase<MixedKalmanFilterBase>,
+                              private KalmanOrientationFilterBase,
+                              private KalmanPositionFilterBase
 {
 public:
     /*!
