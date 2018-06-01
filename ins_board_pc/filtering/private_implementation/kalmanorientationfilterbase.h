@@ -52,7 +52,7 @@ public:
     /*!
      * @brief Class destructor.
      */
-    ~KalmanOrientationFilterBase() override;
+    ~KalmanOrientationFilterBase() override = default;
 
     //! Traits of this implementation alias.
     using thy_traits = FilterBaseTraits<KalmanOrientationFilterBase>;

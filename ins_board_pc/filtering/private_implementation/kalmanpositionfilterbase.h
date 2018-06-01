@@ -44,7 +44,7 @@ public:
     /*!
      * @brief Class destructor.
      */
-    ~KalmanPositionFilterBase() override;
+    ~KalmanPositionFilterBase() override = default;
 
     //! Traits of this implementation alias.
     using thy_traits = FilterBaseTraits<KalmanPositionFilterBase>;

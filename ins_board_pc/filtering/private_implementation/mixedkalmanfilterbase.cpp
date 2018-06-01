@@ -11,8 +11,6 @@ MixedKalmanFilterBase::MixedKalmanFilterBase(const Ellipsoid & ellip)
       PUR{ PUR_type::Zero() }
 {}
 
-MixedKalmanFilterBase::~MixedKalmanFilterBase() = default;
-
 MixedKalmanFilterBase::meas_type
 MixedKalmanFilterBase::do_get_true_measurement(const FilterInput & z) const
 {
@@ -68,8 +66,8 @@ Vector3D MixedKalmanFilterBase::do_get_geodetic(const FilterInput & z) const
 
 bool MixedKalmanFilterBase::do_is_initialized() const
 {
-    return KalmanOrientationFilterBase::is_ready_to_initialize() &&
-            KalmanPositionFilterBase::is_ready_to_initialize();
+    return KalmanOrientationFilterBase::is_initialized() &&
+            KalmanPositionFilterBase::is_initialized();
 }
 
 bool MixedKalmanFilterBase::do_is_ready_to_initialize() const

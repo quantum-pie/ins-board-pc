@@ -54,7 +54,7 @@ public:
     /*!
      * @brief Class destructor.
      */
-    ~MixedKalmanFilterBase() override;
+    ~MixedKalmanFilterBase() override = default;
 
     //! Traits of this implementation alias.
     using thy_traits = FilterBaseTraits<MixedKalmanFilterBase>;
