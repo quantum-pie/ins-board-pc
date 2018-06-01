@@ -4,11 +4,13 @@
 #include <QObject>
 
 class FilterInput;
+class RawPacket;
 
 class Receiver : public QObject
 {
 signals:
     void raw_sample_received(const FilterInput & z);
+    void raw_packet_received(const RawPacket & z);
 };
 
 #endif // RECEIVER_H
