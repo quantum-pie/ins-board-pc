@@ -7,12 +7,13 @@
 
 class KalmanOrientationAttrController;
 
-struct OrientationModelSwitch : SingleModelSwitchBase<IOrientationFilter, IKalmanOrientationAttr>
+struct OrientationModelSwitch : private SingleModelSwitchBase<IOrientationFilter, IKalmanOrientationAttr>
 {
     using base_type = SingleModelSwitchBase<IOrientationFilter, IKalmanOrientationAttr>;
 
     OrientationModelSwitch(QComboBox * sw, OrientationFilteringController & ori_ctrl, KalmanOrientationAttrController & attr_ctrl);
 
+    using base_type::set_model;
     void switch_model(int cb_idx);
 
 private:

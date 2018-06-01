@@ -7,12 +7,13 @@
 
 class KalmanPositionAttrController;
 
-struct PositionModelSwitch : SingleModelSwitchBase<IPositionFilter, IKalmanPositionAttr>
+struct PositionModelSwitch : private SingleModelSwitchBase<IPositionFilter, IKalmanPositionAttr>
 {
     using base_type = SingleModelSwitchBase<IPositionFilter, IKalmanPositionAttr>;
 
     PositionModelSwitch(QComboBox * sw, PositionFilteringController & pos_ctrl, KalmanPositionAttrController & attr_ctrl);
 
+    using base_type::set_model;
     void switch_model(int cb_idx);
 
 private:
