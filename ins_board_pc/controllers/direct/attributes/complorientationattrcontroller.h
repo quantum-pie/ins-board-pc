@@ -8,13 +8,15 @@
 
 class QLineEdit;
 
-class ComplOrientationAttrController : public QObject, public AttrControllerBase<IComplementOrientationAttr>
+class ComplOrientationAttrController : public QObject, AttrControllerBase<IComplementOrientationAttr>
 {
     Q_OBJECT
 
 public:
     ComplOrientationAttrController(QLineEdit * static_accel_le, QLineEdit * static_magn_le, QLineEdit * bias_gain_le);
 
+    using AttrControllerBase<IComplementOrientationAttr>::set_model;
+    void apply_attributes();
 
 public slots:
     void on_static_accel_gain(const QString & str);

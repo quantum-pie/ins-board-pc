@@ -8,12 +8,15 @@
 
 class QLineEdit;
 
-class SimPositionAttrController : public QObject, public AttrControllerBase<ISimPositionAttr>
+class SimPositionAttrController : public QObject, AttrControllerBase<ISimPositionAttr>
 {
     Q_OBJECT
 
 public:
     SimPositionAttrController(QLineEdit * speed_le, QLineEdit * initial_track_le);
+
+    using AttrControllerBase<ISimPositionAttr>::set_model;
+    void apply_attributes();
 
 public slots:
     void on_speed(const QString & str);

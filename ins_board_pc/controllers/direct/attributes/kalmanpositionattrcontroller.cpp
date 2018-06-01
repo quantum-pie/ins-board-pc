@@ -46,3 +46,13 @@ void KalmanPositionAttrController::on_init_accel_std(const QString & str)
 {
     call_setter(str, &IKalmanPositionAttr::set_init_accel_std);
 }
+
+void KalmanPositionAttrController::apply_attributes()
+{
+    on_init_accel_std(init_accel_std_le->text());
+    on_init_pos_std(init_pos_std_le->text());
+    on_init_vel_std(init_vel_std_le->text());
+    on_meas_pos_std(meas_pos_std_le->text());
+    on_meas_vel_std(meas_vel_std_le->text());
+    on_proc_accel_std(proc_accel_std_le->text());
+}

@@ -10,10 +10,16 @@ SimPositionAttrController::SimPositionAttrController(QLineEdit *speed_le, QLineE
 
 void SimPositionAttrController::on_speed(const QString &str)
 {
-    call_setter(str, &ISimPositionAttr::set_speed;
+    call_setter(str, &ISimPositionAttr::set_speed);
 }
 
 void SimPositionAttrController::on_initial_track(const QString &str)
 {
     call_setter(str, &ISimPositionAttr::set_initial_track);
+}
+
+void SimPositionAttrController::apply_attributes()
+{
+    on_initial_track(initial_track_le->text());
+    on_speed(speed_le->text());
 }

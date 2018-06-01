@@ -24,3 +24,10 @@ void ComplOrientationAttrController::on_bias_gain(const QString &str)
 {
     call_setter(str, &IComplementOrientationAttr::set_bias_gain);
 }
+
+void ComplOrientationAttrController::apply_attributes()
+{
+    on_static_accel_gain(static_accel_le->text());
+    on_static_magn_gain(static_magn_le->text());
+    on_bias_gain(bias_gain_le->text());
+}

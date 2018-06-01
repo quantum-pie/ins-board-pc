@@ -7,9 +7,9 @@ KalmanOrientationAttrController::KalmanOrientationAttrController(QLineEdit * pro
                                                                  QLineEdit * init_bias_std_le)
     : proc_gyro_le{ proc_gyro_le }, proc_gyro_bias_le{ proc_gyro_bias_le },
       meas_accel_std_le{ meas_accel_std_le }, meas_magn_std_le{ meas_magn_std_le },
-      init_bias_std_le{ init_bias_std_le }, init_qs_std_le{ init_qs_std_le },
-      init_qx_std_le{ init_qx_std_le }, init_qy_std_le{ init_qy_std_le },
-      init_qz_std_le{ init_qz_std_le }
+      init_qs_std_le{ init_qs_std_le }, init_qx_std_le{ init_qx_std_le },
+      init_qy_std_le{ init_qy_std_le }, init_qz_std_le{ init_qz_std_le },
+      init_bias_std_le{ init_bias_std_le }
 {
     connect(proc_gyro_le, SIGNAL(textEdited(QString)), this, SLOT(on_proc_gyro_std(QString)));
     connect(proc_gyro_bias_le, SIGNAL(textEdited(QString)), this, SLOT(on_proc_gyro_bias_std(QString)));
@@ -65,4 +65,17 @@ void KalmanOrientationAttrController::on_init_qz_std(const QString & str)
 void KalmanOrientationAttrController::on_init_bias_std(const QString & str)
 {
     call_setter(str, &IKalmanOrientationAttr::set_init_bias_std);
+}
+
+void KalmanOrientationAttrController::apply_attributes()
+{
+    on_init_bias_std(init_bias_std_le->text());
+    on_init_qs_std(init_qs_std_le->text());
+    on_init_qx_std(init_qx_std_le->text());
+    on_init_qy_std(init_qy_std_le->text());
+    on_init_qz_std(init_qz_std_le->text());
+    on_meas_accel_std(meas_accel_std_le->text());
+    on_meas_magn_std(meas_magn_std_le->text());
+    on_proc_gyro_bias_std(proc_gyro_bias_le->text());
+    on_proc_gyro_std(proc_gyro_le->text());
 }

@@ -8,7 +8,7 @@
 
 class QLineEdit;
 
-class KalmanOrientationAttrController : public QObject, public AttrControllerBase<IKalmanOrientationAttr>
+class KalmanOrientationAttrController : public QObject, AttrControllerBase<IKalmanOrientationAttr>
 {
     Q_OBJECT
 
@@ -17,6 +17,9 @@ public:
                                     QLineEdit * meas_accel_std_le, QLineEdit * meas_magn_std_le,
                                     QLineEdit * init_qs_std_le, QLineEdit * init_qx_std_le, QLineEdit * init_qy_std_le, QLineEdit * init_qz_std_le,
                                     QLineEdit * init_bias_std_le);
+
+    using::AttrControllerBase<IKalmanOrientationAttr>::set_model;
+    void apply_attributes();
 
 public slots:
     void on_proc_gyro_std(const QString & str);
