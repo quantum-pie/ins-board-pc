@@ -3,18 +3,25 @@
 
 #include "views/IBaseView.h"
 #include "controllers/direct/observablebase.h"
+#include "controllers/direct/runningflag.h"
 
 #include <QObject>
 
 class Receiver;
 class RawPacket;
+class QPushButton;
 
-class RawController : public QObject, public ObservableBase<IRawView>
+class RawController : public QObject,
+                      public ObservableBase<IRawView>,
+                      RunningFlag
 {
     Q_OBJECT
 
 public:
-    RawController(const Receiver * receiver);
+    explicit RawController(const Receiver * receiver, const QPushButton * enable_button = nullptr);
+
+    using RunningFlag::is_running;
+    using RunningFlag::set_running;
 
 public slots:
     void handle_input(const RawPacket & z);

@@ -1,19 +1,21 @@
 #ifndef FILTERINGCONTROLLERCOMMON_H
 #define FILTERINGCONTROLLERCOMMON_H
 
+#include "controllers/direct/runningflag.h"
+
 #include <QObject>
 
 class FilterInput;
 
-class FilteringControllerCommon : public QObject
+class FilteringControllerCommon : public QObject, RunningFlag
 {
     Q_OBJECT
 
 public:
     FilteringControllerCommon(bool already_running);
 
-    bool is_running();
-    void set_running(bool en);
+    using RunningFlag::is_running;
+    using RunningFlag::set_running;
 
     bool filtering_is_enabled();
     void enable_filtering();
@@ -24,7 +26,6 @@ public slots:
     void handle_input(const FilterInput &) {}
 
 private:
-    bool running;
     bool filtering_enabled;
 };
 
