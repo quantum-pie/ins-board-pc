@@ -4,30 +4,25 @@
 #include "controllers/switches/modelswitchbase.h"
 #include "controllers/direct/controllerbase.h"
 
-template<typename FilteringModel, typename AttrModel>
+template<typename FilteringController, typename AttributesController>
 struct SingleModelSwitchBase : ModelSwitchBase
 {
-    using fmodel_controller = ControllerBase<FilteringModel>;
-    using amodel_controller = ControllerBase<AttrModel>;
-
-    SingleModelSwitchBase(QComboBox * sw, fmodel_controller & fctrl, amodel_controller & actrl)
+    SingleModelSwitchBase(QComboBox * sw, FilteringController & fctrl, AttributesController & actrl)
         : ModelSwitchBase{ sw }, fctrl{ fctrl }, actrl{ actrl }
     {}
 
     template<typename Filter>
     void set_model(Filter * new_model)
     {
+        new_model.reset();
         fctrl.set_model(new_model);
         actrl.set_model(new_model);
-        // TODO force attributes to apply (actrl.apply_attributes())
-        // TODO force filtering to start if was running (fctrl.apply_start())
-        // TODO or move to set_model (not likely )
-        // TODO not here - augment in concrete switches
+        actrl.apply_attributes();
     }
 
 private:
-    fmodel_controller & fctrl;
-    amodel_controller & actrl;
+    FilteringController & fctrl;
+    AttributesController & actrl;
 };
 
 #endif // SINGLEMODELSWITCH_H
