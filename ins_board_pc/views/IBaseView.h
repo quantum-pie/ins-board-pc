@@ -16,6 +16,7 @@ struct IBaseView
 struct IPositionProvider;
 struct IOrientationProvider;
 struct RawPacket;
+class MagnCalibrator;
 
 template<typename Model>
 struct FilteringViewModel
@@ -30,5 +31,6 @@ using OrientationFilteringViewModel = FilteringViewModel<IOrientationProvider>;
 using IPositionView = IBaseView<PositionFilteringViewModel>;
 using IOrientationView = IBaseView<OrientationFilteringViewModel>;
 using IRawView = IBaseView<RawPacket>;
+using ICalibrationView = IBaseView<MagnCalibrator>;
 
 #endif // BASEORIENTATIONVIEW_H
