@@ -25,6 +25,7 @@ public:
 
 public slots:
     void handle_input(const RawPacket & z);
+    void handle_enable(bool en);
 };
 
 #endif // RAWCONTROLLER_H

@@ -21,7 +21,8 @@ class MagnCalibrationController : public QObject,
     Q_OBJECT
 
 public:
-    MagnCalibrationController(MagnCalibrator & calibrator, const Receiver * receiver, const QPushButton * calibrate_btn);
+    MagnCalibrationController(MagnCalibrator & calibrator, const Receiver * receiver,
+                              const QPushButton * calibrate_btn, const QPushButton * save_btn);
 
     using RunningFlag::is_running;
     using RunningFlag::set_running;
@@ -29,6 +30,7 @@ public:
 public slots:
     void handle_input(const RawPacket & z);
     void handle_calibrate(bool en);
+    void save_calibration();
 
 private:
     std::reference_wrapper<MagnCalibrator> calibration_model;

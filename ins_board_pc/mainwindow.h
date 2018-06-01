@@ -270,6 +270,8 @@ private slots:
      */
     void on_accel2_init_le_textEdited(const QString &arg1);
 
+    void on_tabWidget_currentChanged(int index);
+
 private:
     /*!
      * \brief Process received datagram.

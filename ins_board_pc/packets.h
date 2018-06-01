@@ -69,6 +69,23 @@ struct RawPacket
 	double et;					//!< Elapsed time.
 };
 
+struct FilteredPacket
+{
+    uint32_t status;                            //!< Status word.
+    float ecef_x;                             	//!< ECEF 'x' coordinate.
+    float ecef_y;                             	//!< ECEF 'y' coordinate.
+    float ecef_z;                             	//!< ECEF 'z' coordinate.
+    float gps_lat;                      		//!< GPS latitude.
+    float gps_lon;                      		//!< GPS longitude.
+    float gps_alt;                      		//!< GPS altitude.
+    int32_t gspeed;                             //!< GPS ground speed.
+    int32_t heading;                      		//!< Heading angle.
+    int32_t pitch;                              //!< Pitch angle.
+    int32_t roll;                               //!< Roll angle.
+    int32_t track;                              //!< Track angle.
+    uint32_t pkt_number;                        //!< Packet number.
+};
+
 // TODO move to receiver
 
 /*!

@@ -79,7 +79,9 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     views/xdaxisplot.cpp \
     views/xdaxisscatter.cpp \
     views/calibration/xdcalibrationview.cpp \
-    views/calibration/numcalibrationview.cpp
+    views/calibration/numcalibrationview.cpp \
+    receiver.cpp \
+    udpreceiver.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -159,6 +161,7 @@ HEADERS  += \
     views/xdaxisscatter.h \
     views/calibration/xdcalibrationview.h \
     controllers/direct/runningflag.h \
-    views/calibration/numcalibrationview.h
+    views/calibration/numcalibrationview.h \
+    udpreceiver.h
 
 FORMS    += mainwindow.ui

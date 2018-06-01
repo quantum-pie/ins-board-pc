@@ -1,8 +1,5 @@
 //#include "mainwindow.h"
 
-#include "views/enupositionview.h"
-#include "views/xdorientationview.h"
-#include "views/rpyorientationview.h"
 #include "controllers/direct/filtering/filteringcontrollersfwd.h"
 #include "controllers/direct/attributes/kalmanorientationattrcontroller.h"
 #include "controllers/direct/attributes/kalmanpositionattrcontroller.h"
@@ -11,8 +8,11 @@
 #include "controllers/switches/orientationmodelswitch.h"
 #include "controllers/metacontroller.h"
 #include "controllers/direct/rawcontroller.h"
+#include "controllers/direct/magncalibrationcontroller.h"
 
 #include "receiver.h"
+#include "magncalibrator.h"
+#include "qcustomplot.h"
 
 #include <QLineEdit>
 #include <QComboBox>
@@ -59,6 +59,11 @@ int main(int argc, char *argv[])
     meta_ctrl.configure_control(1);
 
     RawController raw_ctrl(&recv);
+
+    MagnCalibrator calibrator;
+    RawController magn_raw_ctrl(&recv, &new_btn);
+
+    MagnCalibrationController magn_ctrl(calibrator, &recv, &new_btn);
 
     return a.exec();
 }

@@ -11,7 +11,7 @@ void XDCalibrationView::update(const ViewModel & vm)
 {
     for(auto it = vm.meas_begin(); it != vm.meas_end(); ++it)
     {
-        update_scatter(*it);
+        update_scatter(vm.calibrate(*it));
     }
 }
 

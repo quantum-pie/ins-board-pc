@@ -33,8 +33,8 @@ struct FilteringController : ControllerBase<Model>, ObservableBase<View>,
             if(en && this->model_is_set())
             {
                 this->get_model()->reset();
+                this->clear_views();
             }
-            this->clear_views();
         }
     }
 
