@@ -76,7 +76,10 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     views/raw/rawmagnview.cpp \
     controllers/direct/attributes/complorientationattrcontroller.cpp \
     controllers/direct/magncalibrationcontroller.cpp \
-    views/calibrationview.cpp
+    views/xdaxisplot.cpp \
+    views/xdaxisscatter.cpp \
+    views/calibration/xdcalibrationview.cpp \
+    views/calibration/numcalibrationview.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -150,9 +153,12 @@ HEADERS  += \
     views/raw/rawmagnview.h \
     views/position/trackpositionview.h \
     views/raw/xdrawmagnview.h \
-    views/xdaxisplotview.h \
     controllers/direct/attributes/complorientationattrcontroller.h \
     controllers/direct/magncalibrationcontroller.h \
-    views/calibrationview.h
+    views/xdaxisplot.h \
+    views/xdaxisscatter.h \
+    views/calibration/xdcalibrationview.h \
+    controllers/direct/runningflag.h \
+    views/calibration/numcalibrationview.h
 
 FORMS    += mainwindow.ui
