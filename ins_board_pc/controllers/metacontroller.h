@@ -4,6 +4,7 @@
 #include "controllers/direct/filtering/filteringcontrollersfwd.h"
 
 #include <QObject>
+#include <memory>
 
 class QComboBox;
 class PositionModelSwitch;
@@ -13,17 +14,17 @@ class MixedModelSwitch;
 class MetaController : public QObject
 {
 public:
-    MetaController(QComboBox * meta_cb, PositionModelSwitch & pos_sw, OrientationModelSwitch & ori_sw,
-                   MixedModelSwitch & mix_sw, PositionFilteringController & pos_ctrl);
+    MetaController(QComboBox * meta_cb, std::shared_ptr<PositionModelSwitch> pos_sw, std::shared_ptr<OrientationModelSwitch> ori_sw,
+                   std::unique_ptr<MixedModelSwitch> mix_sw, std::shared_ptr<PositionFilteringController> pos_ctrl);
 
 public slots:
     void configure_control(int cb_idx);
 
 private:
-    PositionModelSwitch & pos_sw;
-    OrientationModelSwitch & ori_sw;
-    MixedModelSwitch & mix_sw;
-    PositionFilteringController & pos_ctrl;
+    std::shared_ptr<PositionModelSwitch> pos_sw;
+    std::shared_ptr<OrientationModelSwitch> ori_sw;
+    std::unique_ptr<MixedModelSwitch> mix_sw;
+    std::shared_ptr<PositionFilteringController> pos_ctrl;
 };
 
 #endif // METACONTROLLER_H
