@@ -2,6 +2,7 @@
 #define OBSERVABLEBASE_H
 
 #include <vector>
+#include <functional>
 
 template<typename View>
 struct ObservableBase
