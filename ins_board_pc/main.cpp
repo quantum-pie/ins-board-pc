@@ -1,30 +1,14 @@
-//#include "mainwindow.h"
-
-#include "controllers/direct/filtering/filteringcontrollersfwd.h"
-#include "controllers/direct/attributes/kalmanorientationattrcontroller.h"
-#include "controllers/direct/attributes/kalmanpositionattrcontroller.h"
-#include "controllers/switches/mixedmodelswitch.h"
-#include "controllers/switches/positionmodelswitch.h"
-#include "controllers/switches/orientationmodelswitch.h"
-#include "controllers/metacontroller.h"
-#include "controllers/direct/rawcontroller.h"
-#include "controllers/direct/magncalibrationcontroller.h"
-
-#include "receiver.h"
-#include "magncalibrator.h"
-#include "qcustomplot.h"
-
-#include <QLineEdit>
-#include <QComboBox>
+#include "mainwindow.h"
 
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    //MainWindow w;
-    //w.show();
+    MainWindow w;
+    w.show();
 
+#if 0
     QCustomPlot plott;
     //ENUPositionView pos_view;
     //XDOrientationView ori_xd;
@@ -64,6 +48,6 @@ int main(int argc, char *argv[])
     RawController magn_raw_ctrl(&recv, &new_btn);
 
     MagnCalibrationController magn_ctrl(calibrator, &recv, &new_btn);
-
+#endif
     return a.exec();
 }
