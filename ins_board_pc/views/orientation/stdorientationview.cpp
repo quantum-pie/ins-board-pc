@@ -3,13 +3,15 @@
 
 #include <QLineEdit>
 
-StdOrientationView::StdOrientationView(QLineEdit *roll_std_le, QLineEdit *pitch_std_le, QLineEdit *yaw_std_le, QLineEdit * magnetic_heading_le)
+StdOrientationView::StdOrientationView(QLineEdit * samples_le, QLineEdit *roll_std_le, QLineEdit *pitch_std_le, QLineEdit *yaw_std_le, QLineEdit * magnetic_heading_le)
     : roll_std_le{ roll_std_le }, pitch_std_le{ pitch_std_le }, yaw_std_le{ yaw_std_le }, magnetic_heading_le{ magnetic_heading_le }
-{}
-
-void StdOrientationView::set_accumulator_capacity(std::size_t new_capacity)
 {
-    rpy_ctrl.set_sampling(new_capacity);
+    connect(samples_le, SIGNAL(textEdited(QString)), this, SLOT(set_accumulator_capacity(QString)));
+}
+
+void StdOrientationView::set_accumulator_capacity(const QString & str)
+{
+    rpy_ctrl.set_sampling(str.toInt());
 }
 
 void StdOrientationView::update(const ViewModel & vm)

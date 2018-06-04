@@ -4,13 +4,15 @@
 
 #include <QLineEdit>
 
-TrackPositionView::TrackPositionView(QLineEdit *track_angle_le, QLineEdit *ground_speed_le)
+TrackPositionView::TrackPositionView(QLineEdit * samples_le, QLineEdit *track_angle_le, QLineEdit *ground_speed_le)
     : track_angle_le{ track_angle_le}, ground_speed_le{ ground_speed_le }
-{}
-
-void TrackPositionView::set_accumulator_capacity(std::size_t new_capacity)
 {
-    speed_accum.set_sampling(new_capacity);
+    connect(samples_le, SIGNAL(textEdited(QString)), this, SLOT(set_accumulator_capacity(QString)));
+}
+
+void TrackPositionView::set_accumulator_capacity(const QString & str)
+{
+    speed_accum.set_sampling(str.toInt());
 }
 
 void TrackPositionView::update(const ViewModel & vm)

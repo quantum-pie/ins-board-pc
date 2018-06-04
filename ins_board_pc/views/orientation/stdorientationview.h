@@ -5,17 +5,20 @@
 #include "core/IOrientationProvider.h"
 #include "qualitycontrol.h"
 
+#include <QObject>
+
 class QLineEdit;
 
-struct StdOrientationView : IOrientationView
+struct StdOrientationView : QObject, IOrientationView
 {
-    StdOrientationView(QLineEdit * roll_std_le, QLineEdit * pitch_std_le, QLineEdit * yaw_std_le, QLineEdit * magnetic_heading_le);
+    StdOrientationView(QLineEdit * sample_le, QLineEdit * roll_std_le, QLineEdit * pitch_std_le, QLineEdit * yaw_std_le, QLineEdit * magnetic_heading_le);
     ~StdOrientationView() override = default;
 
     void update(const ViewModel & pvd) override;
     void clear() override;
 
-    void set_accumulator_capacity(std::size_t new_capacity);
+public slots:
+    void set_accumulator_capacity(const QString & str);
 
 private:
     QualityControl<Vector3D> rpy_ctrl;
