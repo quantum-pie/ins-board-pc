@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -865,6 +865,16 @@
               <item row="1" column="1">
                <widget class="QLineEdit" name="m_gain_le"/>
               </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="b_gain_le"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_39">
+                <property name="text">
+                 <string>b:</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
@@ -874,65 +884,25 @@
               <string>Position</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_11" columnstretch="0,0,0">
-              <item row="7" column="1" colspan="2">
-               <widget class="QLineEdit" name="vel2_init_le"/>
+              <item row="0" column="1" colspan="2">
+               <widget class="QLineEdit" name="init_track_le"/>
               </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_37">
                 <property name="text">
-                 <string>a_proc:</string>
+                 <string>track:</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="1" colspan="2">
-               <widget class="QLineEdit" name="pos2_meas_le"/>
+               <widget class="QLineEdit" name="sim_speed_le"/>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_38">
                 <property name="text">
-                 <string>p_meas:</string>
+                 <string>speed:</string>
                 </property>
                </widget>
-              </item>
-              <item row="7" column="0">
-               <widget class="QLabel" name="label_41">
-                <property name="text">
-                 <string>v_init:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_39">
-                <property name="text">
-                 <string>v_meas:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1" colspan="2">
-               <widget class="QLineEdit" name="vel2_meas_le"/>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_40">
-                <property name="text">
-                 <string>p_init:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1" colspan="2">
-               <widget class="QLineEdit" name="pos2_init_le"/>
-              </item>
-              <item row="8" column="0">
-               <widget class="QLabel" name="label_42">
-                <property name="text">
-                 <string>a_init:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1" colspan="2">
-               <widget class="QLineEdit" name="accel2_proc_le"/>
-              </item>
-              <item row="8" column="1" colspan="2">
-               <widget class="QLineEdit" name="accel2_init_le"/>
               </item>
              </layout>
             </widget>
