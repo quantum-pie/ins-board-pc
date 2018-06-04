@@ -28,3 +28,8 @@ void TrackPositionView::update(const ViewModel & vm)
         ground_speed_le->setText(utils::double_view(ground_speed));
     }
 }
+
+void TrackPositionView::clear()
+{
+
+}
