@@ -10,7 +10,7 @@ struct OrientationModelSwitch : private SingleModelSwitchBase<OrientationFilteri
 {
     using base_type = SingleModelSwitchBase<OrientationFilteringController, KalmanOrientationAttrController>;
 
-    OrientationModelSwitch(QComboBox * sw, OrientationFilteringController & ori_ctrl, KalmanOrientationAttrController & attr_ctrl);
+    OrientationModelSwitch(QComboBox * sw, std::shared_ptr<OrientationFilteringController> ori_ctrl, std::unique_ptr<KalmanOrientationAttrController> attr_ctrl);
 
     using base_type::enable;
     using base_type::disable;

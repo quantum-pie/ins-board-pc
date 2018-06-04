@@ -10,7 +10,7 @@ struct PositionModelSwitch : private SingleModelSwitchBase<PositionFilteringCont
 {
     using base_type = SingleModelSwitchBase<PositionFilteringController, KalmanPositionAttrController>;
 
-    PositionModelSwitch(QComboBox * sw, PositionFilteringController & pos_ctrl, KalmanPositionAttrController & attr_ctrl);
+    PositionModelSwitch(QComboBox * sw, std::shared_ptr<PositionFilteringController> pos_ctrl, std::unique_ptr<KalmanPositionAttrController> attr_ctrl);
 
     using base_type::enable;
     using base_type::disable;

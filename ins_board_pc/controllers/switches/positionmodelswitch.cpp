@@ -2,8 +2,8 @@
 
 #include <QComboBox>
 
-PositionModelSwitch::PositionModelSwitch(QComboBox * sw, PositionFilteringController & pos_ctrl, KalmanPositionAttrController & attr_ctrl)
-    : base_type{ sw, pos_ctrl, attr_ctrl }
+PositionModelSwitch::PositionModelSwitch(QComboBox * sw, std::shared_ptr<PositionFilteringController> pos_ctrl, std::unique_ptr<KalmanPositionAttrController> attr_ctrl)
+    : base_type{ sw, pos_ctrl, std::move(attr_ctrl) }
 {
     connect(sw, SIGNAL(currentIndexChanged(int)), this, SLOT(switch_model(int)));
 }

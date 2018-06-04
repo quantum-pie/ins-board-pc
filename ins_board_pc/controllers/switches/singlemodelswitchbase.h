@@ -4,11 +4,13 @@
 #include "controllers/switches/modelswitchbase.h"
 #include "controllers/direct/controllerbase.h"
 
+#include <memory>
+
 template<typename FilteringController, typename AttributesController>
 struct SingleModelSwitchBase : ModelSwitchBase
 {
-    SingleModelSwitchBase(QComboBox * sw, FilteringController & fctrl, AttributesController & actrl)
-        : ModelSwitchBase{ sw }, fctrl{ fctrl }, actrl{ actrl }
+    SingleModelSwitchBase(QComboBox * sw, std::shared_ptr<FilteringController> fctrl, std::unique_ptr<AttributesController> actrl)
+        : ModelSwitchBase{ sw }, fctrl{ fctrl }, actrl{ std::move(actrl) }
     {}
 
     using ModelSwitchBase::enable;
@@ -18,14 +20,14 @@ struct SingleModelSwitchBase : ModelSwitchBase
     void set_model(Filter * new_model)
     {
         new_model->reset();
-        fctrl.set_model(new_model);
-        actrl.set_model(new_model);
-        actrl.apply_attributes();
+        fctrl->set_model(new_model);
+        actrl->set_model(new_model);
+        actrl->apply_attributes();
     }
 
 private:
-    FilteringController & fctrl;
-    AttributesController & actrl;
+    std::shared_ptr<FilteringController> fctrl;
+    std::unique_ptr<AttributesController> actrl;
 };
 
 #endif // SINGLEMODELSWITCH_H
