@@ -3,13 +3,14 @@
 
 #include <vector>
 #include <functional>
+#include <memory>
 
 template<typename View>
 struct ObservableBase
 {
-    void attach_view(View & view)
+    void attach_view(std::unique_ptr<View> view)
     {
-        views.push_back(view);
+        views.emplace_back(std::move(view));
     }
 
     void remove_views()
@@ -20,22 +21,22 @@ struct ObservableBase
 protected:
     void update_views(const typename View::ViewModel & model)
     {
-        for(auto view : views)
+        for(auto & view : views)
         {
-            view.get().update(model);
+            view->update(model);
         }
     }
 
     void clear_views()
     {
-        for(auto view : views)
+        for(auto & view : views)
         {
-            view.get().clear();
+            view->clear();
         }
     }
 
 private:
-    std::vector<std::reference_wrapper<View>> views;
+    std::vector<std::unique_ptr<View>> views;
 };
 
 
