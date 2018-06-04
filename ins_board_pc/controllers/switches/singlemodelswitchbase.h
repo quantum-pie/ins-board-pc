@@ -11,10 +11,13 @@ struct SingleModelSwitchBase : ModelSwitchBase
         : ModelSwitchBase{ sw }, fctrl{ fctrl }, actrl{ actrl }
     {}
 
+    using ModelSwitchBase::enable;
+    using ModelSwitchBase::disable;
+
     template<typename Filter>
     void set_model(Filter * new_model)
     {
-        new_model.reset();
+        new_model->reset();
         fctrl.set_model(new_model);
         actrl.set_model(new_model);
         actrl.apply_attributes();
