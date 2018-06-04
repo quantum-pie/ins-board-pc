@@ -86,13 +86,5 @@ struct FilteredPacket
     uint32_t pkt_number;                        //!< Packet number.
 };
 
-// TODO move to receiver
-
-/*!
- * @brief Convert raw input data to filter input structure.
- * @param in raw input data instance.
- * @return filter input instance.
- */
-FilterInput parse_input(const RawPacket & in, const MagnCalibrator & magn_calib);
 
 #endif /* INCLUDE_PACKETS_H_ */

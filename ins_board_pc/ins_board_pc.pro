@@ -48,7 +48,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     magnetic.cpp \
     main.cpp \
     mainwindow.cpp \
-    packets.cpp \
     qcustomplot.cpp \
     quaternion.cpp \
     quatutils.cpp \
