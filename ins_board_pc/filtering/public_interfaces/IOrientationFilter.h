@@ -13,7 +13,7 @@
 /*!
  * @brief Orientation filter interface.
  */
-struct IOrientationFilter : IFilter, IOrientationProvider
+struct IOrientationFilter : virtual IFilter, IOrientationProvider
 {
     /*!
      * @brief Class desctructor.
