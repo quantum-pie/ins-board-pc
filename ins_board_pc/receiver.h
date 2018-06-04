@@ -1,9 +1,9 @@
 #ifndef RECEIVER_H
 #define RECEIVER_H
 
-#include <QtNetwork>
+#include "udpreceiver.h"
+
 #include <QObject>
-#include <QDataStream>
 #include <QString>
 
 #include <cstdint>
@@ -11,6 +11,7 @@
 class FilterInput;
 class RawPacket;
 class FilteredPacket;
+class MagnCalibrator;
 
 class Receiver : public QObject
 {
@@ -18,11 +19,18 @@ class Receiver : public QObject
 
 public:
     Receiver(const QString & raw_pvd_ip, uint16_t raw_pvd_port,
-             const QString & flt_pvd_ip, uint16_t flt_pvd_port);
+             const QString & flt_pvd_ip, uint16_t flt_pvd_port,
+             const MagnCalibrator & calibrator);
 
-public slots:
-    void read_raw_datagrams();
-    void read_flt_datagrams();
+    void process_raw_data(const QByteArray & data);
+    void process_flt_data(const QByteArray & data);
+
+    /*!
+     * @brief Convert raw input data to filter input structure.
+     * @param in raw input data instance.
+     * @return filter input instance.
+     */
+    FilterInput parse_raw_data(const RawPacket & in);
 
 signals:
     void raw_sample_received(const FilterInput & z);
@@ -30,8 +38,10 @@ signals:
     void filtered_packet_received(const FilteredPacket & z);
 
 private:
-    QUdpSocket raw_socket;
-    QUdpSocket flt_socket;
+    UDPReceiver raw_recv;
+    UDPReceiver flt_recv;
+
+    const MagnCalibrator & calibrator;
 };
 
 #endif // RECEIVER_H
