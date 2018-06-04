@@ -18,7 +18,7 @@ class RawController : public QObject,
     Q_OBJECT
 
 public:
-    explicit RawController(const Receiver * receiver, const QPushButton * enable_button = nullptr);
+    explicit RawController(const QPushButton * enable_button = nullptr);
 
     using RunningFlag::is_running;
     using RunningFlag::set_running;

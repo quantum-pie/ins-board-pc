@@ -12,11 +12,10 @@ template<typename Model, typename View>
 struct FilteringController : ControllerBase<Model>, ObservableBase<View>,
                              private FilteringControllerCommon
 {
-    FilteringController(const QPushButton * start_button, const Receiver * receiver)
+    FilteringController(const QPushButton * start_button)
         : FilteringControllerCommon{ start_button->isChecked() }
     {
         connect(start_button, SIGNAL(toggled(bool)), this, SLOT(handle_start(bool)));
-        connect(receiver, SIGNAL(raw_sample_received(FilterInput)), this, SLOT(handle_input(FilterInput)));
     }
 
     using FilteringControllerCommon::is_running;

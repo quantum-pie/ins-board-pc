@@ -4,9 +4,8 @@
 
 #include <QPushButton>
 
-RawController::RawController(const Receiver * receiver, const QPushButton * enable_btn)
+RawController::RawController(const QPushButton * enable_btn)
 {
-    connect(receiver, SIGNAL(raw_packet_received(RawPacket)), this, SLOT(handle_input(RawPacket)));
     if(enable_btn)
     {
         set_running(enable_btn->isChecked());

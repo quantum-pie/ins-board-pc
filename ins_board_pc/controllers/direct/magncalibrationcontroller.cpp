@@ -3,11 +3,9 @@
 
 #include <QPushButton>
 
-MagnCalibrationController::MagnCalibrationController(MagnCalibrator & calibrator, const Receiver *receiver,
-                                                     const QPushButton *calibrate_btn, const QPushButton *save_btn)
+MagnCalibrationController::MagnCalibrationController(MagnCalibrator & calibrator, const QPushButton *calibrate_btn, const QPushButton *save_btn)
     : RunningFlag{ calibrate_btn->isChecked() }, calibration_model{ calibrator }
 {
-    connect(receiver, SIGNAL(raw_packet_received(RawPacket)), this, SLOT(handle_input(RawPacket)));
     connect(calibrate_btn, SIGNAL(toggled(bool)), this, SLOT(handle_calibrate(bool)));
     connect(save_btn, SIGNAL(clicked(bool)), this, SLOT(save_calibration()));
 }

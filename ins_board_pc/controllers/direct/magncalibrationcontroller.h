@@ -21,8 +21,7 @@ class MagnCalibrationController : public QObject,
     Q_OBJECT
 
 public:
-    MagnCalibrationController(MagnCalibrator & calibrator, const Receiver * receiver,
-                              const QPushButton * calibrate_btn, const QPushButton * save_btn);
+    MagnCalibrationController(MagnCalibrator & calibrator, const QPushButton * calibrate_btn, const QPushButton * save_btn);
 
     using RunningFlag::is_running;
     using RunningFlag::set_running;
