@@ -10,8 +10,6 @@ KalmanPositionFilterBase::KalmanPositionFilterBase(const Ellipsoid & ellip)
       params{ default_proc_noise_params, default_meas_noise_params, default_init_cov_params }
 {}
 
-KalmanPositionFilterBase::~KalmanPositionFilterBase();
-
 KalmanPositionFilterBase::meas_type
 KalmanPositionFilterBase::do_get_true_measurement(const FilterInput & z) const
 {

@@ -15,8 +15,6 @@ KalmanOrientationFilterBase::KalmanOrientationFilterBase(const Ellipsoid & el)
       params{ default_proc_noise_params, default_meas_noise_params, default_init_cov_params }
 {}
 
-KalmanOrientationFilterBase::~KalmanOrientationFilterBase();
-
 KalmanOrientationFilterBase::meas_type
 KalmanOrientationFilterBase::do_get_true_measurement(const FilterInput & z) const
 {
