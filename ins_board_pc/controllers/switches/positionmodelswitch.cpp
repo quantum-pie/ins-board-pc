@@ -1,6 +1,4 @@
 #include "controllers/switches/positionmodelswitch.h"
-#include "controllers/direct/filtering/filteringcontrollersfwd.h"
-#include "controllers/direct/attributes/kalmanpositionattrcontroller.h"
 
 #include <QComboBox>
 
