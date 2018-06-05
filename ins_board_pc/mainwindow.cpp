@@ -19,7 +19,6 @@
 #include "controllers/switches/orientationmodelswitch.h"
 #include "controllers/switches/positionmodelswitch.h"
 
-
 #include "views/orientation/rpyorientationview.h"
 #include "views/orientation/xdorientationview.h"
 #include "views/orientation/stdorientationview.h"
@@ -57,7 +56,8 @@ MainWindow::MainWindow(QWidget *parent) :
     kalman_ori_controller = std::make_shared<OrientationFilteringController>(ui->pushButton_2);
     kalman_ori_controller->attach_view(std::make_unique<RPYOrientationView>(ui->plot4));
     kalman_ori_controller->attach_view(std::make_unique<XDOrientationView>(ui->dwidget, ui->gridLayout_3));
-    kalman_ori_controller->attach_view(std::make_unique<StdOrientationView>(ui->samples_le, ui->roll_std_le, ui->pitch_std_le, ui->yaw_std_le, ui->magnetic_heading_le));
+    kalman_ori_controller->attach_view(std::make_unique<StdOrientationView>(ui->samples_le, ui->roll_std_le,
+                                                                            ui->pitch_std_le, ui->yaw_std_le, ui->magnetic_heading_le));
 
     kalman_pos_controller = std::make_shared<PositionFilteringController>(ui->pushButton_2);
     kalman_pos_controller->attach_view(std::make_unique<ENUPositionView>(ui->plot5));
@@ -80,7 +80,8 @@ MainWindow::MainWindow(QWidget *parent) :
     compl_ori_controller = std::make_unique<OrientationFilteringController>(ui->pushButton_4);
     compl_ori_controller->attach_view(std::make_unique<RPYOrientationView>(ui->plot6));
     compl_ori_controller->attach_view(std::make_unique<XDOrientationView>(ui->dwidget2, ui->gridLayout_8));
-    compl_ori_controller->attach_view(std::make_unique<StdOrientationView>(ui->samples_le_2, ui->roll_std_le_2, ui->pitch_std_le_2, ui->yaw_std_le_2, ui->magnetic_heading_le_2));
+    compl_ori_controller->attach_view(std::make_unique<StdOrientationView>(ui->samples_le_2, ui->roll_std_le_2,
+                                                                           ui->pitch_std_le_2, ui->yaw_std_le_2, ui->magnetic_heading_le_2));
 
     sim_pos_controller = std::make_unique<PositionFilteringController>(ui->pushButton_4);
     sim_pos_controller->attach_view(std::make_unique<ENUPositionView>(ui->plot7));
@@ -90,14 +91,42 @@ MainWindow::MainWindow(QWidget *parent) :
     sim_posattr_controller = std::make_unique<SimPositionAttrController>(ui->sim_speed_le, ui->init_track_le);
 
     compl_ori_controller->set_model(&ori_cf);
+
     compl_oriattr_controller->set_model(&ori_cf);
+    compl_oriattr_controller->borrow_attributes();
+
     sim_pos_controller->set_model(&pos_sim);
     sim_posattr_controller->set_model(&pos_sim);
+    sim_posattr_controller->borrow_attributes();
 
     resize(1300, 800);
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
-
+    receiver.disconnect();
+    switch(index)
+    {
+    case 0:
+        connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), raw_tab_controller.get(), SLOT(handle_input(RawPacket)));
+        break;
+    case 1:
+        connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), magn_cal_raw_controller.get(), SLOT(handle_input(RawPacket)));
+        connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), magn_cal_controller.get(), SLOT(handle_input(RawPacket)));
+        break;
+    case 3:
+        connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), gps_raw_controller.get(), SLOT(handle_input(RawPacket)));
+        break;
+    case 4:
+        connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), kalman_ori_controller.get(), SLOT(handle_input(FilterInput)));
+        connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), kalman_pos_controller.get(), SLOT(handle_input(FilterInput)));
+        break;
+    case 5:
+        connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), compl_ori_controller.get(), SLOT(handle_input(FilterInput)));
+        connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), sim_pos_controller.get(), SLOT(handle_input(FilterInput)));
+        break;
+    case 6:
+        // TODO
+        break;
+    }
 }
