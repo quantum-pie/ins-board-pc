@@ -1,6 +1,4 @@
 #include "controllers/switches/mixedmodelswitch.h"
-#include "controllers/switches/positionmodelswitch.h"
-#include "controllers/switches/orientationmodelswitch.h"
 
 #include <QComboBox>
 

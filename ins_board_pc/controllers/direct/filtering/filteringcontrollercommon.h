@@ -13,6 +13,7 @@ class FilteringControllerCommon : public QObject, RunningFlag
 
 public:
     FilteringControllerCommon(bool already_running);
+    virtual ~FilteringControllerCommon() = default;
 
     using RunningFlag::is_running;
     using RunningFlag::set_running;
@@ -22,8 +23,8 @@ public:
     void disable_filtering();
 
 public slots:
-    void handle_start(bool) {}
-    void handle_input(const FilterInput &) {}
+    virtual void handle_start(bool) = 0;
+    virtual void handle_input(const FilterInput &) = 0;
 
 private:
     bool filtering_enabled;

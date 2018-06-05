@@ -11,12 +11,13 @@ class ModelSwitchBase : public QObject
 
 public:
     ModelSwitchBase(QComboBox * sw);
+    virtual ~ModelSwitchBase() = default;
 
     void enable();
     void disable();
 
 public slots:
-    void switch_model(int) {}
+    virtual void switch_model(int) = 0;
 
 private:
     QComboBox * sw;

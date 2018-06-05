@@ -13,8 +13,7 @@ struct SingleModelSwitchBase : ModelSwitchBase
         : ModelSwitchBase{ sw }, fctrl{ fctrl }, actrl{ std::move(actrl) }
     {}
 
-    using ModelSwitchBase::enable;
-    using ModelSwitchBase::disable;
+    ~SingleModelSwitchBase() override = default;
 
     template<typename Filter>
     void set_model(Filter * new_model)

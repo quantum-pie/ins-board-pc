@@ -1,7 +1,4 @@
 #include "controllers/metacontroller.h"
-#include "controllers/switches/mixedmodelswitch.h"
-#include "controllers/switches/positionmodelswitch.h"
-#include "controllers/switches/orientationmodelswitch.h"
 #include "controllers/direct/filtering/filteringcontrollersfwd.h"
 
 #include <QComboBox>

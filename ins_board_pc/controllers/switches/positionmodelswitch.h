@@ -6,16 +6,14 @@
 #include "controllers/direct/attributes/kalmanpositionattrcontroller.h"
 #include "controllers/switches/singlemodelswitchbase.h"
 
-struct PositionModelSwitch : private SingleModelSwitchBase<PositionFilteringController, KalmanPositionAttrController>
+struct PositionModelSwitch : SingleModelSwitchBase<PositionFilteringController, KalmanPositionAttrController>
 {
     using base_type = SingleModelSwitchBase<PositionFilteringController, KalmanPositionAttrController>;
 
     PositionModelSwitch(QComboBox * sw, std::shared_ptr<PositionFilteringController> pos_ctrl, std::unique_ptr<KalmanPositionAttrController> attr_ctrl);
+    ~PositionModelSwitch() override = default;
 
-    using base_type::enable;
-    using base_type::disable;
-    using base_type::set_model;
-    void switch_model(int cb_idx);
+    void switch_model(int cb_idx) override;
 
 private:
     PositionEKF ekf_filter;

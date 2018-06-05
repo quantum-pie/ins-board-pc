@@ -18,7 +18,9 @@ struct FilteringController : ControllerBase<Model>, ObservableBase<View>,
         connect(start_button, SIGNAL(toggled(bool)), this, SLOT(handle_start(bool)));
     }
 
-    void handle_start(bool en)
+    ~FilteringController() override = default;
+
+    void handle_start(bool en) override
     {
         if(filtering_is_enabled())
         {
@@ -31,7 +33,7 @@ struct FilteringController : ControllerBase<Model>, ObservableBase<View>,
         }
     }
 
-    void handle_input(const FilterInput & z)
+    void handle_input(const FilterInput & z) override
     {
         if(this->model_is_set())
         {

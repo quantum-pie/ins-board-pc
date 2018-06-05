@@ -6,16 +6,14 @@
 #include "controllers/direct/attributes/kalmanorientationattrcontroller.h"
 #include "controllers/switches/singlemodelswitchbase.h"
 
-struct OrientationModelSwitch : private SingleModelSwitchBase<OrientationFilteringController, KalmanOrientationAttrController>
+struct OrientationModelSwitch : SingleModelSwitchBase<OrientationFilteringController, KalmanOrientationAttrController>
 {
     using base_type = SingleModelSwitchBase<OrientationFilteringController, KalmanOrientationAttrController>;
 
     OrientationModelSwitch(QComboBox * sw, std::shared_ptr<OrientationFilteringController> ori_ctrl, std::unique_ptr<KalmanOrientationAttrController> attr_ctrl);
+    ~OrientationModelSwitch() override = default;
 
-    using base_type::enable;
-    using base_type::disable;
-    using base_type::set_model;
-    void switch_model(int cb_idx);
+    void switch_model(int cb_idx) override;
 
 private:
     OrientationEKF ekf_filter;
