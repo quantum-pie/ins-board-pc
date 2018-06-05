@@ -22,7 +22,7 @@ struct SingleModelSwitchBase : ModelSwitchBase
         new_model->reset();
         fctrl->set_model(new_model);
         actrl->set_model(new_model);
-        actrl->apply_attributes();
+        actrl->borrow_attributes();
     }
 
 private:
