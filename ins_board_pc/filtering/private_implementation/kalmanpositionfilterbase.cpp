@@ -2,6 +2,10 @@
 #include "geometry.h"
 #include "packets.h"
 
+const KalmanPositionFilterBase::ProcessNoiseParams     KalmanPositionFilterBase::default_proc_noise_params { 0.0001 };
+const KalmanPositionFilterBase::MeasurementNoiseParams KalmanPositionFilterBase::default_meas_noise_params { 0.1, 0.1 };
+const KalmanPositionFilterBase::InitCovParams          KalmanPositionFilterBase::default_init_cov_params { 0.00001, 0.0001, 0.001 };
+
 KalmanPositionFilterBase::KalmanPositionFilterBase(const Ellipsoid & ellip)
     : ellip{ ellip },
       x{ state_type::Zero() },

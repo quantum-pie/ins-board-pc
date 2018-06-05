@@ -137,9 +137,9 @@ private:
         InitCovParams init_params;
     } params;
 
-    static constexpr ProcessNoiseParams     default_proc_noise_params { 0.0001 };
-    static constexpr MeasurementNoiseParams default_meas_noise_params { 0.1, 0.1 };
-    static constexpr InitCovParams          default_init_cov_params { 0.00001, 0.0001, 0.001 };
+    static const ProcessNoiseParams     default_proc_noise_params;
+    static const MeasurementNoiseParams default_meas_noise_params;
+    static const InitCovParams          default_init_cov_params;
 };
 
 #endif // KALMANPOSITIONFILTERBASE_H

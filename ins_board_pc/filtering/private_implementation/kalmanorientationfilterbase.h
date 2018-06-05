@@ -118,7 +118,7 @@ private:
     double do_get_init_qz_std() const override;
     double do_get_init_bias_std() const override;
 
-    static constexpr std::size_t accum_size { 500 }; //!< Size of filter input accumulator.
+    static const std::size_t accum_size;    //!< Size of filter input accumulator.
 
     const Earth earth_model;                //!< Reference Earth model.
     state_type x;                           //!< Filter state.
@@ -155,9 +155,9 @@ private:
         InitCovParams init_params;
     } params;
 
-    static constexpr ProcessNoiseParams 	default_proc_noise_params { 0.001, 0 };
-    static constexpr MeasurementNoiseParams default_meas_noise_params { 0.005, 1.2 };
-    static constexpr InitCovParams          default_init_cov_params { 0.0001, 0.00001, 0.00001, 0.0001, 0 };
+    static const ProcessNoiseParams 	default_proc_noise_params;
+    static const MeasurementNoiseParams default_meas_noise_params;
+    static const InitCovParams          default_init_cov_params;
 };
 
 #endif // KALMANORIENTATIONFILTERBASE_H

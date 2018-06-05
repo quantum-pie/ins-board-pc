@@ -4,6 +4,12 @@
 #include "geometry.h"
 #include "packets.h"
 
+const std::size_t KalmanOrientationFilterBase::accum_size { 500 }; //!< Size of filter input accumulator.
+
+const KalmanOrientationFilterBase::ProcessNoiseParams 	  KalmanOrientationFilterBase::default_proc_noise_params { 0.001, 0 };
+const KalmanOrientationFilterBase::MeasurementNoiseParams KalmanOrientationFilterBase::default_meas_noise_params { 0.005, 1.2 };
+const KalmanOrientationFilterBase::InitCovParams          KalmanOrientationFilterBase::default_init_cov_params { 0.0001, 0.00001, 0.00001, 0.0001, 0 };
+
 using namespace quat;
 
 KalmanOrientationFilterBase::KalmanOrientationFilterBase(const Ellipsoid & el)

@@ -89,14 +89,14 @@ private:
      */
     static C_type initialize_cmatrix();
 
-    static const C_type C;                                          //!< Helper matrix.
+    static const C_type C;                              //!< Helper matrix.
 
-    Vector3D bias;                 				                    //!< Magnetometer bias.
-    Matrix3D scale;                				                    //!< Magnetometer calibration matrix.
+    Vector3D bias;                                      //!< Magnetometer bias.
+    Matrix3D scale;                                     //!< Magnetometer calibration matrix.
 
-    static constexpr std::size_t buf_size { 5000 };					//!< Default measurements buffer size.
-    static constexpr std::size_t value_size { sizeof(double) };     //!< Size of measured values.
-    std::vector<Vector3D> meas;    									//!< Vector of accumulated magnetometer measurements.
+    static const std::size_t buf_size;					//!< Default measurements buffer size.
+    static const std::size_t value_size;                //!< Size of measured values.
+    std::vector<Vector3D> meas;                         //!< Vector of accumulated magnetometer measurements.
 };
 
 #endif // CALIBRATOR_H

@@ -36,7 +36,7 @@ public:
 	 */
 	double gravity(const Vector3D & geo) const;
 
-    static constexpr double gf { 9.80665 };        //!< Standard gravity.
+    static const double gf;        //!< Standard gravity.
 
 private:
     const Ellipsoid ellip;
@@ -44,10 +44,10 @@ private:
     const double k;									//!< Theoretical gravity formula constant.
     const double m;									//!< Yet another theoretical gravity formula constant.
 
-    static constexpr double GM { 3986004.418e8 };  //!< Earth gravitational constant (G * Me).
-    static constexpr double gp { 9.8321849378 };   //!< Theoretical gravity at pole.
-    static constexpr double ge { 9.7803253359 };   //!< Theoretical gravity at equator.
-    static constexpr double omega { 7292115e-11 }; //!< Earth rotation speed.
+    static const double GM;  //!< Earth gravitational constant (G * Me).
+    static const double gp;   //!< Theoretical gravity at pole.
+    static const double ge;   //!< Theoretical gravity at equator.
+    static const double omega; //!< Earth rotation speed.
 };
 
 #endif /* INCLUDE_GRAVITY_H_ */

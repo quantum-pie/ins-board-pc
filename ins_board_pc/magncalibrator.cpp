@@ -7,6 +7,8 @@
 #include <boost/lexical_cast.hpp>
 
 const MagnCalibrator::C_type MagnCalibrator::C = MagnCalibrator::initialize_cmatrix();
+const std::size_t MagnCalibrator::buf_size { 5000 };					//!< Default measurements buffer size.
+const std::size_t MagnCalibrator::value_size { sizeof(double) };       //!< Size of measured values.
 
 MagnCalibrator::C_type MagnCalibrator::initialize_cmatrix()
 {
