@@ -10,11 +10,11 @@
 #include <Qt3DExtras>
 
 XDOrientationView::XDOrientationView(QWidget *dummy_plot, QGridLayout *container_layout)
-    : is_brought_up{ false }
+    : dummy_plot{ dummy_plot }, container_layout{ container_layout }, is_brought_up{ false }
 {
     plot.defaultFrameGraph()->setClearColor(QColor(126, 192, 238));
 
-    QWidget * orient_plot_container = QWidget::createWindowContainer(&plot);
+    orient_plot_container = QWidget::createWindowContainer(&plot);
 
     Qt3DCore::QEntity *root = new Qt3DCore::QEntity;
     Qt3DExtras::QPhongMaterial * material = new Qt3DExtras::QPhongMaterial(root);
@@ -127,12 +127,11 @@ XDOrientationView::XDOrientationView(QWidget *dummy_plot, QGridLayout *container
     camController->setCamera(camera);
 
     plot.setRootEntity(root);
-
-    container_layout->replaceWidget(dummy_plot, orient_plot_container);
 }
 
 void XDOrientationView::bring_up()
 {
+    container_layout->replaceWidget(dummy_plot, orient_plot_container);
     plot.show();
     is_brought_up = true;
 }

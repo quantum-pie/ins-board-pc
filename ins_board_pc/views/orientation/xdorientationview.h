@@ -27,6 +27,9 @@ private:
     Qt3DCore::QTransform body_transform;
     Qt3DCore::QTransform sphere_transform;
 
+    QWidget * dummy_plot;
+    QWidget * orient_plot_container;
+    QGridLayout * container_layout;
     bool is_brought_up;
 
     static constexpr double body_width { 5 };
