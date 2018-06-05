@@ -19,6 +19,7 @@ public:
 
     using AttrControllerBase<IKalmanPositionAttr>::set_model;
     void apply_attributes();
+    void borrow_attributes();
 
 public slots:
     void on_proc_accel_std(const QString & str);

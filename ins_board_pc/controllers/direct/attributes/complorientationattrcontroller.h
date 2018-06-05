@@ -17,6 +17,7 @@ public:
 
     using AttrControllerBase<IComplementOrientationAttr>::set_model;
     void apply_attributes();
+    void borrow_attributes();
 
 public slots:
     void on_static_accel_gain(const QString & str);

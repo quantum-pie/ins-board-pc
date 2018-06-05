@@ -23,3 +23,9 @@ void SimPositionAttrController::apply_attributes()
     on_initial_track(initial_track_le->text());
     on_speed(speed_le->text());
 }
+
+void SimPositionAttrController::borrow_attributes()
+{
+    initial_track_le->setText(QString::number(get_model()->get_initial_track()));
+    speed_le->setText(QString::number(get_model()->get_speed()));
+}

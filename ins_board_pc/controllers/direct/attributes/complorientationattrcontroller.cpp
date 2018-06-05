@@ -31,3 +31,10 @@ void ComplOrientationAttrController::apply_attributes()
     on_static_magn_gain(static_magn_le->text());
     on_bias_gain(bias_gain_le->text());
 }
+
+void ComplOrientationAttrController::borrow_attributes()
+{
+    static_accel_le->setText(QString::number(get_model()->get_static_accel_gain()));
+    static_magn_le->setText(QString::number(get_model()->get_static_magn_gain()));
+    bias_gain_le->setText(QString::number(get_model()->get_bias_gain()));
+}

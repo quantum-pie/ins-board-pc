@@ -79,3 +79,16 @@ void KalmanOrientationAttrController::apply_attributes()
     on_proc_gyro_bias_std(proc_gyro_bias_le->text());
     on_proc_gyro_std(proc_gyro_le->text());
 }
+
+void KalmanOrientationAttrController::borrow_attributes()
+{
+    init_bias_std_le->setText(QString::number(get_model()->get_init_bias_std()));
+    init_qs_std_le->setText(QString::number(get_model()->get_init_qs_std()));
+    init_qx_std_le->setText(QString::number(get_model()->get_init_qx_std()));
+    init_qy_std_le->setText(QString::number(get_model()->get_init_qy_std()));
+    init_qz_std_le->setText(QString::number(get_model()->get_init_qz_std()));
+    meas_accel_std_le->setText(QString::number(get_model()->get_meas_accel_std()));
+    meas_magn_std_le->setText(QString::number(get_model()->get_meas_magn_std()));
+    proc_gyro_bias_le->setText(QString::number(get_model()->get_proc_gyro_bias_std()));
+    proc_gyro_le->setText(QString::number(get_model()->get_proc_gyro_std()));
+}

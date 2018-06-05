@@ -17,6 +17,7 @@ public:
 
     using AttrControllerBase<ISimPositionAttr>::set_model;
     void apply_attributes();
+    void borrow_attributes();
 
 public slots:
     void on_speed(const QString & str);
