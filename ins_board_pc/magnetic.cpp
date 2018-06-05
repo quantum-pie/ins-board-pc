@@ -6,7 +6,7 @@ MAGtype_MagneticModel ** Magnetic::read_models()
 {
     MAGtype_MagneticModel ** magnetic_models = new MAGtype_MagneticModel * [1];
 
-    MAG_robustReadMagModels(const_cast<char*>("/home/root/res/WMM.COF"),
+    MAG_robustReadMagModels(const_cast<char*>("res/WMM.COF"),
                             &magnetic_models, 1);
 
     return magnetic_models;
