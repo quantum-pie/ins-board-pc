@@ -9,8 +9,11 @@
 
 class QLineEdit;
 
-struct TrackPositionView : QObject, IPositionView
+class TrackPositionView : public QObject, public IPositionView
 {
+    Q_OBJECT
+
+public:
     TrackPositionView(QLineEdit * samples_le, QLineEdit * track_angle_le, QLineEdit * ground_speed_le);
     ~TrackPositionView() override = default;
 

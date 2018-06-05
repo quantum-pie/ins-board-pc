@@ -9,8 +9,11 @@
 
 class QLineEdit;
 
-struct StdOrientationView : QObject, IOrientationView
+class StdOrientationView : public QObject, public IOrientationView
 {
+    Q_OBJECT
+
+public:
     StdOrientationView(QLineEdit * sample_le, QLineEdit * roll_std_le, QLineEdit * pitch_std_le, QLineEdit * yaw_std_le, QLineEdit * magnetic_heading_le);
     ~StdOrientationView() override = default;
 
