@@ -11,6 +11,7 @@ struct RawGyroView : IRawView, private XDAxisPlot
 {
     RawGyroView(QCustomPlot * plot);
     ~RawGyroView() override = default;
+
     void update(const ViewModel & pvd) override;
     void clear() override;
 };

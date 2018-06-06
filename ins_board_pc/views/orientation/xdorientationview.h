@@ -24,18 +24,18 @@ struct XDOrientationView : IOrientationView
 
 private:
     Qt3DExtras::Qt3DWindow plot;
-    Qt3DCore::QTransform body_transform;
-    Qt3DCore::QTransform sphere_transform;
+    Qt3DCore::QTransform * body_transform;
+    Qt3DCore::QTransform * sphere_transform;
 
     QWidget * dummy_plot;
     QWidget * orient_plot_container;
     QGridLayout * container_layout;
     bool is_brought_up;
 
-    static constexpr double body_width { 5 };
-    static constexpr double body_length { 10 };
-    static constexpr double body_height { 1 };
-    static constexpr double sphere_radius { 0.5 };
+    static const double body_width;
+    static const double body_length;
+    static const double body_height;
+    static const double sphere_radius;
 };
 
 #endif // XDORIENTATIONVIEW_H

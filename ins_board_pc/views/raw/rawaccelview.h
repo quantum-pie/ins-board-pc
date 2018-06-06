@@ -11,6 +11,7 @@ struct RawAccelView : IRawView, private XDAxisPlot
 {
     RawAccelView(QCustomPlot * plot);
     ~RawAccelView() override = default;
+
     void update(const ViewModel & pvd) override;
     void clear() override;
 };

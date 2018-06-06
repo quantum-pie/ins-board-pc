@@ -17,8 +17,6 @@ struct EKFCorrector : ICorrector<EKFCorrector<Base>>, Base
     static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
                   "Base class do not inherit IFilterBase CRTP");
 
-    ~EKFCorrector() override = default;
-
     void do_correct(const FilterInput & z)
     {
         auto x = this->get_state();

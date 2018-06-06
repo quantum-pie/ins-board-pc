@@ -7,7 +7,6 @@
 
 #include <QObject>
 
-class Receiver;
 class RawPacket;
 class QPushButton;
 

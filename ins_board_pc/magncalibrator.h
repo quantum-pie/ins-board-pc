@@ -20,7 +20,7 @@ public:
     /*!
      * @brief Class constructor.
      */
-	MagnCalibrator();
+    MagnCalibrator();
 
     /*!
      * @brief Reset calibration parameters to default values.

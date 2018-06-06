@@ -68,9 +68,10 @@ struct PositionSim::Impl
     } params;
 
     static const Ellipsoid & el;
-    static constexpr FilterParams default_params { 0, 30 };
+    static const FilterParams default_params;
 };
 
+const PositionSim::Impl::FilterParams PositionSim::Impl::default_params { 0, 30 };
 const Ellipsoid & PositionSim::Impl::el { Ellipsoid::sphere };
 
 PositionSim::PositionSim()

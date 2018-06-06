@@ -28,18 +28,10 @@ struct IFilter
     virtual ~IFilter() = default;
 
 protected:
-    virtual void do_reset()
-    {
-        int g = 0;
-    }
-
+    virtual void do_reset() = 0;
 
 private:
-    virtual void do_step(const FilterInput & z)
-    {
-        int g = 0;
-    }
-
+    virtual void do_step(const FilterInput & z) = 0;
 };
 
 #endif // IFILTER_H

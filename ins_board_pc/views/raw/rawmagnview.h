@@ -11,6 +11,7 @@ struct RawMagnView : IRawView, private XDAxisPlot
 {
     RawMagnView(QCustomPlot * plot);
     ~RawMagnView() override = default;
+
     void update(const ViewModel & pvd) override;
     void clear();
 };

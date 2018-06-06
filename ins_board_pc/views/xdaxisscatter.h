@@ -18,8 +18,8 @@ struct XDAxisScatter
     void clear_scatter();
 
 private:
+    QScatterDataArray * data;
     Q3DScatter plot;
-    QScatterDataArray data;
 };
 
 #endif // CALIBRATIONVIEW_H

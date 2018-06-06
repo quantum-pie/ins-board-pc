@@ -17,8 +17,6 @@ struct KFExtrapolator : IExtrapolator<KFExtrapolator<Base>>, Base
     static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
                   "Base class do not inherit IFilterBase CRTP");
 
-    ~KFExtrapolator() override = default;
-
     void do_extrapolate(const FilterInput & z)
     {
         auto x = this->get_state();

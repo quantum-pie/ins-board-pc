@@ -7,7 +7,6 @@
 #include "gravity.h"
 
 const double Gravity::gf { 9.80665 };        //!< Standard gravity.
-
 const double Gravity::GM { 3986004.418e8 };  //!< Earth gravitational constant (G * Me).
 const double Gravity::gp { 9.8321849378 };   //!< Theoretical gravity at pole.
 const double Gravity::ge { 9.7803253359 };   //!< Theoretical gravity at equator.

@@ -10,14 +10,15 @@ struct ENUPositionView : IPositionView
 {
     ENUPositionView(QCustomPlot * plot);
     ~ENUPositionView() override = default;
+
     void update(const ViewModel & pvd) override;
     void clear() override;
 
 private:
     bool is_initialized;
     QCustomPlot * plot;
-    QCPCurve raw_track;
-    QCPCurve smoothed_track;
+    QCPCurve * raw_track;
+    QCPCurve * smoothed_track;
     Vector3D start_geo;
 };
 

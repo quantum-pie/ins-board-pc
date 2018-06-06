@@ -32,8 +32,9 @@ XDAxisScatter::XDAxisScatter(QWidget *dummy_plot, QGridLayout *container_layout,
 
     plot.setAspectRatio(1);
 
-    data.reserve(5000);
-    proxy->resetArray(&data);
+    data = new QScatterDataArray;
+    data->reserve(5000);
+    proxy->resetArray(data);
 }
 
 void XDAxisScatter::update_scatter(const Vector3D & p)
@@ -43,5 +44,5 @@ void XDAxisScatter::update_scatter(const Vector3D & p)
 
 void XDAxisScatter::clear_scatter()
 {
-    data.resize(0);
+    data->resize(0);
 }

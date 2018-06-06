@@ -3,20 +3,21 @@
 #include "geometry.h"
 
 ENUPositionView::ENUPositionView(QCustomPlot *plot)
-    : is_initialized{ false }, plot{ plot },
-      raw_track{ plot->xAxis, plot->yAxis },
-      smoothed_track{ plot->xAxis, plot->yAxis }
+    : is_initialized{ false }, plot{ plot }
 {
     plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 
     plot->plotLayout()->insertRow(0);
     plot->plotLayout()->addElement(0, 0, new QCPTextElement(plot, "ENU relative position"));
 
-    raw_track.setName("Raw track");
-    raw_track.setPen(QPen(Qt::blue));
+    raw_track = new QCPCurve(plot->xAxis, plot->yAxis);
+    smoothed_track = new QCPCurve(plot->xAxis, plot->yAxis);
 
-    smoothed_track.setName("Smoothed track");
-    smoothed_track.setPen(QPen(Qt::red));
+    raw_track->setName("Raw track");
+    raw_track->setPen(QPen(Qt::blue));
+
+    smoothed_track->setName("Smoothed track");
+    smoothed_track->setPen(QPen(Qt::red));
 
     plot->legend->setVisible(true);
 
@@ -38,8 +39,8 @@ void ENUPositionView::update(const ViewModel & vm)
         Vector3D enu_flt = geom::ecef_to_enu(vm.pvd_ref.get_cartesian(), start_geo);
         Vector3D enu_raw = geom::ecef_to_enu(vm.raw_ref.pos, start_geo);
 
-        smoothed_track.addData(enu_flt[0], enu_flt[1]);
-        raw_track.addData(enu_raw[0], enu_raw[1]);
+        smoothed_track->addData(enu_flt[0], enu_flt[1]);
+        raw_track->addData(enu_raw[0], enu_raw[1]);
 
         plot->rescaleAxes();
 
@@ -67,8 +68,8 @@ void ENUPositionView::update(const ViewModel & vm)
 void ENUPositionView::clear()
 {
     is_initialized = false;
-    raw_track.data().clear();
-    smoothed_track.data().clear();
+    raw_track->data().clear();
+    smoothed_track->data().clear();
 }
 
 

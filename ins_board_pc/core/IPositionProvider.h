@@ -48,26 +48,10 @@ struct IPositionProvider
     virtual ~IPositionProvider() = default;
 
 private:
-    virtual Vector3D do_get_cartesian() const
-    {
-        int g = 0;
-    }
-
-    virtual Ellipsoid do_get_ellipsoid() const
-    {
-        int g = 0;
-    }
-
-    virtual Vector3D do_get_velocity() const
-    {
-        int g = 0;
-    }
-
-    virtual Vector3D do_get_acceleration() const
-    {
-        int g = 0;
-    }
-
+    virtual Vector3D do_get_cartesian() const = 0;
+    virtual Ellipsoid do_get_ellipsoid() const = 0;
+    virtual Vector3D do_get_velocity() const = 0;
+    virtual Vector3D do_get_acceleration() const = 0;
 };
 
 #endif // IPOSITIONPROVIDER_H

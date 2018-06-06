@@ -22,6 +22,8 @@ public:
              const QString & flt_pvd_ip, uint16_t flt_pvd_port,
              const MagnCalibrator & calibrator);
 
+    ~Receiver();
+
     void process_raw_data(const QByteArray & data);
     void process_flt_data(const QByteArray & data);
 

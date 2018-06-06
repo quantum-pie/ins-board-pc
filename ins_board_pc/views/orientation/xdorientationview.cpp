@@ -9,6 +9,11 @@
 #include <Qt3DRender/QCameraLens>
 #include <Qt3DExtras>
 
+const double XDOrientationView::body_width { 5 };
+const double XDOrientationView::body_length { 10 };
+const double XDOrientationView::body_height { 1 };
+const double XDOrientationView::sphere_radius { 0.5 };
+
 XDOrientationView::XDOrientationView(QWidget *dummy_plot, QGridLayout *container_layout)
     : dummy_plot{ dummy_plot }, container_layout{ container_layout }, is_brought_up{ false }
 {
@@ -27,8 +32,10 @@ XDOrientationView::XDOrientationView(QWidget *dummy_plot, QGridLayout *container
     mesh->setYExtent(body_length);
     mesh->setZExtent(body_height);
 
+    body_transform = new Qt3DCore::QTransform;
+
     body->addComponent(mesh);
-    body->addComponent(&body_transform);
+    body->addComponent(body_transform);
     body->addComponent(material);
 
     Qt3DExtras::QPhongMaterial * plane_material = new Qt3DExtras::QPhongMaterial(root);
@@ -57,11 +64,13 @@ XDOrientationView::XDOrientationView(QWidget *dummy_plot, QGridLayout *container
     Qt3DExtras::QPhongMaterial * sphere_material = new Qt3DExtras::QPhongMaterial(root);
     sphere_material->setDiffuse(Qt::blue);
 
-    sphere_transform.setTranslation(QVector3D(0, body_length / 2, body_height / 2));
+    sphere_transform = new Qt3DCore::QTransform;
+
+    sphere_transform->setTranslation(QVector3D(0, body_length / 2, body_height / 2));
 
     sphere->setRadius(sphere_radius);
 
-    north_entity->addComponent(&sphere_transform);
+    north_entity->addComponent(sphere_transform);
     north_entity->addComponent(sphere);
     north_entity->addComponent(sphere_material);
 
@@ -143,12 +152,12 @@ void XDOrientationView::update(const ViewModel & vm)
         auto quat_vec = static_cast<quat::vector_form>(vm.pvd_ref.get_orientation_quaternion());
         QQuaternion qquat(quat_vec[0], quat_vec[1], quat_vec[2], quat_vec[3]);
 
-        body_transform.setRotation(qquat);
+        body_transform->setRotation(qquat);
 
         QMatrix4x4 m;
         m.rotate(qquat);
         m.translate(QVector3D(0, body_length / 2, body_height / 2));
-        sphere_transform.setMatrix(m);
+        sphere_transform->setMatrix(m);
     }
     else
     {

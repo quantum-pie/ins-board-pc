@@ -3,8 +3,6 @@
 
 #include <QObject>
 
-#include <QDebug>
-
 class QComboBox;
 
 class ModelSwitchBase : public QObject
@@ -19,10 +17,7 @@ public:
     void disable();
 
 public slots:
-    virtual void switch_model(int)
-    {
-        qDebug() << "Swithc model\n";
-    }
+    virtual void switch_model(int) = 0;
 
 private:
     QComboBox * sw;

@@ -6,6 +6,7 @@
 
 #include "filtering/private_implementation/IFilterBase.h"
 #include "filtering/plugins/filterplugins.h"
+#include "filtering/plugins/utparams.h"
 
 #include <cmath>
 #include <array>
@@ -26,7 +27,7 @@ struct UKFCorrector : ICorrector<UKFCorrector<Base>>, Base
     /*!
      * @brief Class constructor.
      */
-    UKFCorrector() : params{ default_ut_params }
+    UKFCorrector() : params{ UnscentedTransformParams::default_params }
     {
         double alpha_sq = params.alpha * params.alpha;
         lambda = alpha_sq * (L + params.kappa) - L;
@@ -40,8 +41,6 @@ struct UKFCorrector : ICorrector<UKFCorrector<Base>>, Base
             Wc[i] = 0.5 / (L + lambda);
         }
     }
-
-    ~UKFCorrector() override = default;
 
     void do_correct(const FilterInput & z)
     {
@@ -99,7 +98,7 @@ private:
     using R_type = typename Base::R_type;
     using K_type = typename Base::K_type;
 
-    static constexpr int L { Base::thy_traits::state_size };    //!< Augmented state size.
+    static const int L { Base::thy_traits::state_size };    //!< Augmented state size.
     double lambda;                                              //!< Unscented transform lambda parameter.
 
     std::array<double, 2 * L + 1> Ws;
@@ -108,17 +107,7 @@ private:
     std::array<state_type, 2 * L + 1> sigma_p;
     std::array<meas_type, 2 * L + 1> sigma_z;
 
-    /*!
-     * @brief Parameters of unscented transform.
-     */
-    struct UnscentedTransformParams
-    {
-        double kappa;       //!< Kappa.
-        double beta;        //!< Beta.
-        double alpha;       //!< Alpha.
-    } params;
-
-    static constexpr UnscentedTransformParams default_ut_params{ 0, 2, 1e-3 };
+    const struct UnscentedTransformParams params;
 };
 
 #endif // UKFCORRECTOR_H

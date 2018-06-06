@@ -8,10 +8,7 @@
 struct IAccumView
 {
     virtual ~IAccumView() = default;
-    virtual void set_accumulator_capacity(std::size_t new_capacity)
-    {
-        qDebug() << "Set capacity\n";
-    }
+    virtual void set_accumulator_capacity(std::size_t new_capacity)= 0;
 };
 
 #endif // IACCUMVIEW_H

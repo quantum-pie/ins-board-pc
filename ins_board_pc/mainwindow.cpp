@@ -51,11 +51,11 @@ MainWindow::MainWindow(QWidget *parent) :
     gps_raw_controller = std::make_unique<RawController>();
     gps_raw_controller->attach_view(std::make_shared<RawGPSView>(ui->x_le, ui->y_le, ui->z_le, ui->vx_le, ui->vy_le,ui->vz_le,
                                                                  ui->lat_le, ui->lon_le, ui->alt_le, ui->msl_alt_le, ui->time_le));
-
     //tab4
     kalman_ori_controller = std::make_shared<OrientationFilteringController>(ui->pushButton_2);
     kalman_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot4));
     kalman_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget, ui->gridLayout_3));
+
 
     auto std_ori_view = std::make_shared<StdOrientationView>(ui->roll_std_le,
                                                              ui->pitch_std_le, ui->yaw_std_le, ui->magnetic_heading_le);
@@ -118,11 +118,6 @@ MainWindow::MainWindow(QWidget *parent) :
     sim_posattr_controller->borrow_attributes();
 
     resize(1300, 800);
-}
-
-MainWindow::~MainWindow()
-{
-    int g = 0;
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)

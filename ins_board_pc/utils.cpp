@@ -15,13 +15,13 @@ namespace utils
 {
 
 //! Multiplier to convert speed units from m/s to knots.
-static constexpr double ms2knots { 1.94384 };
+static const double ms2knots { 1.94384 };
 
 //! How many degrees in PI radians.
-static constexpr double degrees_per_pi { 180.0 };
+static const double degrees_per_pi { 180.0 };
 
 //! Multiplier to convert floating-point value into 16.16 fixed-point value.
-static constexpr int16_t fixed16d16_mult { std::numeric_limits<int16_t>::max() };
+static const int16_t fixed16d16_mult { std::numeric_limits<int16_t>::max() };
 
 double radians_to_degrees(double radians)
 {
@@ -100,6 +100,3 @@ QString double_view(double val, std::size_t digits)
 }
 
 }
-
-
-

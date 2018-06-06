@@ -12,6 +12,7 @@ struct RPYOrientationView : IOrientationView, private XDAxisPlot
 {
     RPYOrientationView(QCustomPlot * plot);
     ~RPYOrientationView() override = default;
+
     void update(const ViewModel & pvd) override;
     void clear() override;
 };

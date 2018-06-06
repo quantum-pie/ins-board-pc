@@ -115,9 +115,12 @@ struct OrientationCF::Impl
         double bias_gain;			//!< Gyroscope bias gain.
     } params;
 
-    static constexpr std::size_t accum_size { 500 }; //!< Size of filter input accumulator.
-    static constexpr FilterParams default_params { 0.005, 0.00005, 0.00001 };
+    static const std::size_t accum_size; //!< Size of filter input accumulator.
+    static const FilterParams default_params;
 };
+
+const std::size_t OrientationCF::Impl::accum_size { 500 };
+const OrientationCF::Impl::FilterParams OrientationCF::Impl::default_params { 0.005, 0.00005, 0.00001 };
 
 OrientationCF::OrientationCF()
     : pimpl{ std::make_unique<Impl>() }

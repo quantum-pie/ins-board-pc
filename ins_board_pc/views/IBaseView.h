@@ -11,14 +11,8 @@ struct IBaseView
     using ViewModel = Model;
 
     virtual ~IBaseView() = default;
-    virtual void update(const ViewModel & pvd)
-    {
-        qDebug() << "View update\n";
-    }
-    virtual void clear()
-    {
-        qDebug() << "View clear\n";
-    }
+    virtual void update(const ViewModel & pvd) = 0;
+    virtual void clear() = 0;
 };
 
 struct IPositionProvider;
