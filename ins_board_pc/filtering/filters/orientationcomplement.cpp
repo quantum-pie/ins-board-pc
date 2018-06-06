@@ -62,7 +62,7 @@ struct OrientationCF::Impl
         auto K = state_quat.delta_mtx(dt_2);
 		
 		// propagate quaternion
-        state_quat = (F * static_cast<vector_form>(state_quat) + K * state_bias).eval();
+        state_quat = (V * static_cast<vector_form>(state_quat) + K * state_bias).eval();
         state_quat.normalize();
 
         // residual quaternion
