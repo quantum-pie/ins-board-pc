@@ -32,11 +32,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //tab 1
+    //tab1
     raw_tab_controller = std::make_unique<RawController>();
     raw_tab_controller->attach_view(std::make_shared<RawAccelView>(ui->plot1));
     raw_tab_controller->attach_view(std::make_shared<RawMagnView>(ui->plot2));
     raw_tab_controller->attach_view(std::make_shared<RawGyroView>(ui->plot3));
+    raw_tab_controller->attach_view(std::make_shared<RawGPSView>(ui->x_le, ui->y_le, ui->z_le, ui->vx_le, ui->vy_le,ui->vz_le,
+                                                                 ui->lat_le, ui->lon_le, ui->alt_le, ui->msl_alt_le, ui->time_le));
 
     //tab2
     magn_cal_raw_controller = std::make_unique<RawController>(ui->pushButton);
@@ -48,10 +50,6 @@ MainWindow::MainWindow(QWidget *parent) :
                                                                           ui->xspan_le, ui->yspan_le, ui->zspan_le));
 
     //tab3
-    gps_raw_controller = std::make_unique<RawController>();
-    gps_raw_controller->attach_view(std::make_shared<RawGPSView>(ui->x_le, ui->y_le, ui->z_le, ui->vx_le, ui->vy_le,ui->vz_le,
-                                                                 ui->lat_le, ui->lon_le, ui->alt_le, ui->msl_alt_le, ui->time_le));
-    //tab4
     kalman_ori_controller = std::make_shared<OrientationFilteringController>(ui->pushButton_2);
     kalman_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot4));
     kalman_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget, ui->gridLayout_3));
@@ -85,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     meta_controller = std::make_unique<MetaController>(ui->comboBox, kalman_pos_sw, kalman_ori_sw, std::move(mix_sw), kalman_pos_controller);
 
-    //tab5
+    //tab4
     compl_ori_controller = std::make_unique<OrientationFilteringController>(ui->pushButton_4);
     compl_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot6));
     compl_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget2, ui->gridLayout_8));
@@ -132,18 +130,15 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), magn_cal_raw_controller.get(), SLOT(handle_input(RawPacket)));
         connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), magn_cal_controller.get(), SLOT(handle_input(RawPacket)));
         break;
-    case 3:
-        connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), gps_raw_controller.get(), SLOT(handle_input(RawPacket)));
-        break;
-    case 4:
+    case 2:
         connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), kalman_ori_controller.get(), SLOT(handle_input(FilterInput)));
         connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), kalman_pos_controller.get(), SLOT(handle_input(FilterInput)));
         break;
-    case 5:
+    case 3:
         connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), compl_ori_controller.get(), SLOT(handle_input(FilterInput)));
         connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), sim_pos_controller.get(), SLOT(handle_input(FilterInput)));
         break;
-    case 6:
+    case 4:
         // TODO
         break;
     }
