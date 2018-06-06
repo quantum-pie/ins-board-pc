@@ -12,7 +12,6 @@ using namespace geom;
 struct OrientationCF::Impl
 {
     // Useful type aliases
-    using F_type = StaticMatrix<4, 4>;
     using V_type = quat::skew_type;
     using D_type = quat::delta_type;
 
@@ -61,9 +60,10 @@ struct OrientationCF::Impl
         V += V_type::Identity();
 
         auto K = state_quat.delta_mtx(dt_2);
-
-        F_type F;
-        F << V, K;
+		
+		// propagate quaternion
+        state_quat = (F * static_cast<vector_form>(state_quat) + K * state_bias).eval();
+        state_quat.normalize();
 
         // residual quaternion
         Quaternion qerr = accel_magn_quat(z.a, z.m) * state_quat;
@@ -75,10 +75,6 @@ struct OrientationCF::Impl
         state_bias[0] += params.bias_gain * rpy_err[1];
         state_bias[1] += params.bias_gain * rpy_err[0];
         state_bias[2] += -params.bias_gain * rpy_err[2];
-
-        // propagate quaternion
-        state_quat = (F * static_cast<vector_form>(state_quat)).eval();
-        state_quat.normalize();
 
         Vector3D a_norm = z.a / z.a.norm();
 
