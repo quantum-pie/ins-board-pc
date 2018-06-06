@@ -58,6 +58,9 @@ struct KalmanPositionFilterBase : virtual IKalmanPositionFilter,
     using H_type = typename thy_traits::H_type;
     using K_type = typename thy_traits::K_type;
 
+protected:
+    void do_reset() override;
+
 private:
     friend class IFilterBase<KalmanPositionFilterBase>;
 
@@ -85,8 +88,6 @@ private:
     H_type do_create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 
     // Dynamic polymorphism implementation
-    void do_reset() override;
-
     Ellipsoid do_get_ellipsoid() const override;
     Vector3D do_get_acceleration() const override;
     Vector3D do_get_velocity() const override;

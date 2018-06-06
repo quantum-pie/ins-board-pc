@@ -38,6 +38,9 @@ class GenericKalmanFilter final : public virtual Interfaces..., Implementation
             this->accumulate(z);
         }
     }
+
+public:
+    ~GenericKalmanFilter() override = default;
 };
 
 #endif // GENERICKALMAN_H

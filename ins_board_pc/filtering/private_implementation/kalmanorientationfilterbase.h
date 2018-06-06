@@ -66,6 +66,9 @@ struct KalmanOrientationFilterBase : virtual IKalmanOrientationFilter,
     using V_type = typename thy_traits::V_type;
     using D_type = typename thy_traits::D_type;
 
+protected:
+    void do_reset() override;
+
 private:
     friend class IFilterBase<KalmanOrientationFilterBase>;
 
@@ -93,8 +96,6 @@ private:
     H_type do_create_meas_proj_mtx(const Vector3D & geo, const boost::gregorian::date & day) const;
 
     // Dynamic polymorphism implementation
-    void do_reset() override;
-
     quat::Quaternion do_get_orientation_quaternion() const override;
     Vector3D do_get_gyro_bias() const override;
 

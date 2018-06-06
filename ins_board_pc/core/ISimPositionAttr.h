@@ -42,11 +42,27 @@ struct ISimPositionAttr
     virtual ~ISimPositionAttr() = default;
 
 private:
-    virtual void do_set_initial_track(double radians) = 0;
-    virtual void do_set_speed(double ms) = 0;
+    virtual void do_set_initial_track(double radians)
+    {
+        int g = 0;
+    }
 
-    virtual double do_get_initial_track() const = 0;
-    virtual double do_get_speed() const = 0;
+    virtual void do_set_speed(double ms)
+    {
+        int g = 0;
+    }
+
+
+    virtual double do_get_initial_track() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_speed() const
+    {
+        int g = 0;
+    }
+
 };
 
 #endif // ISIMPOSITIONATTR_H

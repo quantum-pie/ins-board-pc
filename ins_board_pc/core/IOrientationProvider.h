@@ -30,8 +30,16 @@ struct IOrientationProvider
     virtual ~IOrientationProvider() = default;
 
 private:
-    virtual quat::Quaternion do_get_orientation_quaternion() const = 0;
-    virtual Vector3D do_get_gyro_bias() const = 0;
+    virtual quat::Quaternion do_get_orientation_quaternion() const
+    {
+        int g = 0;
+    }
+
+    virtual Vector3D do_get_gyro_bias() const
+    {
+        int g = 0;
+    }
+
 };
 
 #endif // IORIENTATIONPROVIDER_H

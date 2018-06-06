@@ -3,14 +3,22 @@
 
 class FilterInput;
 
+#include <QDebug>
+
 template<typename Model>
 struct IBaseView
 {
     using ViewModel = Model;
 
     virtual ~IBaseView() = default;
-    virtual void update(const ViewModel & pvd) = 0;
-    virtual void clear() = 0;
+    virtual void update(const ViewModel & pvd)
+    {
+        qDebug() << "View update\n";
+    }
+    virtual void clear()
+    {
+        qDebug() << "View clear\n";
+    }
 };
 
 struct IPositionProvider;

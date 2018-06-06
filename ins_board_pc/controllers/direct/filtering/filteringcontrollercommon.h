@@ -5,6 +5,8 @@
 
 #include <QObject>
 
+#include <QDebug>
+
 class FilterInput;
 
 class FilteringControllerCommon : public QObject, RunningFlag
@@ -23,8 +25,15 @@ public:
     void disable_filtering();
 
 public slots:
-    virtual void handle_start(bool) = 0;
-    virtual void handle_input(const FilterInput &) = 0;
+    virtual void handle_start(bool)
+    {
+        qDebug() << "Handle start of filtering controller\n";
+    }
+
+    virtual void handle_input(const FilterInput &)
+    {
+        qDebug() << "Handle input of filtering controller\n";
+    }
 
 private:
     bool filtering_enabled;

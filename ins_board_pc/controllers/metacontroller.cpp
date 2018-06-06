@@ -8,7 +8,7 @@ MetaController::MetaController(QComboBox * meta_cb, std::shared_ptr<PositionMode
     : pos_sw{ pos_sw }, ori_sw{ ori_sw }, mix_sw{ std::move(mix_sw) }, pos_ctrl{ pos_ctrl }
 {
     configure_control(meta_cb->currentIndex());
-    connect(meta_cb, SIGNAL(currentIndexChanged(int)), this, SLOT(configure_control(int)));
+    connect(meta_cb, SIGNAL(activated(int)), this, SLOT(configure_control(int)));
 }
 
 void MetaController::configure_control(int cb_idx)

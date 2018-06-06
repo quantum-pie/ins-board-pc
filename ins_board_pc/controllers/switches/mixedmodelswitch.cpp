@@ -5,7 +5,7 @@
 MixedModelSwitch::MixedModelSwitch(QComboBox * sw, std::shared_ptr<PositionModelSwitch> pos_sw, std::shared_ptr<OrientationModelSwitch> ori_sw)
     : ModelSwitchBase{ sw }, pos_sw{ pos_sw }, ori_sw{ ori_sw }
 {
-    connect(sw, SIGNAL(currentIndexChanged(int)), this, SLOT(switch_model(int)));
+    connect(sw, SIGNAL(activated(int)), this, SLOT(switch_model(int)));
 }
 
 void MixedModelSwitch::switch_model(int cb_idx)

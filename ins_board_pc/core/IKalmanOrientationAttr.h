@@ -171,25 +171,97 @@ struct IKalmanOrientationAttr
     virtual ~IKalmanOrientationAttr() = default;
 
 private:
-    virtual void do_set_proc_gyro_std(double std) = 0;
-    virtual void do_set_proc_gyro_bias_std(double std) = 0;
-    virtual void do_set_meas_accel_std(double std) = 0;
-    virtual void do_set_meas_magn_std(double std) = 0;
-    virtual void do_set_init_qs_std(double std) = 0;
-    virtual void do_set_init_qx_std(double std) = 0;
-    virtual void do_set_init_qy_std(double std) = 0;
-    virtual void do_set_init_qz_std(double std) = 0;
-    virtual void do_set_init_bias_std(double std) = 0;
+    virtual void do_set_proc_gyro_std(double std)
+    {
+        int g = 0;
+    }
 
-    virtual double do_get_proc_gyro_std() const = 0;
-    virtual double do_get_proc_gyro_bias_std() const = 0;
-    virtual double do_get_meas_accel_std() const = 0;
-    virtual double do_get_meas_magn_std() const = 0;
-    virtual double do_get_init_qs_std() const = 0;
-    virtual double do_get_init_qx_std() const = 0;
-    virtual double do_get_init_qy_std() const = 0;
-    virtual double do_get_init_qz_std() const = 0;
-    virtual double do_get_init_bias_std() const = 0;
+    virtual void do_set_proc_gyro_bias_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_meas_accel_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_meas_magn_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_init_qs_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_init_qx_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_init_qy_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_init_qz_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_init_bias_std(double std)
+    {
+        int g = 0;
+    }
+
+
+    virtual double do_get_proc_gyro_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_proc_gyro_bias_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_meas_accel_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_meas_magn_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_init_qs_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_init_qx_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_init_qy_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_init_qz_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_init_bias_std() const
+    {
+        int g = 0;
+    }
+
 };
 
 #endif // IKALMANORIENTATIONATTR_H

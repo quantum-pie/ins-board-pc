@@ -19,6 +19,7 @@
 #include "controllers/direct/attributes/complorientationattrcontroller.h"
 #include "controllers/direct/attributes/simpositionattrcontroller.h"
 #include "controllers/switches/mixedmodelswitch.h"
+#include "controllers/accumviewcontroller.h"
 
 #include <QMainWindow>
 
@@ -38,7 +39,7 @@ public:
      */
     explicit MainWindow(QWidget *parent = 0);
 
-    ~MainWindow() = default;
+    ~MainWindow();
 
 private slots:
     void on_tabWidget_currentChanged(int index);
@@ -66,12 +67,14 @@ private:
     std::shared_ptr<OrientationFilteringController> kalman_ori_controller;
     std::shared_ptr<PositionFilteringController> kalman_pos_controller;
     std::unique_ptr<MetaController> meta_controller;
+    std::unique_ptr<AccumViewController> kalman_accum_view_controller;
 
     //tab5
     std::unique_ptr<OrientationFilteringController> compl_ori_controller;
     std::unique_ptr<PositionFilteringController> sim_pos_controller;
     std::unique_ptr<ComplOrientationAttrController> compl_oriattr_controller;
     std::unique_ptr<SimPositionAttrController> sim_posattr_controller;
+    std::unique_ptr<AccumViewController> compl_accum_view_controller;
 };
 
 #endif // MAINWINDOW_H

@@ -7,7 +7,7 @@ ModelSwitchBase::ModelSwitchBase(QComboBox *sw) : sw{ sw } {}
 void ModelSwitchBase::enable()
 {
     sw->setEnabled(true);
-    sw->setCurrentIndex(sw->currentIndex());
+    emit sw->activated(sw->currentIndex());
 }
 
 void ModelSwitchBase::disable()

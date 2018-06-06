@@ -7,7 +7,14 @@ NumCalibrationView::NumCalibrationView(QLineEdit *bias_x_le, QLineEdit *bias_y_l
                                        QLineEdit *scale_x_le, QLineEdit *scale_y_le, QLineEdit *scale_z_le)
     : bias_x_le{ bias_x_le }, bias_y_le{ bias_y_le }, bias_z_le{ bias_z_le },
       scale_x_le{ scale_x_le }, scale_y_le{ scale_y_le }, scale_z_le{ scale_z_le }
-{}
+{
+    bias_x_le->setReadOnly(true);
+    bias_y_le->setReadOnly(true);
+    bias_z_le->setReadOnly(true);
+    scale_x_le->setReadOnly(true);
+    scale_y_le->setReadOnly(true);
+    scale_z_le->setReadOnly(true);
+}
 
 void NumCalibrationView::update(const ViewModel & vm)
 {

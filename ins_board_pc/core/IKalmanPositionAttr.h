@@ -120,19 +120,67 @@ struct IKalmanPositionAttr
     virtual ~IKalmanPositionAttr() = default;
 
 private:
-    virtual void do_set_proc_accel_std(double std) = 0;
-    virtual void do_set_meas_pos_std(double std) = 0;
-    virtual void do_set_meas_vel_std(double std) = 0;
-    virtual void do_set_init_pos_std(double std) = 0;
-    virtual void do_set_init_vel_std(double std) = 0;
-    virtual void do_set_init_accel_std(double std) = 0;
+    virtual void do_set_proc_accel_std(double std)
+    {
+        int g = 0;
+    }
 
-    virtual double do_get_proc_accel_std() const = 0;
-    virtual double do_get_meas_pos_std() const = 0;
-    virtual double do_get_meas_vel_std() const = 0;
-    virtual double do_get_init_pos_std() const = 0;
-    virtual double do_get_init_vel_std() const = 0;
-    virtual double do_get_init_accel_std() const = 0;
+    virtual void do_set_meas_pos_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_meas_vel_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_init_pos_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_init_vel_std(double std)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_init_accel_std(double std)
+    {
+        int g = 0;
+    }
+
+
+    virtual double do_get_proc_accel_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_meas_pos_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_meas_vel_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_init_pos_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_init_vel_std() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_init_accel_std() const
+    {
+        int g = 0;
+    }
+
 };
 
 #endif // IKALMANPOSITIONATTR_H

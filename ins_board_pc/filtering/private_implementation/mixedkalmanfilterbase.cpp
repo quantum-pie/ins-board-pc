@@ -177,6 +177,6 @@ MixedKalmanFilterBase::do_create_meas_proj_mtx(const Vector3D & geo, const boost
 
 void MixedKalmanFilterBase::do_reset()
 {
-    KalmanOrientationFilterBase::reset();
-    KalmanPositionFilterBase::reset();
+    KalmanOrientationFilterBase::do_reset();
+    KalmanPositionFilterBase::do_reset();
 }

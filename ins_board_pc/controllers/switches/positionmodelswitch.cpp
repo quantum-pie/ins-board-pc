@@ -5,7 +5,7 @@
 PositionModelSwitch::PositionModelSwitch(QComboBox * sw, std::shared_ptr<PositionFilteringController> pos_ctrl, std::unique_ptr<KalmanPositionAttrController> attr_ctrl)
     : base_type{ sw, pos_ctrl, std::move(attr_ctrl) }
 {
-    connect(sw, SIGNAL(currentIndexChanged(int)), this, SLOT(switch_model(int)));
+    connect(sw, SIGNAL(activated(int)), this, SLOT(switch_model(int)));
 }
 
 void PositionModelSwitch::switch_model(int cb_idx)

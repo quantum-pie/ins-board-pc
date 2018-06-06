@@ -8,9 +8,9 @@
 template<typename View>
 struct ObservableBase
 {
-    void attach_view(std::unique_ptr<View> view)
+    void attach_view(std::shared_ptr<View> view)
     {
-        views.emplace_back(std::move(view));
+        views.emplace_back(view);
     }
 
     void remove_views()
@@ -36,7 +36,7 @@ protected:
     }
 
 private:
-    std::vector<std::unique_ptr<View>> views;
+    std::vector<std::shared_ptr<View>> views;
 };
 
 

@@ -2,26 +2,21 @@
 #define TRACKPOSITIONVIEW_H
 
 #include "views/IBaseView.h"
+#include "views/IAccumView.h"
 #include "core/IPositionProvider.h"
 #include "qualitycontrol.h"
 
-#include <QObject>
-
 class QLineEdit;
 
-class TrackPositionView : public QObject, public IPositionView
+struct TrackPositionView : IPositionView, IAccumView
 {
-    Q_OBJECT
-
-public:
-    TrackPositionView(QLineEdit * samples_le, QLineEdit * track_angle_le, QLineEdit * ground_speed_le);
+    TrackPositionView(QLineEdit * track_angle_le, QLineEdit * ground_speed_le);
     ~TrackPositionView() override = default;
 
     void update(const ViewModel & vm) override;
     void clear();
 
-public slots:
-    void set_accumulator_capacity(const QString & str);
+    void set_accumulator_capacity(std::size_t new_capacity) override;
 
 private:
     QualityControl<Vector3D> speed_accum;

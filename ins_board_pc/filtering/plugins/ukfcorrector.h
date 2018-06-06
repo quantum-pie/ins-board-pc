@@ -41,6 +41,8 @@ struct UKFCorrector : ICorrector<UKFCorrector<Base>>, Base
         }
     }
 
+    ~UKFCorrector() override = default;
+
     void do_correct(const FilterInput & z)
     {
         auto x = this->get_state();

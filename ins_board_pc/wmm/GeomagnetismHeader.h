@@ -65,9 +65,13 @@
 #define DEG2RAD(deg)    ((deg)*(M_PI/180.0L))
 #define ATanH(x)	    (0.5 * log((1 + x) / (1 - x)))
 
-
+#ifndef TRUE
 #define TRUE            ((int)1)
+#endif
+
+#ifndef FALSE
 #define FALSE           ((int)0)
+#endif
 
 
 

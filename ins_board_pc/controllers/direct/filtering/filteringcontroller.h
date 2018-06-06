@@ -9,8 +9,8 @@
 #include <QPushButton>
 
 template<typename Model, typename View>
-struct FilteringController : ControllerBase<Model>, ObservableBase<View>,
-                             FilteringControllerCommon
+struct FilteringController : FilteringControllerCommon, ControllerBase<Model>, ObservableBase<View>
+
 {
     FilteringController(const QPushButton * start_button)
         : FilteringControllerCommon{ start_button->isChecked() }

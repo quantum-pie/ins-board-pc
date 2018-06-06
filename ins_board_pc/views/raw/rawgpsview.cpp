@@ -12,7 +12,19 @@ RawGPSView::RawGPSView(QLineEdit *x_le, QLineEdit *y_le, QLineEdit *z_le,
       vx_le{ vx_le }, vy_le{ vy_le }, vz_le{ vz_le},
       lat_le{ lat_le }, lon_le{ lon_le }, alt_le{ alt_le },
       msl_alt_le{ msl_alt_le }, time_le{ time_le }
-{}
+{
+    x_le->setReadOnly(true);
+    y_le->setReadOnly(true);
+    z_le->setReadOnly(true);
+    vx_le->setReadOnly(true);
+    vy_le->setReadOnly(true);
+    vz_le->setReadOnly(true);
+    lat_le->setReadOnly(true);
+    lon_le->setReadOnly(true);
+    alt_le->setReadOnly(true);
+    msl_alt_le->setReadOnly(true);
+    time_le->setReadOnly(true);
+}
 
 void RawGPSView::update(const ViewModel & vm)
 {

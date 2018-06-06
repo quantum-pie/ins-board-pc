@@ -5,7 +5,7 @@
 OrientationModelSwitch::OrientationModelSwitch(QComboBox * sw, std::shared_ptr<OrientationFilteringController> ori_ctrl, std::unique_ptr<KalmanOrientationAttrController> attr_ctrl)
     : base_type{ sw, ori_ctrl, std::move(attr_ctrl) }
 {
-    connect(sw, SIGNAL(currentIndexChanged(int)), this, SLOT(switch_model(int)));
+    connect(sw, SIGNAL(activated(int)), this, SLOT(switch_model(int)));
 }
 
 void OrientationModelSwitch::switch_model(int cb_idx)

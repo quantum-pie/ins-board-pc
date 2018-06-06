@@ -1,6 +1,8 @@
 #ifndef ICOMPLEMENTORIENTATIONATTR_H
 #define ICOMPLEMENTORIENTATIONATTR_H
 
+#include <QDebug>
+
 struct IComplementOrientationAttr
 {
     /*!
@@ -62,13 +64,37 @@ struct IComplementOrientationAttr
     virtual ~IComplementOrientationAttr() = default;
 
 private:
-    virtual void do_set_static_accel_gain(double gain) = 0;
-    virtual void do_set_static_magn_gain(double gain) = 0;
-    virtual void do_set_bias_gain(double gain) = 0;
+    virtual void do_set_static_accel_gain(double gain)
+    {
+        int g = 0;
+    }
 
-    virtual double do_get_static_accel_gain() const = 0;
-    virtual double do_get_static_magn_gain() const = 0;
-    virtual double do_get_bias_gain() const = 0;
+    virtual void do_set_static_magn_gain(double gain)
+    {
+        int g = 0;
+    }
+
+    virtual void do_set_bias_gain(double gain)
+    {
+        int g = 0;
+    }
+
+
+    virtual double do_get_static_accel_gain() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_static_magn_gain() const
+    {
+        int g = 0;
+    }
+
+    virtual double do_get_bias_gain() const
+    {
+        int g = 0;
+    }
+
 };
 
 #endif // ICOMPLEMENTORIENTATIONATTR_H
