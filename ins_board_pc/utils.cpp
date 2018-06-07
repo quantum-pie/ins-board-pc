@@ -4,12 +4,14 @@
  *      Author: Ermakov_P
  */
 #include "utils.h"
+#include "packets.h"
 #include "qcustomplot.h"
 
 #include <cmath>
 #include <limits>
 
 #include <QString>
+#include <QDateTime>
 
 namespace utils
 {
@@ -97,6 +99,14 @@ void clear_3axis_plot(QCustomPlot * plot)
 QString double_view(double val, std::size_t digits)
 {
     return QString::number(val, 'f', digits);
+}
+
+QString gps_time_string(const Timestamp & ts)
+{
+    QDateTime dt;
+    dt.setDate(QDate(ts.year, ts.month, ts.day));
+    dt.setTime(QTime(ts.hour, ts.minute, ts.second, ts.ssecond * 10));
+    return dt.toString();
 }
 
 }

@@ -17,6 +17,7 @@ class RawPacket;
 class MagnCalibrator;
 class QCustomPlot;
 class QString;
+class Timestamp;
 
 /*!
  * @brief This namespace holds various general purpose utilities.
@@ -78,6 +79,8 @@ void update_3axis_plot(QCustomPlot * plot, const Vector3D & vec);
 void clear_3axis_plot(QCustomPlot * plot);
 
 QString double_view(double val, std::size_t digits = 2);
+
+QString gps_time_string(const Timestamp & ts);
 
 }
 
