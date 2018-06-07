@@ -38,12 +38,7 @@ void RawGPSView::update(const ViewModel & vm)
     lon_le->setText(utils::double_view(vm.gps_data.geo[1], 7));
     alt_le->setText(utils::double_view(vm.gps_data.geo[2]));
     msl_alt_le->setText(utils::double_view(vm.gps_data.msl_altitude));
-
-    QDateTime dt;
-    dt.setDate(QDate(vm.gps_data.time.year, vm.gps_data.time.month, vm.gps_data.time.day));
-    dt.setTime(QTime(vm.gps_data.time.hour, vm.gps_data.time.minute, vm.gps_data.time.second, vm.gps_data.time.ssecond * 10));
-
-    time_le->setText(dt.toString());
+    time_le->setText(utils::gps_time_string(vm.gps_data.time));
 }
 
 void RawGPSView::clear()
