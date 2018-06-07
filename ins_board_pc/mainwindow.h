@@ -43,6 +43,7 @@ public:
 
 private slots:
     void on_tabWidget_currentChanged(int index);
+    void on_raw_packet(const RawPacket & z);
 
 private:
     std::unique_ptr<Ui::MainWindow> ui;                                //!< Pointer to user interface instance.
@@ -72,6 +73,8 @@ private:
     std::unique_ptr<ComplOrientationAttrController> compl_oriattr_controller;
     std::unique_ptr<SimPositionAttrController> sim_posattr_controller;
     std::unique_ptr<AccumViewController> compl_accum_view_controller;
+
+    QLabel * current_time;
 };
 
 #endif // MAINWINDOW_H

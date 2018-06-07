@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "utils.h"
 
 // tab1
 #include "views/raw/rawaccelview.h"
@@ -115,7 +116,16 @@ MainWindow::MainWindow(QWidget *parent) :
     sim_posattr_controller->set_model(&pos_sim);
     sim_posattr_controller->borrow_attributes();
 
+    current_time = new QLabel;
+    ui->statusBar->addWidget(current_time);
+    connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), this, SLOT(on_raw_packet(RawPacket)));
+
     resize(1300, 800);
+}
+
+void MainWindow::on_raw_packet(const RawPacket &z)
+{
+    current_time->setText(utils::gps_time_string(z.gps_data.time));
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)
