@@ -1,23 +1,22 @@
 #ifndef TERMINAL_H
 #define TERMINAL_H
 
-#include "udpsender.h"
-#include "udpreceiver.h"
-
 #include <QPlainTextEdit>
 
 #include <regex>
+
+class TerminalBase;
 
 class Terminal : public QPlainTextEdit
 {
     Q_OBJECT
 
 public:
-    Terminal(const QString & client_ip, const QString & server_ip,
-             uint16_t client_port, uint16_t server_port);
+    Terminal(TerminalBase & tbase);
 
+private slots:
     /* print recieved info in console */
-    void print(const QByteArray & ar);
+    void print_text(const std::string & str);
 
 private:
     /* redefinition of events */
@@ -30,10 +29,7 @@ private:
     /* scroll down to the cursor */
     void scroll_down() const;
 
-    UDPSender output_sock;
-    UDPReceiver input_sock;
-
-    static const std::regex alpha_filter;
+    TerminalBase & tbase;
 };
 
 #endif // TERMINAL_H

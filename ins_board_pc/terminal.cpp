@@ -1,14 +1,15 @@
 #include "terminal.h"
+#include "terminalbase.h"
 
 #include <QScrollBar>
 
-const std::regex Terminal::alpha_filter { R"([[:alpha:]])" };
+#include <algorithm>
 
-Terminal::Terminal(const QString & client_ip, const QString & server_ip,
-                   uint16_t client_port, uint16_t server_port)
-    : output_sock{ server_ip, server_port },
-      input_sock{ client_ip, client_port, [this](const QByteArray &ar){ print(ar); } }
+Terminal::Terminal(TerminalBase & tbase)
+    : tbase{ tbase }
 {
+    connect(&tbase, SIGNAL(text_received(std::string)), this, SLOT(print_text(std::string)));
+
     setWindowTitle(tr("Terminal"));
     setWindowModality(Qt::ApplicationModal);
     resize(800, 500);
@@ -38,7 +39,7 @@ void Terminal::keyPressEvent(QKeyEvent *event)
     {
         textCursor().deletePreviousChar();
     }
-    output_sock.write_data(&ch, 1);
+    tbase.send_text(std::string(1, ch));
 }
 
 void Terminal::showEvent(QShowEvent *event)
@@ -47,10 +48,11 @@ void Terminal::showEvent(QShowEvent *event)
     QPlainTextEdit::showEvent(event);
 }
 
-void Terminal::print(const QByteArray & data)
+void Terminal::print_text(const std::string & data)
 {
-    QString filtered(data);
-    textCursor().insertText(filtered.remove('\b'));
+    QString flt;
+    std::copy_if(data.begin(), data.end(), std::back_inserter(flt), [](char ch){ return ch != '\b'; });
+    textCursor().insertText(flt);
     scroll_down();
 }
 
