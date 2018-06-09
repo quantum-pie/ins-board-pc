@@ -30,9 +30,10 @@ void Receiver::process_raw_data(const QByteArray & data)
             >> raw_z.gps_data.time.hour >> raw_z.gps_data.time.minute
             >> raw_z.gps_data.time.second >> raw_z.gps_data.time.ssecond
             >> raw_z.gps_data.geo[0] >> raw_z.gps_data.geo[1] >> raw_z.gps_data.geo[2]
+            >> raw_z.gps_data.msl_altitude
             >> raw_z.gps_data.pos[0] >> raw_z.gps_data.pos[1] >> raw_z.gps_data.pos[2]
             >> raw_z.gps_data.vel[0] >> raw_z.gps_data.vel[1] >> raw_z.gps_data.vel[2]
-            >> raw_z.gps_data.msl_altitude >> raw_z.gps_data.fix >> raw_z.gps_data.isnew
+            >> raw_z.gps_data.fix >> raw_z.gps_data.isnew
             >> raw_z.w[0] >> raw_z.w[1] >> raw_z.w[2]
             >> raw_z.a[0] >> raw_z.a[1] >> raw_z.a[2]
             >> raw_z.m[0] >> raw_z.m[1] >> raw_z.m[2]
