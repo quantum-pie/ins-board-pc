@@ -35,13 +35,13 @@ struct FilteringController : FilteringControllerCommon, ControllerBase<Model>, O
 
     void handle_input(const FilterInput & z) override
     {
-        if(this->model_is_set())
+        if(this->model_is_set() && is_running())
         {
-            if(is_running() && filtering_is_enabled())
+            if(filtering_is_enabled())
             {
                 this->get_model()->step(z);
             }
-            this->update_views(typename View::ViewModel{*this->get_model(), z});
+            this->update_views({*this->get_model(), z});
         }
     }
 };
