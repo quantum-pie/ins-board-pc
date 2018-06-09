@@ -8,6 +8,7 @@
 
 #include "receiver.h"
 #include "magncalibrator.h"
+#include "terminalbase.h"
 #include "terminal.h"
 
 #include "filtering/filters/orientationcomplement.h"
@@ -51,6 +52,7 @@ private:
 
     MagnCalibrator magn_cal;                            //!< Magnetometer calibrator instance.
     Receiver receiver;
+    TerminalBase terminal_base;
     Terminal terminal;
 
     OrientationCF ori_cf;
