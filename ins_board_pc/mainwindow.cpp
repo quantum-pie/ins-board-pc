@@ -29,9 +29,12 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(std::make_unique<Ui::MainWindow>()),
-    receiver("192.168.0.101", 65000, "192.168.0.100", 7700, magn_cal)
+    receiver("192.168.0.101", 65000, "192.168.0.100", 7700, magn_cal),
+    terminal("192.168.0.101", "192.168.0.13", 65001, 65001)
 {
     ui->setupUi(this);
+
+    connect(ui->actionRun, SIGNAL(triggered(bool)), &terminal, SLOT(show()));
 
     //tab1
     raw_tab_controller = std::make_unique<RawController>();

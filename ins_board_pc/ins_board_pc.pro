@@ -82,7 +82,9 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     receiver.cpp \
     udpreceiver.cpp \
     controllers/accumviewcontroller.cpp \
-    filtering/plugins/utparams.cpp
+    filtering/plugins/utparams.cpp \
+    terminal.cpp \
+    udpsender.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -166,6 +168,8 @@ HEADERS  += \
     udpreceiver.h \
     controllers/accumviewcontroller.h \
     views/IAccumView.h \
-    filtering/plugins/utparams.h
+    filtering/plugins/utparams.h \
+    terminal.h \
+    udpsender.h
 
 FORMS    += mainwindow.ui
