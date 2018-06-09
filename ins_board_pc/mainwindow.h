@@ -42,8 +42,8 @@ public:
     ~MainWindow() override = default;
 
 private slots:
+    void got_raw_packet(const RawPacket & z);
     void on_tabWidget_currentChanged(int index);
-    void on_raw_packet(const RawPacket & z);
 
 private:
     std::unique_ptr<Ui::MainWindow> ui;                                //!< Pointer to user interface instance.

@@ -118,12 +118,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     current_time = new QLabel;
     ui->statusBar->addWidget(current_time);
-    connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), this, SLOT(on_raw_packet(RawPacket)));
 
     resize(1300, 800);
+
+    on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 }
 
-void MainWindow::on_raw_packet(const RawPacket &z)
+void MainWindow::got_raw_packet(const RawPacket &z)
 {
     current_time->setText(utils::gps_time_string(z.gps_data.time));
 }
@@ -131,6 +132,8 @@ void MainWindow::on_raw_packet(const RawPacket &z)
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     receiver.disconnect();
+    connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), this, SLOT(got_raw_packet(RawPacket)));
+
     switch(index)
     {
     case 0:
