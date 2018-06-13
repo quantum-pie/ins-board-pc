@@ -2,7 +2,7 @@
 #define ENUPOSITIONVIEW_H
 
 #include "core/IPositionProvider.h"
-#include "views/IBaseView.h"
+#include "views/base/IBaseView.h"
 
 #include "qcustomplot.h"
 

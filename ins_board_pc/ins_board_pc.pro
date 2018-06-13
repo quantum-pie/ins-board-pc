@@ -30,7 +30,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/tools/boost_1_66_0
+INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
 
 SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/filters/positionbypass.cpp \
@@ -75,8 +75,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     views/raw/rawmagnview.cpp \
     controllers/direct/attributes/complorientationattrcontroller.cpp \
     controllers/direct/magncalibrationcontroller.cpp \
-    views/xdaxisplot.cpp \
-    views/xdaxisscatter.cpp \
     views/calibration/xdcalibrationview.cpp \
     views/calibration/numcalibrationview.cpp \
     receiver.cpp \
@@ -85,7 +83,11 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/plugins/utparams.cpp \
     terminal.cpp \
     udpsender.cpp \
-    terminalbase.cpp
+    terminalbase.cpp \
+    views/base/xdaxisscatter.cpp \
+    views/base/plotsetup.cpp \
+    views/base/xdaxisbody.cpp \
+    views/orientation/rpyremoteview.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -131,7 +133,6 @@ HEADERS  += \
     core/IPositionProvider.h \
     core/ISimPositionAttr.h \
     receiver.h \
-    views/IBaseView.h \
     controllers/metacontroller.h \
     controllers/direct/controllerbase.h \
     controllers/direct/attributes/attrcontrollerbase.h \
@@ -161,17 +162,20 @@ HEADERS  += \
     views/raw/xdrawmagnview.h \
     controllers/direct/attributes/complorientationattrcontroller.h \
     controllers/direct/magncalibrationcontroller.h \
-    views/xdaxisplot.h \
-    views/xdaxisscatter.h \
     views/calibration/xdcalibrationview.h \
     controllers/direct/runningflag.h \
     views/calibration/numcalibrationview.h \
     udpreceiver.h \
     controllers/accumviewcontroller.h \
-    views/IAccumView.h \
     filtering/plugins/utparams.h \
     terminal.h \
     udpsender.h \
-    terminalbase.h
+    terminalbase.h \
+    views/base/IAccumView.h \
+    views/base/IBaseView.h \
+    views/base/xdaxisscatter.h \
+    views/base/plotsetup.h \
+    views/base/xdaxisbody.h \
+    views/orientation/rpyremoteview.h
 
 FORMS    += mainwindow.ui

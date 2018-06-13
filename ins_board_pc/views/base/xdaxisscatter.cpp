@@ -1,4 +1,4 @@
-#include "views/xdaxisscatter.h"
+#include "views/base/xdaxisscatter.h"
 
 #include <QWidget>
 #include <QGridLayout>

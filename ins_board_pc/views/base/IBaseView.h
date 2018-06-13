@@ -18,11 +18,13 @@ struct IBaseView
 struct IPositionProvider;
 struct IOrientationProvider;
 struct RawPacket;
+struct FilteredPacket;
 class MagnCalibrator;
 
 using IPositionView = IBaseView<IPositionProvider>;
 using IOrientationView = IBaseView<IOrientationProvider>;
 using IRawView = IBaseView<RawPacket>;
+using IRemoteView = IBaseView<FilteredPacket>;
 using ICalibrationView = IBaseView<MagnCalibrator>;
 
 #endif // BASEORIENTATIONVIEW_H

@@ -66,54 +66,19 @@ int32_t angle_to_fixed(double radians)
     return static_cast<int32_t>(radians * fixed16d16_mult / M_PI);
 }
 
+double fixed_to_double(int32_t fixed)
+{
+    return static_cast<double>(fixed) / fixed16d16_mult;
+}
+
+double fixed_to_angle(int32_t fixed)
+{
+    return static_cast<double>(fixed) * M_PI / fixed16d16_mult;
+}
+
 double ms_to_knots(double ms)
 {
 	return ms * ms2knots;
-}
-
-void update_3axis_plot(QCustomPlot * plot, const Vector3D & vec)
-{
-    int pts = plot->graph(0)->dataCount();
-    if(pts < plot->xAxis->range().upper)
-    {
-        plot->graph(0)->addData(pts, vec[0]);
-        plot->graph(1)->addData(pts, vec[1]);
-        plot->graph(2)->addData(pts, vec[2]);
-        plot->replot();
-    }
-    else
-    {
-        plot->graph(0)->data()->clear();
-        plot->graph(1)->data()->clear();
-        plot->graph(2)->data()->clear();
-    }
-}
-
-void clear_3axis_plot(QCustomPlot * plot)
-{
-    plot->graph(0)->data().clear();
-    plot->graph(1)->data().clear();
-    plot->graph(2)->data().clear();
-}
-
-void update_track(QCustomPlot * plot, QCPCurve * track, const Vector3D & point)
-{
-    track->addData(point[0], point[1]);
-
-    plot->rescaleAxes();
-
-    double expected_y_span = plot->xAxis->range().size() * plot->axisRect()->height() / plot->axisRect()->width();
-
-    if(plot->yAxis->range().size() < expected_y_span)
-    {
-        plot->yAxis->setScaleRatio(plot->xAxis, 1);
-    }
-    else
-    {
-        plot->xAxis->setScaleRatio(plot->yAxis, 1);
-    }
-
-    plot->replot();
 }
 
 QString double_view(double val, std::size_t digits)

@@ -68,18 +68,15 @@ int32_t double_to_fixed(double val);
  */
 int32_t angle_to_fixed(double radians);
 
+double fixed_to_double(int32_t fixed);
+double fixed_to_angle(int32_t fixed);
+
 /*!
  * @brief Convert speed from m/s to knots units.
  * @param ms speed in m/s.
  * @return speed in knots.
  */
 double ms_to_knots(double ms);
-
-void update_3axis_plot(QCustomPlot * plot, const Vector3D & vec);
-
-void clear_3axis_plot(QCustomPlot * plot);
-
-void update_track(QCustomPlot * plot, QCPCurve * track, const Vector3D & point);
 
 QString double_view(double val, std::size_t digits = 2);
 
