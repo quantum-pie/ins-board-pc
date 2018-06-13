@@ -96,6 +96,26 @@ void clear_3axis_plot(QCustomPlot * plot)
     plot->graph(2)->data().clear();
 }
 
+void update_track(QCustomPlot * plot, QCPCurve * track, const Vector3D & point)
+{
+    track->addData(point[0], point[1]);
+
+    plot->rescaleAxes();
+
+    double expected_y_span = plot->xAxis->range().size() * plot->axisRect()->height() / plot->axisRect()->width();
+
+    if(plot->yAxis->range().size() < expected_y_span)
+    {
+        plot->yAxis->setScaleRatio(plot->xAxis, 1);
+    }
+    else
+    {
+        plot->xAxis->setScaleRatio(plot->yAxis, 1);
+    }
+
+    plot->replot();
+}
+
 QString double_view(double val, std::size_t digits)
 {
     return QString::number(val, 'f', digits);

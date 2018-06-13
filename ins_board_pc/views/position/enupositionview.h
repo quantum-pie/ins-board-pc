@@ -6,13 +6,16 @@
 
 #include "qcustomplot.h"
 
-struct ENUPositionView : IPositionView
+struct ENUPositionView : IPositionView, IRawView
 {
     ENUPositionView(QCustomPlot * plot);
     ~ENUPositionView() override = default;
 
-    void update(const ViewModel & pvd) override;
+    void update(const IPositionView::ViewModel & pvd) override;
+    void update(const IRawView::ViewModel & pvd) override;
     void clear() override;
+
+    void update_track(QCPCurve * track, const Vector3D & point);
 
 private:
     bool is_initialized;

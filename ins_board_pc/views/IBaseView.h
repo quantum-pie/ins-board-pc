@@ -20,18 +20,8 @@ struct IOrientationProvider;
 struct RawPacket;
 class MagnCalibrator;
 
-template<typename Model>
-struct FilteringViewModel
-{
-    const Model & pvd_ref;
-    const FilterInput & raw_ref;
-};
-
-using PositionFilteringViewModel = FilteringViewModel<IPositionProvider>;
-using OrientationFilteringViewModel = FilteringViewModel<IOrientationProvider>;
-
-using IPositionView = IBaseView<PositionFilteringViewModel>;
-using IOrientationView = IBaseView<OrientationFilteringViewModel>;
+using IPositionView = IBaseView<IPositionProvider>;
+using IOrientationView = IBaseView<IOrientationProvider>;
 using IRawView = IBaseView<RawPacket>;
 using ICalibrationView = IBaseView<MagnCalibrator>;
 

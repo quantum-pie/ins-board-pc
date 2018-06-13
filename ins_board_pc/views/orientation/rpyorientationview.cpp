@@ -20,7 +20,7 @@ RPYOrientationView::RPYOrientationView(QCustomPlot * plot) : XDAxisPlot{ plot }
 
 void RPYOrientationView::update(const ViewModel & vm)
 {
-    Vector3D rpy = vm.pvd_ref.get_orientation_quaternion().rpy().unaryExpr(&utils::radians_to_degrees);
+    Vector3D rpy = vm.get_orientation_quaternion().rpy().unaryExpr(&utils::radians_to_degrees);
     update_plot(rpy);
 }
 

@@ -18,10 +18,10 @@ void TrackPositionView::set_accumulator_capacity(std::size_t new_capacity)
 
 void TrackPositionView::update(const ViewModel & vm)
 {
-    speed_accum.update(vm.pvd_ref.get_velocity());
+    speed_accum.update(vm.get_velocity());
     if(speed_accum.is_saturated())
     {
-        Vector3D geo = geom::cartesian_to_geodetic(vm.pvd_ref.get_cartesian(), vm.pvd_ref.get_ellipsoid());
+        Vector3D geo = geom::cartesian_to_geodetic(vm.get_cartesian(), vm.get_ellipsoid());
         Vector3D avg_speed = geom::ecef_to_enu(speed_accum.get_mean(), geo);
 
         double track_angle = utils::radians_to_degrees(geom::track_angle(avg_speed, geo));

@@ -18,6 +18,7 @@ class MagnCalibrator;
 class QCustomPlot;
 class QString;
 class Timestamp;
+class QCPCurve;
 
 /*!
  * @brief This namespace holds various general purpose utilities.
@@ -77,6 +78,8 @@ double ms_to_knots(double ms);
 void update_3axis_plot(QCustomPlot * plot, const Vector3D & vec);
 
 void clear_3axis_plot(QCustomPlot * plot);
+
+void update_track(QCustomPlot * plot, QCPCurve * track, const Vector3D & point);
 
 QString double_view(double val, std::size_t digits = 2);
 
