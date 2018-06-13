@@ -5,12 +5,13 @@
 #include "controllers/direct/controllerbase.h"
 #include "controllers/direct/observablebase.h"
 #include "receiver.h"
+#include "views/IBaseView.h"
 
 #include <QPushButton>
 
 template<typename Model, typename View>
-struct FilteringController : FilteringControllerCommon, ControllerBase<Model>, ObservableBase<View>
-
+struct FilteringController : FilteringControllerCommon, ControllerBase<Model>,
+                             ObservableBase<View>
 {
     FilteringController(const QPushButton * start_button)
         : FilteringControllerCommon{ start_button->isChecked() }
@@ -41,7 +42,7 @@ struct FilteringController : FilteringControllerCommon, ControllerBase<Model>, O
             {
                 this->get_model()->step(z);
             }
-            this->update_views({*this->get_model(), z});
+            this->update_views(*this->get_model());
         }
     }
 };
