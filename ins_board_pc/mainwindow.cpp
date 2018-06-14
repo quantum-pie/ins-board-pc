@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
                                                                           ui->xspan_le, ui->yspan_le, ui->zspan_le));
 
     //tab3
-    kalman_ori_controller = std::make_shared<OrientationFilteringController>(ui->pushButton_2);
+    kalman_ori_controller = std::make_shared<OrientationFilteringController>(ui->pushButton_2, ui->samples_le);
     kalman_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot4));
     kalman_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget, ui->gridLayout_3));
 
@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     kalman_ori_controller->attach_view(std_ori_view);
 
-    kalman_pos_controller = std::make_shared<PositionFilteringController>(ui->pushButton_2);
+    kalman_pos_controller = std::make_shared<PositionFilteringController>(ui->pushButton_2, ui->samples_le);
 
     auto enu_pos_view = std::make_shared<ENUPositionView>(ui->plot5);
     kalman_pos_controller->attach_view(enu_pos_view);
@@ -75,10 +75,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     kalman_raw_controller = std::make_unique<RawController>();
     kalman_raw_controller->attach_view(enu_pos_view);
-
-    kalman_accum_view_controller = std::make_unique<AccumViewController>(ui->samples_le);
-    kalman_accum_view_controller->attach_view(std_ori_view);
-    kalman_accum_view_controller->attach_view(track_pos_view);
 
     auto kalman_oriattr_controller = std::make_unique<KalmanOrientationAttrController>(ui->gyro_process_le, ui->gyro_bias_process_le,
                                                                                       ui->accel_meas_le, ui->magn_meas_le,
@@ -94,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent) :
     meta_controller = std::make_unique<MetaController>(ui->comboBox, kalman_pos_sw, kalman_ori_sw, std::move(mix_sw), kalman_pos_controller);
 
     //tab4
-    compl_ori_controller = std::make_unique<OrientationFilteringController>(ui->pushButton_4);
+    compl_ori_controller = std::make_unique<OrientationFilteringController>(ui->pushButton_4, ui->samples_le_2);
     compl_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot6));
     compl_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget2, ui->gridLayout_8));
 
@@ -103,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     compl_ori_controller->attach_view(std_ori_view2);
 
-    sim_pos_controller = std::make_unique<PositionFilteringController>(ui->pushButton_4);
+    sim_pos_controller = std::make_unique<PositionFilteringController>(ui->pushButton_4, ui->samples_le_2);
 
     auto enu_pos_view2 = std::make_shared<ENUPositionView>(ui->plot7);
     sim_pos_controller->attach_view(enu_pos_view2);
@@ -113,10 +109,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     compl_raw_controller = std::make_unique<RawController>();
     compl_raw_controller->attach_view(enu_pos_view2);
-
-    compl_accum_view_controller = std::make_unique<AccumViewController>(ui->samples_le_2);
-    compl_accum_view_controller->attach_view(std_ori_view2);
-    compl_accum_view_controller->attach_view(track_pos_view2);
 
     compl_oriattr_controller = std::make_unique<ComplOrientationAttrController>(ui->a_gain_le, ui->m_gain_le, ui->b_gain_le);
     sim_posattr_controller = std::make_unique<SimPositionAttrController>(ui->sim_speed_le, ui->init_track_le);

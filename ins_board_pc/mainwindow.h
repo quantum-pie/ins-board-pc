@@ -21,7 +21,6 @@
 #include "controllers/direct/attributes/complorientationattrcontroller.h"
 #include "controllers/direct/attributes/simpositionattrcontroller.h"
 #include "controllers/switches/mixedmodelswitch.h"
-#include "controllers/accumviewcontroller.h"
 
 #include <QMainWindow>
 
@@ -70,7 +69,6 @@ private:
     std::shared_ptr<PositionFilteringController> kalman_pos_controller;
     std::unique_ptr<RawController> kalman_raw_controller;
     std::unique_ptr<MetaController> meta_controller;
-    std::unique_ptr<AccumViewController> kalman_accum_view_controller;
 
     //tab4
     std::unique_ptr<OrientationFilteringController> compl_ori_controller;
@@ -78,7 +76,6 @@ private:
     std::unique_ptr<RawController> compl_raw_controller;
     std::unique_ptr<ComplOrientationAttrController> compl_oriattr_controller;
     std::unique_ptr<SimPositionAttrController> sim_posattr_controller;
-    std::unique_ptr<AccumViewController> compl_accum_view_controller;
 
     QLabel * current_time;
 };
