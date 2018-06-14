@@ -1,5 +1,6 @@
 #include "views/orientation/rpyorientationview.h"
 #include "views/base/plotsetup.h"
+#include "adapters/orientationfilteringviewmodel.h"
 #include "qcustomplot.h"
 #include "utils.h"
 
@@ -10,7 +11,7 @@ RPYOrientationView::RPYOrientationView(QCustomPlot * plot)
 
 void RPYOrientationView::update(const ViewModel & vm)
 {
-    Vector3D rpy = vm.get_orientation_quaternion().rpy().unaryExpr(&utils::radians_to_degrees);
+    Vector3D rpy = vm.rpy.unaryExpr(&utils::radians_to_degrees);
     plots::update_3axis_plot(plot, rpy);
 }
 

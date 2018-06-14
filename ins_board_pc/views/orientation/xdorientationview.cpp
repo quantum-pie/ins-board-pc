@@ -1,5 +1,5 @@
 #include "views/orientation/xdorientationview.h"
-#include "quaternion.h"
+#include "adapters/orientationfilteringviewmodel.h"
 
 #include <QWidget>
 #include <QGridLayout>
@@ -15,7 +15,7 @@ const double XDOrientationView::body_height { 1 };
 const double XDOrientationView::sphere_radius { 0.5 };
 
 XDOrientationView::XDOrientationView(QWidget *dummy_plot, QGridLayout *container_layout)
-    : dummy_plot{ dummy_plot }, container_layout{ container_layout }, is_brought_up{ false }
+    : dummy_plot{ dummy_plot }, container_layout{ container_layout }, brought_up{ false }
 {
     plot.defaultFrameGraph()->setClearColor(QColor(126, 192, 238));
 
@@ -142,22 +142,29 @@ void XDOrientationView::bring_up()
 {
     container_layout->replaceWidget(dummy_plot, orient_plot_container);
     plot.show();
-    is_brought_up = true;
+    brought_up = true;
+}
+
+bool XDOrientationView::is_brought_up()
+{
+    return brought_up;
+}
+
+void XDOrientationView::apply_rotation(const QQuaternion & q)
+{
+    body_transform->setRotation(q);
+
+    QMatrix4x4 m;
+    m.rotate(q);
+    m.translate(QVector3D(0, body_length / 2, body_height / 2));
+    sphere_transform->setMatrix(m);
 }
 
 void XDOrientationView::update(const ViewModel & vm)
 {
-    if(is_brought_up)
+    if(is_brought_up())
     {
-        auto quat_vec = static_cast<quat::vector_form>(vm.get_orientation_quaternion());
-        QQuaternion qquat(quat_vec[0], quat_vec[1], quat_vec[2], quat_vec[3]);
-
-        body_transform->setRotation(qquat);
-
-        QMatrix4x4 m;
-        m.rotate(qquat);
-        m.translate(QVector3D(0, body_length / 2, body_height / 2));
-        sphere_transform->setMatrix(m);
+        apply_rotation(vm.q);
     }
     else
     {

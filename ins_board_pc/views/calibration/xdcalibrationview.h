@@ -1,8 +1,8 @@
 #ifndef XDCALIBRATIONVIEW_H
 #define XDCALIBRATIONVIEW_H
 
-#include "views/xdaxisscatter.h"
-#include "views/IBaseView.h"
+#include "views/base/xdaxisscatter.h"
+#include "views/base/IBaseView.h"
 #include "magncalibrator.h"
 
 struct XDCalibrationView : ICalibrationView, private XDAxisScatter

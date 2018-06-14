@@ -1,7 +1,8 @@
 #include "views/raw/rawmagnview.h"
+#include "views/base/plotsetup.h"
 #include "qcustomplot.h"
 
-RawMagnView::RawMagnView(QCustomPlot * plot) : XDAxisPlot{ plot }
+RawMagnView::RawMagnView(QCustomPlot * plot) : plot{ plot }
 {
     plot->plotLayout()->insertRow(0);
     plot->plotLayout()->addElement(0, 0, new QCPTextElement(plot, "Magnetometer sensor data"));
@@ -19,10 +20,10 @@ RawMagnView::RawMagnView(QCustomPlot * plot) : XDAxisPlot{ plot }
 
 void RawMagnView::update(const ViewModel & vm)
 {
-    update_plot(vm.m);
+    plots::update_3axis_plot(plot, vm.m);
 }
 
 void RawMagnView::clear()
 {
-    clear_plot();
+    plots::clear_3axis_plot(plot);
 }

@@ -1,16 +1,15 @@
 #ifndef XDORIENTATIONVIEW_H
 #define XDORIENTATIONVIEW_H
 
-#include "views/IBaseView.h"
+#include "views/base/IBaseView.h"
 #include "core/IOrientationProvider.h"
 
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/Qt3DWindow>
 
-#include <memory>
-
 class QWidget;
 class QGridLayout;
+class QQuaternion;
 
 struct XDOrientationView : IOrientationView
 {
@@ -20,9 +19,11 @@ struct XDOrientationView : IOrientationView
     void update(const ViewModel & pvd) override;
     void clear() override;
 
-    void bring_up();
-
 private:
+    void bring_up();
+    bool is_brought_up();
+    void apply_rotation(const QQuaternion & q);
+
     Qt3DExtras::Qt3DWindow plot;
     Qt3DCore::QTransform * body_transform;
     Qt3DCore::QTransform * sphere_transform;
@@ -30,7 +31,7 @@ private:
     QWidget * dummy_plot;
     QWidget * orient_plot_container;
     QGridLayout * container_layout;
-    bool is_brought_up;
+    bool brought_up;
 
     static const double body_width;
     static const double body_length;

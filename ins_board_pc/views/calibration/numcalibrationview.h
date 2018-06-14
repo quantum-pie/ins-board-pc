@@ -1,7 +1,7 @@
 #ifndef NUMCALIBRATIONVIEW_H
 #define NUMCALIBRATIONVIEW_H
 
-#include "views/IBaseView.h"
+#include "views/base/IBaseView.h"
 #include "magncalibrator.h"
 
 class QLineEdit;

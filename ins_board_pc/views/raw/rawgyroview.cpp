@@ -1,7 +1,8 @@
 #include "views/raw/rawgyroview.h"
+#include "views/base/plotsetup.h"
 #include "qcustomplot.h"
 
-RawGyroView::RawGyroView(QCustomPlot * plot) : XDAxisPlot{ plot }
+RawGyroView::RawGyroView(QCustomPlot * plot) : plot{ plot }
 {
     plot->plotLayout()->insertRow(0);
     plot->plotLayout()->addElement(0, 0, new QCPTextElement(plot, "Gyroscope sensor data"));
@@ -19,10 +20,10 @@ RawGyroView::RawGyroView(QCustomPlot * plot) : XDAxisPlot{ plot }
 
 void RawGyroView::update(const ViewModel & vm)
 {
-    update_plot(vm.w);
+    plots::update_3axis_plot(plot, vm.w);
 }
 
 void RawGyroView::clear()
 {
-    clear_plot();
+    plots::clear_3axis_plot(plot);
 }

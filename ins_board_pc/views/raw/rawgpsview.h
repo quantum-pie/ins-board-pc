@@ -1,7 +1,7 @@
 #ifndef RAWGPSVIEW_H
 #define RAWGPSVIEW_H
 
-#include "views/IBaseView.h"
+#include "views/base/IBaseView.h"
 #include "packets.h"
 
 class QLineEdit;

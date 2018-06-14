@@ -1,8 +1,8 @@
 #ifndef XDRAWMAGNVIEW_H
 #define XDRAWMAGNVIEW_H
 
-#include "views/xdaxisscatter.h"
-#include "views/IBaseView.h"
+#include "views/base/xdaxisscatter.h"
+#include "views/base/IBaseView.h"
 #include "packets.h"
 
 struct XDRawMagnView : IRawView, private XDAxisScatter

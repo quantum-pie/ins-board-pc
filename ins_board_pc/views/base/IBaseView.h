@@ -15,16 +15,15 @@ struct IBaseView
     virtual void clear() = 0;
 };
 
-struct IPositionProvider;
-struct IOrientationProvider;
+struct OrientationFilteringViewModel;
+struct PositionFilteringViewModel;
 struct RawPacket;
 struct FilteredPacket;
 class MagnCalibrator;
 
-using IPositionView = IBaseView<IPositionProvider>;
-using IOrientationView = IBaseView<IOrientationProvider>;
+using IPositionView = IBaseView<PositionFilteringViewModel>;
+using IOrientationView = IBaseView<OrientationFilteringViewModel>;
 using IRawView = IBaseView<RawPacket>;
-using IRemoteView = IBaseView<FilteredPacket>;
 using ICalibrationView = IBaseView<MagnCalibrator>;
 
 #endif // BASEORIENTATIONVIEW_H

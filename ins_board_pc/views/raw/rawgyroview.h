@@ -1,19 +1,21 @@
 #ifndef RAWGYROVIEW_H
 #define RAWGYROVIEW_H
 
-#include "views/xdaxisplot.h"
-#include "views/IBaseView.h"
+#include "views/base/IBaseView.h"
 #include "packets.h"
 
 class QCustomPlot;
 
-struct RawGyroView : IRawView, private XDAxisPlot
+struct RawGyroView : IRawView
 {
     RawGyroView(QCustomPlot * plot);
     ~RawGyroView() override = default;
 
     void update(const ViewModel & pvd) override;
     void clear() override;
+
+private:
+    QCustomPlot * plot;
 };
 
 #endif // RAWGYROVIEW_H
