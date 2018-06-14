@@ -8,7 +8,7 @@
 ENUPositionView::ENUPositionView(QCustomPlot *plot)
     : is_initialized{ false }, plot{ plot }
 {
-    plots::setup_enu_plot(plot, raw_track,smoothed_track);
+    plots::setup_enu_plot(plot, raw_track, smoothed_track);
 }
 
 void ENUPositionView::update(const IPositionView::ViewModel & vm)

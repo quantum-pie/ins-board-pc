@@ -4,7 +4,7 @@
 #include "qcustomplot.h"
 #include "utils.h"
 
-RPYOrientationView::RPYOrientationView(QCustomPlot * plot)
+RPYOrientationView::RPYOrientationView(QCustomPlot * plot) : plot{ plot }
 {
     plots::setup_rpy_plot(plot);
 }

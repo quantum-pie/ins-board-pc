@@ -24,8 +24,6 @@ void setup_rpy_plot(QCustomPlot * plot)
 
 void setup_enu_plot(QCustomPlot * plot, QCPCurve * raw_track, QCPCurve * smoothed_track)
 {
-    setup_3axis_plot(plot);
-
     plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 
     plot->plotLayout()->insertRow(0);

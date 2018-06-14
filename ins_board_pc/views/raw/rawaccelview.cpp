@@ -4,6 +4,8 @@
 
 RawAccelView::RawAccelView(QCustomPlot * plot) : plot{ plot }
 {
+    plots::setup_3axis_plot(plot);
+
     plot->plotLayout()->insertRow(0);
     plot->plotLayout()->addElement(0, 0, new QCPTextElement(plot, "Acceleration sensor data"));
 
