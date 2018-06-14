@@ -1,7 +1,7 @@
 #ifndef MAGNCALIBRATIONCONTROLLER_H
 #define MAGNCALIBRATIONCONTROLLER_H
 
-#include "views/IBaseView.h"
+#include "views/base/IBaseView.h"
 #include "controllers/direct/observablebase.h"
 #include "controllers/direct/runningflag.h"
 #include "magncalibrator.h"

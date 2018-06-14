@@ -2,7 +2,7 @@
 #define FILTERINGCONTROLLERSFWD_H
 
 #include "controllers/direct/filtering/filteringcontroller.h"
-#include "views/IBaseView.h"
+#include "views/base/IBaseView.h"
 #include "filtering/public_interfaces/IOrientationFilter.h"
 #include "filtering/public_interfaces/IPositionFilter.h"
 
