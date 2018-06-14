@@ -86,7 +86,9 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     views/base/xdaxisscatter.cpp \
     views/base/plotsetup.cpp \
     adapters/positionfilteringviewmodel.cpp \
-    adapters/orientationfilteringviewmodel.cpp
+    adapters/orientationfilteringviewmodel.cpp \
+    controllers/direct/remote/remotecomploriattr.cpp \
+    controllers/direct/remote/remotekalmanposattr.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -174,6 +176,11 @@ HEADERS  += \
     views/base/plotsetup.h \
     adapters/adapter.h \
     adapters/positionfilteringviewmodel.h \
-    adapters/orientationfilteringviewmodel.h
+    adapters/orientationfilteringviewmodel.h \
+    controllers/direct/remote/remotebase.h \
+    controllers/direct/remote/remotecontroller.h \
+    controllers/direct/remote/remotecomploriattr.h \
+    controllers/direct/remote/remotekalmanposattr.h \
+    controllers/direct/remote/remotecontrollersfwd.h
 
 FORMS    += mainwindow.ui
