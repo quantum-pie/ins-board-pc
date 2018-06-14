@@ -3,8 +3,6 @@
 
 class FilterInput;
 
-#include <QDebug>
-
 template<typename Model>
 struct IBaseView
 {

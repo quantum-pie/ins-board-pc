@@ -2,8 +2,8 @@
 #define RAWCONTROLLER_H
 
 #include "views/base/IBaseView.h"
-#include "controllers/direct/observablebase.h"
-#include "controllers/direct/runningflag.h"
+#include "controllers/observablebase.h"
+#include "controllers/runningflag.h"
 
 #include <QObject>
 

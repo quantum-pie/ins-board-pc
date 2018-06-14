@@ -1,4 +1,5 @@
 #include "controllers/direct/attributes/simpositionattrcontroller.h"
+
 #include <QLineEdit>
 
 SimPositionAttrController::SimPositionAttrController(QLineEdit *speed_le, QLineEdit *initial_track_le)

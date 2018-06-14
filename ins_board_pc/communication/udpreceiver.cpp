@@ -1,4 +1,4 @@
-#include "udpreceiver.h"
+#include "communication/udpreceiver.h"
 
 UDPReceiver::UDPReceiver(const QString &ip, uint16_t port, processor_type proc)
     : processor{ proc }

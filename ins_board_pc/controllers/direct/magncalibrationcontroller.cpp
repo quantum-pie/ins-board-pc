@@ -1,5 +1,5 @@
 #include "magncalibrationcontroller.h"
-#include "receiver.h"
+#include "communication/receiver.h"
 
 #include <QPushButton>
 

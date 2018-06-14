@@ -30,7 +30,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
+INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
 
 SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/filters/positionbypass.cpp \
@@ -67,28 +67,28 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     views/orientation/xdorientationview.cpp \
     views/position/enupositionview.cpp \
     views/position/trackpositionview.cpp \
-    controllers/direct/rawcontroller.cpp \
     views/raw/xdrawmagnview.cpp \
     views/raw/rawaccelview.cpp \
     views/raw/rawgpsview.cpp \
     views/raw/rawgyroview.cpp \
     views/raw/rawmagnview.cpp \
     controllers/direct/attributes/complorientationattrcontroller.cpp \
-    controllers/direct/magncalibrationcontroller.cpp \
     views/calibration/xdcalibrationview.cpp \
     views/calibration/numcalibrationview.cpp \
-    receiver.cpp \
-    udpreceiver.cpp \
     filtering/plugins/utparams.cpp \
-    terminal.cpp \
-    udpsender.cpp \
-    terminalbase.cpp \
     views/base/xdaxisscatter.cpp \
     views/base/plotsetup.cpp \
     adapters/positionfilteringviewmodel.cpp \
     adapters/orientationfilteringviewmodel.cpp \
-    controllers/direct/remote/remotecomploriattr.cpp \
-    controllers/direct/remote/remotekalmanposattr.cpp
+    controllers/remote/attributes/remotecomploriattr.cpp \
+    controllers/remote/attributes/remotekalmanposattr.cpp \
+    communication/receiver.cpp \
+    communication/terminal.cpp \
+    communication/terminalbase.cpp \
+    communication/udpreceiver.cpp \
+    communication/udpsender.cpp \
+    controllers/direct/magncalibrationcontroller.cpp \
+    controllers/direct/rawcontroller.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -133,9 +133,7 @@ HEADERS  += \
     core/IOrientationProvider.h \
     core/IPositionProvider.h \
     core/ISimPositionAttr.h \
-    receiver.h \
     controllers/metacontroller.h \
-    controllers/direct/controllerbase.h \
     controllers/direct/attributes/attrcontrollerbase.h \
     controllers/direct/attributes/kalmanorientationattrcontroller.h \
     controllers/direct/attributes/kalmanpositionattrcontroller.h \
@@ -149,8 +147,6 @@ HEADERS  += \
     controllers/switches/modelswitchbase.h \
     filtering/filters/filtersfwd.h \
     controllers/direct/filtering/filteringcontrollersfwd.h \
-    controllers/direct/observablebase.h \
-    controllers/direct/rawcontroller.h \
     views/orientation/rpyorientationview.h \
     views/orientation/stdorientationview.h \
     views/orientation/xdorientationview.h \
@@ -164,23 +160,27 @@ HEADERS  += \
     controllers/direct/attributes/complorientationattrcontroller.h \
     controllers/direct/magncalibrationcontroller.h \
     views/calibration/xdcalibrationview.h \
-    controllers/direct/runningflag.h \
     views/calibration/numcalibrationview.h \
-    udpreceiver.h \
     filtering/plugins/utparams.h \
-    terminal.h \
-    udpsender.h \
-    terminalbase.h \
     views/base/IBaseView.h \
     views/base/xdaxisscatter.h \
     views/base/plotsetup.h \
     adapters/adapter.h \
     adapters/positionfilteringviewmodel.h \
     adapters/orientationfilteringviewmodel.h \
-    controllers/direct/remote/remotebase.h \
-    controllers/direct/remote/remotecontroller.h \
-    controllers/direct/remote/remotecomploriattr.h \
-    controllers/direct/remote/remotekalmanposattr.h \
-    controllers/direct/remote/remotecontrollersfwd.h
+    controllers/controllerbase.h \
+    controllers/observablebase.h \
+    controllers/runningflag.h \
+    controllers/remote/attributes/remotecomploriattr.h \
+    controllers/remote/attributes/remotekalmanposattr.h \
+    controllers/remote/filtering/remotebase.h \
+    controllers/remote/filtering/remotecontroller.h \
+    controllers/remote/filtering/remotecontrollersfwd.h \
+    communication/receiver.h \
+    communication/terminal.h \
+    communication/terminalbase.h \
+    communication/udpreceiver.h \
+    communication/udpsender.h \
+    controllers/direct/rawcontroller.h
 
 FORMS    += mainwindow.ui

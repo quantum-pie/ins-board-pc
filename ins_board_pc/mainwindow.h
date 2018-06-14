@@ -6,10 +6,10 @@
 
 #include "ui_mainwindow.h"
 
-#include "receiver.h"
+#include "communication/receiver.h"
+#include "communication/terminalbase.h"
+#include "communication/terminal.h"
 #include "magncalibrator.h"
-#include "terminalbase.h"
-#include "terminal.h"
 
 #include "filtering/filters/orientationcomplement.h"
 #include "filtering/filters/positionsim.h"
@@ -21,9 +21,9 @@
 #include "controllers/direct/attributes/complorientationattrcontroller.h"
 #include "controllers/direct/attributes/simpositionattrcontroller.h"
 #include "controllers/switches/mixedmodelswitch.h"
-#include "controllers/direct/remote/remotecontrollersfwd.h"
-#include "controllers/direct/remote/remotecomploriattr.h"
-#include "controllers/direct/remote/remotekalmanposattr.h"
+#include "controllers/remote/filtering/remotecontrollersfwd.h"
+#include "controllers/remote/attributes//remotecomploriattr.h"
+#include "controllers/remote/attributes/remotekalmanposattr.h"
 
 #include <QMainWindow>
 

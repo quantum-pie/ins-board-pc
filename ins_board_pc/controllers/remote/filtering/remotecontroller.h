@@ -1,8 +1,8 @@
 #ifndef REMOTECONTROLLER_H
 #define REMOTECONTROLLER_H
 
-#include "controllers/direct/observablebase.h"
-#include "controllers/direct/remote/remotebase.h"
+#include "controllers/observablebase.h"
+#include "controllers/remote/filtering/remotebase.h"
 #include "adapters/orientationfilteringviewmodel.h"
 #include "adapters/positionfilteringviewmodel.h"
 

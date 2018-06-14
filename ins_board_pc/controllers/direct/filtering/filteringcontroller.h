@@ -2,9 +2,9 @@
 #define FILTERINGCONTROLLER_H
 
 #include "controllers/direct/filtering/filteringcontrollercommon.h"
-#include "controllers/direct/controllerbase.h"
-#include "controllers/direct/observablebase.h"
-#include "receiver.h"
+#include "controllers/controllerbase.h"
+#include "controllers/observablebase.h"
+#include "communication/receiver.h"
 #include "adapters/positionfilteringviewmodel.h"
 #include "adapters/orientationfilteringviewmodel.h"
 

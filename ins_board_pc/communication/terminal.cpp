@@ -1,5 +1,5 @@
-#include "terminal.h"
-#include "terminalbase.h"
+#include "communication/terminal.h"
+#include "communication/terminalbase.h"
 
 #include <QScrollBar>
 

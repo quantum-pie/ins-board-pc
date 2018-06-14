@@ -1,7 +1,7 @@
 #ifndef RECEIVER_H
 #define RECEIVER_H
 
-#include "udpreceiver.h"
+#include "communication/udpreceiver.h"
 
 #include <QObject>
 #include <QString>

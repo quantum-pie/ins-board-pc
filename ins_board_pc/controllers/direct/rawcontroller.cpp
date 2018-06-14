@@ -1,5 +1,5 @@
 #include "controllers/direct/rawcontroller.h"
-#include "receiver.h"
+#include "communication/receiver.h"
 #include "packets.h"
 
 #include <QPushButton>

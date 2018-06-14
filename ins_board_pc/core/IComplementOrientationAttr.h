@@ -1,8 +1,6 @@
 #ifndef ICOMPLEMENTORIENTATIONATTR_H
 #define ICOMPLEMENTORIENTATIONATTR_H
 
-#include <QDebug>
-
 struct IComplementOrientationAttr
 {
     /*!

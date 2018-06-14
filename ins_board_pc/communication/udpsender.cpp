@@ -1,4 +1,4 @@
-#include "udpsender.h"
+#include "communication/udpsender.h"
 
 UDPSender::UDPSender(const QString &ip, uint16_t port) : server_ip{ ip }, port{ port }
 {}

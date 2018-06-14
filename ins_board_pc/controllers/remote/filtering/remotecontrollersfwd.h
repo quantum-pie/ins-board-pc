@@ -2,7 +2,7 @@
 #define REMOTECONTROLLERSFWD_H
 
 #include "views/base/IBaseView.h"
-#include "controllers/direct/remote/remotecontroller.h"
+#include "controllers/remote/filtering/remotecontroller.h"
 
 using PositionRemoteController = RemoteController<IPositionView>;
 using OrientationRemoteController = RemoteController<IOrientationView>;

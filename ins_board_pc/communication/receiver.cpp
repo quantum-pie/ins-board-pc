@@ -1,4 +1,4 @@
-#include "receiver.h"
+#include "communication/receiver.h"
 #include "packets.h"
 #include "magncalibrator.h"
 #include "utils.h"

@@ -1,5 +1,5 @@
-#include "controllers/direct/remote/remotecomploriattr.h"
-#include "terminalbase.h"
+#include "controllers/remote/attributes/remotecomploriattr.h"
+#include "communication/terminalbase.h"
 
 #include <QLineEdit>
 

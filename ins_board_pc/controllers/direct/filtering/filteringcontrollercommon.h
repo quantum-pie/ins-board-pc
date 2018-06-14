@@ -1,7 +1,7 @@
 #ifndef FILTERINGCONTROLLERCOMMON_H
 #define FILTERINGCONTROLLERCOMMON_H
 
-#include "controllers/direct/runningflag.h"
+#include "controllers/runningflag.h"
 
 #include <QObject>
 

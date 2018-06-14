@@ -1,7 +1,7 @@
 #ifndef ATTRCONTROLLERBASE_H
 #define ATTRCONTROLLERBASE_H
 
-#include "controllers/direct/controllerbase.h"
+#include "controllers/controllerbase.h"
 
 #include <QString>
 

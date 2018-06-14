@@ -1,5 +1,5 @@
-#include "controllers/direct/remote/remotekalmanposattr.h"
-#include "terminalbase.h"
+#include "controllers/remote/attributes/remotekalmanposattr.h"
+#include "communication/terminalbase.h"
 
 #include <QLineEdit>
 

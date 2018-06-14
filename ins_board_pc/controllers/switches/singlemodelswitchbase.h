@@ -2,7 +2,7 @@
 #define SINGLEMODELSWITCH_H
 
 #include "controllers/switches/modelswitchbase.h"
-#include "controllers/direct/controllerbase.h"
+#include "controllers/controllerbase.h"
 
 #include <memory>
 

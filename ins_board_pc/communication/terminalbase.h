@@ -1,8 +1,8 @@
 #ifndef TERMINALBASE_H
 #define TERMINALBASE_H
 
-#include "udpsender.h"
-#include "udpreceiver.h"
+#include "communication/udpsender.h"
+#include "communication/udpreceiver.h"
 
 #include <QObject>
 

@@ -1,4 +1,4 @@
-#include "terminalbase.h"
+#include "communication/terminalbase.h"
 
 TerminalBase::TerminalBase(const QString &client_ip, uint16_t client_port,
                            const QString &server_ip, uint16_t server_port)

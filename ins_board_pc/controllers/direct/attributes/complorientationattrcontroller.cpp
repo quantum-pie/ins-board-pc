@@ -1,4 +1,5 @@
 #include "controllers/direct/attributes/complorientationattrcontroller.h"
+
 #include <QLineEdit>
 
 ComplOrientationAttrController::ComplOrientationAttrController(QLineEdit *static_accel_le, QLineEdit *static_magn_le,
