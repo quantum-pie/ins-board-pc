@@ -26,6 +26,8 @@
 #include "views/position/enupositionview.h"
 #include "views/position/trackpositionview.h"
 
+// tab5
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(std::make_unique<Ui::MainWindow>()),
@@ -58,20 +60,14 @@ MainWindow::MainWindow(QWidget *parent) :
     kalman_ori_controller = std::make_shared<OrientationFilteringController>(ui->pushButton_2, ui->samples_le);
     kalman_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot4));
     kalman_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget, ui->gridLayout_3));
-
-
-    auto std_ori_view = std::make_shared<StdOrientationView>(ui->roll_std_le,
-                                                             ui->pitch_std_le, ui->yaw_std_le, ui->magnetic_heading_le);
-
-    kalman_ori_controller->attach_view(std_ori_view);
+    kalman_ori_controller->attach_view(std::make_shared<StdOrientationView>(ui->roll_std_le,
+                                                                            ui->pitch_std_le, ui->yaw_std_le, ui->magnetic_heading_le));
 
     kalman_pos_controller = std::make_shared<PositionFilteringController>(ui->pushButton_2, ui->samples_le);
 
     auto enu_pos_view = std::make_shared<ENUPositionView>(ui->plot5);
     kalman_pos_controller->attach_view(enu_pos_view);
-
-    auto track_pos_view = std::make_shared<TrackPositionView>(ui->gps_heading_le, ui->ground_speed_le);
-    kalman_pos_controller->attach_view(track_pos_view);
+    kalman_pos_controller->attach_view(std::make_shared<TrackPositionView>(ui->gps_heading_le, ui->ground_speed_le));
 
     kalman_raw_controller = std::make_unique<RawController>();
     kalman_raw_controller->attach_view(enu_pos_view);
@@ -93,19 +89,14 @@ MainWindow::MainWindow(QWidget *parent) :
     compl_ori_controller = std::make_unique<OrientationFilteringController>(ui->pushButton_4, ui->samples_le_2);
     compl_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot6));
     compl_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget2, ui->gridLayout_8));
-
-    auto std_ori_view2 = std::make_shared<StdOrientationView>(ui->roll_std_le_2,
-                                                              ui->pitch_std_le_2, ui->yaw_std_le_2, ui->magnetic_heading_le_2);
-
-    compl_ori_controller->attach_view(std_ori_view2);
+    compl_ori_controller->attach_view(std::make_shared<StdOrientationView>(ui->roll_std_le_2,
+                                                                           ui->pitch_std_le_2, ui->yaw_std_le_2, ui->magnetic_heading_le_2));
 
     sim_pos_controller = std::make_unique<PositionFilteringController>(ui->pushButton_4, ui->samples_le_2);
 
     auto enu_pos_view2 = std::make_shared<ENUPositionView>(ui->plot7);
     sim_pos_controller->attach_view(enu_pos_view2);
-
-    auto track_pos_view2 = std::make_shared<TrackPositionView>(ui->track_angle_le, ui->ground_speed_le_2);
-    sim_pos_controller->attach_view(track_pos_view2);
+    sim_pos_controller->attach_view(std::make_shared<TrackPositionView>(ui->track_angle_le, ui->ground_speed_le_2));
 
     compl_raw_controller = std::make_unique<RawController>();
     compl_raw_controller->attach_view(enu_pos_view2);
@@ -122,6 +113,29 @@ MainWindow::MainWindow(QWidget *parent) :
     sim_posattr_controller->set_model(&pos_sim);
     sim_posattr_controller->borrow_attributes();
 
+    //tab5
+    remote_ori_controller = std::make_unique<OrientationRemoteController>(ui->pushButton_5, ui->samples_le_3);
+    remote_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot8));
+    remote_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget3, ui->gridLayout_2));
+    remote_ori_controller->attach_view(std::make_shared<StdOrientationView>(ui->roll_std_le_3,
+                                                                           ui->pitch_std_le_3, ui->yaw_std_le_3, ui->magnetic_heading_le_3));
+
+
+    remote_pos_controller = std::make_unique<PositionRemoteController>(ui->pushButton_5, ui->samples_le_3);
+
+    auto enu_pos_view3 = std::make_shared<ENUPositionView>(ui->plot9);
+    remote_pos_controller->attach_view(enu_pos_view3);
+    remote_pos_controller->attach_view(std::make_shared<TrackPositionView>(ui->track_angle_le_2, ui->ground_speed_le_3));
+
+    remote_raw_controller = std::make_unique<RawController>();
+    remote_raw_controller->attach_view(enu_pos_view3);
+
+    compl_oriattr_remote_controlller = std::make_unique<RemoteComplOriAttr>(terminal_base, ui->a_gain_le_2, ui->m_gain_le_2, ui->b_gain_le_2);
+    kalman_posattr_remote_controller = std::make_unique<RemoteKalmanPosAttr>(terminal_base, ui->accel_process_le_2, ui->pos_meas_le_2, ui->vel_meas_le_2,
+                                                                             ui->pos_init_le_2, ui->vel_init_le_2, ui->accel_init_le_2);
+
+
+    //other
     current_time = new QLabel;
     ui->statusBar->addWidget(current_time);
 
@@ -160,7 +174,9 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), compl_raw_controller.get(), SLOT(handle_input(RawPacket)));
         break;
     case 4:
-        // TODO
+        connect(&receiver, SIGNAL(filtered_packet_received(FilteredPacket)), remote_ori_controller.get(), SLOT(handle_input(FilteredPacket)));
+        connect(&receiver, SIGNAL(filtered_packet_received(FilteredPacket)), remote_pos_controller.get(), SLOT(handle_input(FilteredPacket)));
+        connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), remote_raw_controller.get(), SLOT(handle_input(RawPacket)));
         break;
     }
 }

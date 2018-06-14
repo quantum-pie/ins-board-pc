@@ -21,6 +21,9 @@
 #include "controllers/direct/attributes/complorientationattrcontroller.h"
 #include "controllers/direct/attributes/simpositionattrcontroller.h"
 #include "controllers/switches/mixedmodelswitch.h"
+#include "controllers/direct/remote/remotecontrollersfwd.h"
+#include "controllers/direct/remote/remotecomploriattr.h"
+#include "controllers/direct/remote/remotekalmanposattr.h"
 
 #include <QMainWindow>
 
@@ -76,6 +79,13 @@ private:
     std::unique_ptr<RawController> compl_raw_controller;
     std::unique_ptr<ComplOrientationAttrController> compl_oriattr_controller;
     std::unique_ptr<SimPositionAttrController> sim_posattr_controller;
+
+    //tab5
+    std::unique_ptr<OrientationRemoteController> remote_ori_controller;
+    std::unique_ptr<PositionRemoteController> remote_pos_controller;
+    std::unique_ptr<RawController> remote_raw_controller;
+    std::unique_ptr<RemoteComplOriAttr> compl_oriattr_remote_controlller;
+    std::unique_ptr<RemoteKalmanPosAttr> kalman_posattr_remote_controller;
 
     QLabel * current_time;
 };
