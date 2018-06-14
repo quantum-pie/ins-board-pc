@@ -79,15 +79,14 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     views/calibration/numcalibrationview.cpp \
     receiver.cpp \
     udpreceiver.cpp \
-    controllers/accumviewcontroller.cpp \
     filtering/plugins/utparams.cpp \
     terminal.cpp \
     udpsender.cpp \
     terminalbase.cpp \
     views/base/xdaxisscatter.cpp \
     views/base/plotsetup.cpp \
-    views/base/xdaxisbody.cpp \
-    views/orientation/rpyremoteview.cpp
+    adapters/positionfilteringviewmodel.cpp \
+    adapters/orientationfilteringviewmodel.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -166,16 +165,15 @@ HEADERS  += \
     controllers/direct/runningflag.h \
     views/calibration/numcalibrationview.h \
     udpreceiver.h \
-    controllers/accumviewcontroller.h \
     filtering/plugins/utparams.h \
     terminal.h \
     udpsender.h \
     terminalbase.h \
-    views/base/IAccumView.h \
     views/base/IBaseView.h \
     views/base/xdaxisscatter.h \
     views/base/plotsetup.h \
-    views/base/xdaxisbody.h \
-    views/orientation/rpyremoteview.h
+    adapters/adapter.h \
+    adapters/positionfilteringviewmodel.h \
+    adapters/orientationfilteringviewmodel.h
 
 FORMS    += mainwindow.ui
