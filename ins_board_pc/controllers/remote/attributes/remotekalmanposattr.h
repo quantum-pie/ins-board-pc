@@ -14,6 +14,7 @@ public:
     RemoteKalmanPosAttr(TerminalBase & tbase,
                         QLineEdit * proc_accel_std_le, QLineEdit * meas_pos_std_le, QLineEdit * meas_vel_std_le,
                         QLineEdit * init_pos_std_le, QLineEdit * init_vel_std_le, QLineEdit * init_accel_std_le);
+    void borrow_attributes();
 
 public slots:
     void on_proc_accel_std(const QString & str);

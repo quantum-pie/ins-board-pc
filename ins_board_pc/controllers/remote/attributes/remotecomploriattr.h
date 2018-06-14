@@ -12,6 +12,7 @@ struct RemoteComplOriAttr : public QObject
 
 public:
     RemoteComplOriAttr(TerminalBase & tbase, QLineEdit * static_accel_le, QLineEdit * static_magn_le, QLineEdit * bias_gain_le);
+    void borrow_attributes();
 
 public slots:
     void on_static_accel_gain(const QString & str);

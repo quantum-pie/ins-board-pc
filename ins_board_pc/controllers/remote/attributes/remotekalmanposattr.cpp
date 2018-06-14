@@ -47,3 +47,8 @@ void RemoteKalmanPosAttr::on_init_accel_std(const QString & str)
 {
     tbase.send_text("kalman.init.a " + str.toStdString() + "\n");
 }
+
+void RemoteKalmanPosAttr::borrow_attributes()
+{
+    //TODO
+}

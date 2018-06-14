@@ -25,3 +25,8 @@ void RemoteComplOriAttr::on_bias_gain(const QString &str)
 {
     tbase.send_text("madg.b " + str.toStdString() + "\n");
 }
+
+void RemoteComplOriAttr::borrow_attributes()
+{
+    //TODO
+}
