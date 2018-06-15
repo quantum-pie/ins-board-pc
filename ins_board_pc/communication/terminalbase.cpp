@@ -11,3 +11,13 @@ void TerminalBase::send_text(const std::string &str)
 {
     output_sock.write_data(str.c_str(), str.length());
 }
+
+bool TerminalBase::text_pending()
+{
+    return input_sock.has_datagrams();
+}
+
+std::string TerminalBase::read_text()
+{
+    return input_sock.read_datagram().toStdString();
+}

@@ -14,6 +14,9 @@ public:
     TerminalBase(const QString & client_ip, uint16_t client_port,
                  const QString & server_ip, uint16_t server_port);
 
+    bool text_pending();
+    std::string read_text();
+
 public slots:
     void send_text(const std::string & str);
 
