@@ -1,6 +1,8 @@
 #ifndef REMOTEKALMANPOSATTR_H
 #define REMOTEKALMANPOSATTR_H
 
+#include "communication/var.h"
+
 #include <QObject>
 
 class QLineEdit;
@@ -25,7 +27,7 @@ public slots:
     void on_init_accel_std(const QString & str);
 
 private:
-    TerminalBase & tbase;
+    Var var;
     QLineEdit * proc_accel_std_le;
     QLineEdit * meas_pos_std_le;
     QLineEdit * meas_vel_std_le;

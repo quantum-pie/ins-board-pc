@@ -1,6 +1,8 @@
 #ifndef REMOTECOMPLORIATTR_H
 #define REMOTECOMPLORIATTR_H
 
+#include "communication/var.h"
+
 #include <QObject>
 
 class QLineEdit;
@@ -20,7 +22,7 @@ public slots:
     void on_bias_gain(const QString & str);
 
 private:
-    TerminalBase & tbase;
+    Var var;
     QLineEdit * static_accel_le;
     QLineEdit * static_magn_le;
     QLineEdit * bias_gain_le;
