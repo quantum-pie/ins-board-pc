@@ -5,16 +5,14 @@
 #include "views/raw/rawaccelview.h"
 #include "views/raw/rawgyroview.h"
 #include "views/raw/rawmagnview.h"
+#include "views/raw/rawgpsview.h"
 
 // tab2
 #include "views/raw/xdrawmagnview.h"
 #include "views/calibration/numcalibrationview.h"
 #include "views/calibration/xdcalibrationview.h"
 
-// tab3
-#include "views/raw/rawgpsview.h"
-
-// tab4
+// tab3/4/5
 #include "controllers/direct/attributes/kalmanorientationattrcontroller.h"
 #include "controllers/direct/attributes/kalmanpositionattrcontroller.h"
 #include "controllers/switches/orientationmodelswitch.h"
@@ -25,8 +23,6 @@
 #include "views/orientation/stdorientationview.h"
 #include "views/position/enupositionview.h"
 #include "views/position/trackpositionview.h"
-
-// tab5
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
