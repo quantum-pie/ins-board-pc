@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     kalman_pos_controller->attach_view(enu_pos_view);
     kalman_pos_controller->attach_view(std::make_shared<TrackPositionView>(ui->gps_heading_le, ui->ground_speed_le));
 
-    kalman_raw_controller = std::make_unique<RawController>();
+    kalman_raw_controller = std::make_unique<RawController>(ui->pushButton_2);
     kalman_raw_controller->attach_view(enu_pos_view);
 
     auto kalman_oriattr_controller = std::make_unique<KalmanOrientationAttrController>(ui->gyro_process_le, ui->gyro_bias_process_le,
@@ -93,9 +93,6 @@ MainWindow::MainWindow(QWidget *parent) :
     auto enu_pos_view2 = std::make_shared<ENUPositionView>(ui->plot7);
     sim_pos_controller->attach_view(enu_pos_view2);
     sim_pos_controller->attach_view(std::make_shared<TrackPositionView>(ui->track_angle_le, ui->ground_speed_le_2));
-
-    compl_raw_controller = std::make_unique<RawController>();
-    compl_raw_controller->attach_view(enu_pos_view2);
 
     compl_oriattr_controller = std::make_unique<ComplOrientationAttrController>(ui->a_gain_le, ui->m_gain_le, ui->b_gain_le);
     sim_posattr_controller = std::make_unique<SimPositionAttrController>(ui->sim_speed_le, ui->init_track_le);
@@ -167,7 +164,6 @@ void MainWindow::on_tabWidget_currentChanged(int index)
     case 3:
         connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), compl_ori_controller.get(), SLOT(handle_input(FilterInput)));
         connect(&receiver, SIGNAL(raw_sample_received(FilterInput)), sim_pos_controller.get(), SLOT(handle_input(FilterInput)));
-        connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), compl_raw_controller.get(), SLOT(handle_input(RawPacket)));
         break;
     case 4:
         connect(&receiver, SIGNAL(filtered_packet_received(FilteredPacket)), remote_ori_controller.get(), SLOT(handle_input(FilteredPacket)));

@@ -76,7 +76,6 @@ private:
     //tab4
     std::unique_ptr<OrientationFilteringController> compl_ori_controller;
     std::unique_ptr<PositionFilteringController> sim_pos_controller;
-    std::unique_ptr<RawController> compl_raw_controller;
     std::unique_ptr<ComplOrientationAttrController> compl_oriattr_controller;
     std::unique_ptr<SimPositionAttrController> sim_posattr_controller;
 
