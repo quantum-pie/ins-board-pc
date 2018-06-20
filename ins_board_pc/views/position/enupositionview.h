@@ -23,6 +23,7 @@ private:
     QCPCurve * raw_track;
     QCPCurve * smoothed_track;
     Vector3D start_geo;
+    Vector3D start_ecef;
 };
 
 #endif // ENUPOSITIONVIEW_H

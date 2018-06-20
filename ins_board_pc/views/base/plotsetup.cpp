@@ -22,7 +22,7 @@ void setup_rpy_plot(QCustomPlot * plot)
     plot->yAxis->setLabel("Angle, deg");
 }
 
-void setup_enu_plot(QCustomPlot * plot, QCPCurve * raw_track, QCPCurve * smoothed_track)
+void setup_enu_plot(QCustomPlot * plot, QCPCurve * &raw_track, QCPCurve * &smoothed_track)
 {
     plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 
