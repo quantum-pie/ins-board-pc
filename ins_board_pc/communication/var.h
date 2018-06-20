@@ -5,7 +5,6 @@
 
 #include <string>
 #include <vector>
-#include <chrono>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -27,33 +26,36 @@ public:
     template<typename T>
     T get(const std::string & name)
     {
-        std::vector<std::string> tokens;
+        bool ready { false };
+        T result {};
+
+        auto temporary_connection = QObject::connect(&tbase, &TerminalBase::text_received,
+        [&](const std::string & input)
+        {
+            std::vector<std::string> tokens;
+            boost::split(tokens, input, boost::is_any_of(" \n"));
+            result = boost::lexical_cast<T>(tokens[1]);
+            ready = true;
+        });
+
         tbase.send_text(name + '\n');
 
         auto t1 = std::chrono::high_resolution_clock::now();
         auto t2 = t1;
 
-        while(!tbase.text_pending() &&
+        while(!ready &&
               std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < timeout_ms)
         {
             QCoreApplication::processEvents();
             t2 = std::chrono::high_resolution_clock::now();
         }
 
-        if(tbase.text_pending())
-        {
-            std::string input = tbase.read_text();
-            boost::split(tokens, input, boost::is_any_of(" \n"));
-            return boost::lexical_cast<T>(tokens[1]);
-        }
-        else
-        {
-            return T{};
-        }
+        QObject::disconnect(temporary_connection);
+        return result;
     }
 
 private:
-    static const int timeout_ms { 50 };
+    static const int timeout_ms { 200 };
     TerminalBase & tbase;
 };
 

@@ -14,18 +14,9 @@ void UDPReceiver::set_processor(processor_type new_proc)
 
 void UDPReceiver::read_datagrams()
 {
-    while(has_datagrams())
+    while(sock.hasPendingDatagrams())
     {
-        processor(read_datagram());
+        QNetworkDatagram datagram = sock.receiveDatagram();
+        processor(datagram.data());
     }
-}
-
-bool UDPReceiver::has_datagrams()
-{
-    return sock.hasPendingDatagrams();
-}
-
-QByteArray UDPReceiver::read_datagram()
-{
-    return sock.receiveDatagram().data();
 }
