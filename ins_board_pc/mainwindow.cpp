@@ -27,8 +27,8 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(std::make_unique<Ui::MainWindow>()),
-    receiver("192.168.0.101", 65000, "192.168.0.100", 7700, magn_cal),
-    terminal_base("192.168.0.101", 65001, "192.168.0.13", 65001),
+    receiver("192.168.0.100", 65000, "192.168.0.100", 7700, magn_cal),
+    terminal_base("192.168.0.100", 65001, "192.168.0.13", 65001),
     terminal( terminal_base )
 {
     ui->setupUi(this);
