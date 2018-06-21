@@ -8,6 +8,10 @@
 template<typename View>
 struct ObservableBase
 {
+    explicit ObservableBase(std::size_t decimation = 20)
+        : decimation{ decimation }, counter { 0 }
+    {}
+
     void attach_view(std::shared_ptr<View> view)
     {
         views.emplace_back(view);
@@ -21,9 +25,13 @@ struct ObservableBase
 protected:
     void update_views(const typename View::ViewModel & model)
     {
-        for(auto & view : views)
+        if(++counter == decimation)
         {
-            view->update(model);
+            for(auto & view : views)
+            {
+                view->update(model);
+            }
+            counter = 0;
         }
     }
 
@@ -37,6 +45,8 @@ protected:
 
 private:
     std::vector<std::shared_ptr<View>> views;
+    const std::size_t decimation;
+    std::size_t counter;
 };
 
 
