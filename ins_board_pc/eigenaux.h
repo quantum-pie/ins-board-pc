@@ -5,6 +5,7 @@
 #define EIGENAUX_H
 
 #include <string>
+#include <iostream>
 
 #include <Eigen/Core>
 
@@ -34,19 +35,30 @@ using Vector3D = Eigen::Vector3d;
 namespace eaux
 {
 
-/*!
- * @brief Display vector.
- * @param vec vector to display.
- * @param name vector label.
- */
-void debug_vector(const DynamicVector & vec, const std::string & name);
+template<typename V>
+void debug_vector(const V & vec, const std::string & name)
+{
+    std::cout << name + ":" << std::endl;
+    for(int i = 0; i < vec.size(); ++i)
+    {
+        std::cout << vec[i] << ' ';
+    }
+    std::cout << std::endl;
+}
 
-/*!
- * @brief Display matrix.
- * @param mtx matrix to display.
- * @param name matrix label.
- */
-void debug_matrix(const DynamicMatrix & mtx, const std::string & name);
+template<typename M>
+void debug_matrix(const M & mtx, const std::string & name)
+{
+    std::cout << name + ":" << std::endl;
+    for(int i = 0; i < mtx.rows(); ++i)
+    {
+        for(int j = 0; j < mtx.cols(); ++j)
+        {
+            std::cout << mtx(i, j) << ' ';
+        }
+        std::cout << std::endl;
+    }
+}
 
 }
 
