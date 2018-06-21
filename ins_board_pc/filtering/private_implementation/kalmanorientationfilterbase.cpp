@@ -120,7 +120,7 @@ KalmanOrientationFilterBase::do_create_transition_mtx(const FilterInput & z) con
 KalmanOrientationFilterBase::P_type
 KalmanOrientationFilterBase::do_create_init_cov_mtx() const
 {
-    P_type P;
+    P_type P = P_type::Zero();
 
     auto diag = P.diagonal();
     diag[0] = params.init_params.qs_std * params.init_params.qs_std;

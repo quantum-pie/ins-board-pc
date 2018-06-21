@@ -104,7 +104,7 @@ KalmanPositionFilterBase::do_create_transition_mtx(const FilterInput & z) const
 KalmanPositionFilterBase::P_type
 KalmanPositionFilterBase::do_create_init_cov_mtx() const
 {
-    P_type P;
+    P_type P = P_type::Zero();
     auto diag = P.diagonal();
     diag.segment<3>(0) = Vector3D::Constant(params.init_params.pos_std * params.init_params.pos_std);
     diag.segment<3>(3) = Vector3D::Constant(params.init_params.vel_std * params.init_params.vel_std);
