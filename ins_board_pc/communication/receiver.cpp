@@ -47,6 +47,7 @@ void Receiver::process_flt_data(const QByteArray & data)
 {
     QDataStream ds(data);
     ds.setByteOrder(QDataStream::LittleEndian);
+    ds.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
     FilteredPacket f_z;
 
