@@ -15,7 +15,7 @@ Ellipsoid::Ellipsoid(double semi_major_axis, double flattening)
 	: a{ semi_major_axis },
 	  fla{ flattening },
 	  b{ a * (1 - fla) },
-	  epssq{ 1 - b * b / a * a },
+      epssq{ 1 - b * b / (a * a) },
 	  eps{ std::sqrt(epssq) },
 	  re{ (2 * a + b) / 3 },
 	  a1{ a * epssq },
