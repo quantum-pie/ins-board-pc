@@ -36,7 +36,7 @@ Adapter<FilteredPacket, OrientationFilteringViewModel>::operator()(const Filtere
     double roll = utils::fixed_to_angle(packet.roll);
     double pitch = utils::fixed_to_angle(packet.pitch);
     double yaw = utils::fixed_to_angle(packet.heading);
-    auto q = static_cast<vector_form>(z_rotator(yaw) * x_rotator(pitch) * y_rotator(roll)).cast<float>();
+    auto q = static_cast<vector_form>(z_rotator(-yaw) * x_rotator(pitch) * y_rotator(roll)).cast<float>();
     QQuaternion qq{ q[0], q[1], q[2], q[3] };
 
     Vector3D rpy;
