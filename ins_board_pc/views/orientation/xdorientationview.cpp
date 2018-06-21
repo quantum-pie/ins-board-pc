@@ -141,6 +141,7 @@ XDOrientationView::XDOrientationView(QWidget *dummy_plot, QGridLayout *container
 void XDOrientationView::bring_up()
 {
     container_layout->replaceWidget(dummy_plot, orient_plot_container);
+    delete dummy_plot;
     plot.show();
     brought_up = true;
 }

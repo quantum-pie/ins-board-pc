@@ -8,6 +8,7 @@ XDAxisScatter::XDAxisScatter(QWidget *dummy_plot, QGridLayout *container_layout,
     QWidget *magnet_plot_container = QWidget::createWindowContainer(&plot);
     magnet_plot_container->setWindowTitle(title);
     container_layout->replaceWidget(dummy_plot, magnet_plot_container);
+    delete dummy_plot;
 
     QScatterDataProxy *proxy = new QScatterDataProxy;
     QScatter3DSeries *series = new QScatter3DSeries(proxy);
