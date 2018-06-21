@@ -26,7 +26,7 @@ void NumCalibrationView::update(const ViewModel & vm)
     bias_z_le->setText(utils::double_view(bias[2], 4));
 
     scale_x_le->setText(utils::double_view(scale(0, 0), 4));
-    scale_x_le->setText(utils::double_view(scale(1, 1), 4));
+    scale_y_le->setText(utils::double_view(scale(1, 1), 4));
     scale_z_le->setText(utils::double_view(scale(2, 2), 4));
 }
 
