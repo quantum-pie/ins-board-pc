@@ -110,7 +110,7 @@ KalmanOrientationFilterBase::do_create_transition_mtx(const FilterInput & z) con
 
     auto K = get_orientation_quaternion().delta_mtx(dt_2);
 
-    F_type F;;
+    F_type F;
     F << V, K,
          StaticMatrix<3, 4>::Zero(), Matrix3D::Identity();
 
