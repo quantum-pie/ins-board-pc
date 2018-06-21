@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -583,7 +583,11 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="samples_le"/>
+               <widget class="QLineEdit" name="samples_le">
+                <property name="text">
+                 <string>200</string>
+                </property>
+               </widget>
               </item>
               <item row="2" column="1">
                <widget class="QLineEdit" name="pitch_std_le"/>
@@ -801,7 +805,11 @@
                <widget class="QLineEdit" name="pitch_std_le_2"/>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="samples_le_2"/>
+               <widget class="QLineEdit" name="samples_le_2">
+                <property name="text">
+                 <string>200</string>
+                </property>
+               </widget>
               </item>
               <item row="5" column="1">
                <widget class="QLineEdit" name="track_angle_le"/>
@@ -1052,7 +1060,11 @@
                <widget class="QLineEdit" name="pitch_std_le_3"/>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="samples_le_3"/>
+               <widget class="QLineEdit" name="samples_le_3">
+                <property name="text">
+                 <string>200</string>
+                </property>
+               </widget>
               </item>
               <item row="5" column="1">
                <widget class="QLineEdit" name="track_angle_le_2"/>
