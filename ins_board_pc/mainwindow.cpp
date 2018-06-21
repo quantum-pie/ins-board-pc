@@ -90,8 +90,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     sim_pos_controller = std::make_unique<PositionFilteringController>(ui->pushButton_4, ui->samples_le_2);
 
-    auto enu_pos_view2 = std::make_shared<ENUPositionView>(ui->plot7);
-    sim_pos_controller->attach_view(enu_pos_view2);
+    sim_pos_controller->attach_view(std::make_shared<ENUPositionView>(ui->plot7));
     sim_pos_controller->attach_view(std::make_shared<TrackPositionView>(ui->track_angle_le, ui->ground_speed_le_2));
 
     compl_oriattr_controller = std::make_unique<ComplOrientationAttrController>(ui->a_gain_le, ui->m_gain_le, ui->b_gain_le);
