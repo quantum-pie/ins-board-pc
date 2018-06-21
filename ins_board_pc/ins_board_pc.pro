@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network 3dcore 3drender 3dinput 3dlogic 3dextras
+QT       += core gui network 3dcore 3drender 3dinput 3dlogic 3dextras testlib
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport datavisualization
 
@@ -30,7 +30,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += C:/Qt/Tools/mingw530_32/include += C:/Tools/Eigen3/include/eigen3 += C:/Tools/boost_1_66_0
+INCLUDEPATH += D:/Qt5.8/Tools/mingw530_32/include += D:/tools/eigen += D:/tools/boost_1_62_0
 
 SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/filters/positionbypass.cpp \
@@ -39,7 +39,6 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     filtering/private_implementation/kalmanpositionfilterbase.cpp \
     filtering/private_implementation/mixedkalmanfilterbase.cpp \
     earth.cpp \
-    eigenaux.cpp \
     ellipsoid.cpp \
     geometry.cpp \
     gravity.cpp \
@@ -181,6 +180,7 @@ HEADERS  += \
     communication/terminalbase.h \
     communication/udpreceiver.h \
     communication/udpsender.h \
-    controllers/direct/rawcontroller.h
+    controllers/direct/rawcontroller.h \
+    communication/var.h
 
 FORMS    += mainwindow.ui
