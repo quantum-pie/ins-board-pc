@@ -20,7 +20,7 @@ public:
     template<typename T>
     void set(const std::string & name, const T & val)
     {
-        tbase.send_text(name + boost::lexical_cast<std::string>(val) + '\n');
+        tbase.send_text(name + ' ' + boost::lexical_cast<std::string>(val) + '\n');
     }
 
     template<typename T>
