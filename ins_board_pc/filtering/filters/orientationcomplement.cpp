@@ -32,7 +32,7 @@ struct OrientationCF::Impl
 
     FInput adopt_input(const FilterInput & z)
     {
-        Vector3D m_corr = z_rotator(earth_model.magnetic_declination(z.geo, z.day)).dcm_tr() * z.m;
+        Vector3D m_corr = z_rotator(earth_model.magnetic_declination(z.geo, z.day)).dcm() * z.m;
         return {z.w, z.a, m_corr, z.dt};
     }
 
@@ -115,7 +115,7 @@ struct OrientationCF::Impl
     static const FilterParams default_params;
 };
 
-const std::size_t OrientationCF::Impl::accum_size { 500 };
+const std::size_t OrientationCF::Impl::accum_size { 2000 };
 const OrientationCF::Impl::FilterParams OrientationCF::Impl::default_params { 0.005, 0.00005, 0.00001 };
 
 OrientationCF::OrientationCF()
@@ -127,6 +127,7 @@ OrientationCF::~OrientationCF() = default;
 void OrientationCF::do_reset()
 {
     pimpl->is_initialized = false;
+    pimpl->bias_ctrl.set_sampling(Impl::accum_size);
 }
 
 void OrientationCF::do_step(const FilterInput & z)
