@@ -126,6 +126,8 @@ private:
     P_type P;                               //!< State estimate covariance matrix.
 
     QualityControl<Vector3D> bias_ctrl;     //!< Gyroscope bias controller.
+    QualityControl<Vector3D> accel_ctrl;
+    QualityControl<Vector3D> magn_ctrl;
     bool initialized;                       //!< Filter is initialized flag.
 
     struct ProcessNoiseParams

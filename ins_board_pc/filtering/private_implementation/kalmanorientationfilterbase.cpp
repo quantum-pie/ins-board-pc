@@ -4,7 +4,7 @@
 #include "geometry.h"
 #include "packets.h"
 
-const std::size_t KalmanOrientationFilterBase::accum_size { 500 }; //!< Size of filter input accumulator.
+const std::size_t KalmanOrientationFilterBase::accum_size { 2000 }; //!< Size of filter input accumulator.
 
 const KalmanOrientationFilterBase::ProcessNoiseParams 	  KalmanOrientationFilterBase::default_proc_noise_params { 0.001, 0 };
 const KalmanOrientationFilterBase::MeasurementNoiseParams KalmanOrientationFilterBase::default_meas_noise_params { 0.005, 1.2 };
@@ -26,6 +26,7 @@ KalmanOrientationFilterBase::do_get_true_measurement(const FilterInput & z) cons
 {
     meas_type meas;
     meas << z.a, z.m;
+
     return meas;
 }
 
@@ -33,7 +34,7 @@ KalmanOrientationFilterBase::meas_type
 KalmanOrientationFilterBase::do_get_predicted_measurement(const Vector3D & geo, const boost::gregorian::date & day) const
 {
     Vector3D predicted_acc = geom::predict_accelerometer(get_orientation_quaternion(), earth_model.gravity(geo));
-    Vector3D predicted_magn = geom::predict_magnetometer(get_orientation_quaternion(), earth_model.magnetic_vector(geo, day));
+    Vector3D predicted_magn = geom::predict_magnetometer(get_orientation_quaternion(), earth_model.magnetic_vector(geo, day) / earth_model.magnetic_magnitude(geo, day));
 
     meas_type pred;
     pred << predicted_acc, predicted_magn;
@@ -76,24 +77,28 @@ bool KalmanOrientationFilterBase::do_is_initialized() const
 
 bool KalmanOrientationFilterBase::do_is_ready_to_initialize() const
 {
-    return bias_ctrl.is_saturated();
+    return bias_ctrl.is_saturated() && accel_ctrl.is_saturated() && magn_ctrl.is_saturated();
 }
 
 void KalmanOrientationFilterBase::do_initialize(const FilterInput & z)
 {
-    // TODO check and correct if wrong
-    x.segment<4>(0) = static_cast<vector_form>( geom::accel_magn_quat(z.a, z.m, earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
+    x.segment<4>(0) = static_cast<vector_form>( geom::accel_magn_quat(accel_ctrl.get_mean(), magn_ctrl.get_mean(),
+                                                                      earth_model.magnetic_declination(z.geo, z.day)).conjugate() );
     x.segment<3>(4) = bias_ctrl.get_mean();
 
     P = create_init_cov_mtx();
 
     initialized = true;
     bias_ctrl.set_sampling(0); // free memory
+    accel_ctrl.set_sampling(0);
+    magn_ctrl.set_sampling(0);
 }
 
 void KalmanOrientationFilterBase::do_accumulate(const FilterInput & z)
 {
     bias_ctrl.update(z.w);
+    accel_ctrl.update(z.a);
+    magn_ctrl.update(z.m);
 }
 
 KalmanOrientationFilterBase::F_type
@@ -190,7 +195,8 @@ KalmanOrientationFilterBase::do_create_meas_proj_mtx(const Vector3D & geo, const
     // 2
     StaticMatrix<3, 4> Dm_Dq;
 
-    Vector3D earth_mag = earth_model.magnetic_vector(geo, day);
+    Vector3D earth_mag = earth_model.magnetic_vector(geo, day) / earth_model.magnetic_magnitude(geo, day);
+
     col_s = Ddcm_Dqs * earth_mag;
     col_x = Ddcm_Dqx * earth_mag;
     col_y = Ddcm_Dqy * earth_mag;
@@ -210,6 +216,8 @@ void KalmanOrientationFilterBase::do_reset()
 {
     initialized = false;
     bias_ctrl.set_sampling(accum_size);
+    accel_ctrl.set_sampling(accum_size);
+    magn_ctrl.set_sampling(accum_size);
 }
 
 Quaternion KalmanOrientationFilterBase::do_get_orientation_quaternion() const
