@@ -27,7 +27,7 @@ Vector3D great_circle_destination(const Vector3D & geo, double start_bearing, do
 
 	Vector3D geo_dest;
 	geo_dest[0] = std::asin(slat * cdel + clat * sdel * cbea);
-	geo_dest[1] += std::atan2(sbea * sdel * clat, cdel - slat * std::sin(geo_dest[0]));
+    geo_dest[1] = geo[1] + std::atan2(sbea * sdel * clat, cdel - slat * std::sin(geo_dest[0]));
 	geo_dest[2] = geo[2];
 
 	return geo_dest;
