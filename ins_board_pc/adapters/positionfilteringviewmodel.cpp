@@ -10,10 +10,8 @@ Adapter<IPositionFilter, PositionFilteringViewModel>::operator()(const IPosition
     if(speed_accum.is_saturated())
     {
         Vector3D geo = geom::cartesian_to_geodetic(filter.get_cartesian(), filter.get_ellipsoid());
-        Vector3D avg_speed = geom::ecef_to_enu(speed_accum.get_mean(), geo);
-
-        out.track_angle = geom::track_angle(avg_speed, geo);
-        out.ground_speed = utils::ms_to_knots(geom::ground_speed(avg_speed, geo));
+        out.track_angle = geom::track_angle(speed_accum.get_mean(), geo);
+        out.ground_speed = utils::ms_to_knots(geom::ground_speed(speed_accum.get_mean(), geo));
     }
 
     return out;

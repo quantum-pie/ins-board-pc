@@ -11,7 +11,7 @@ class Ellipsoid;
 
 struct PositionFilteringViewModel
 {
-    const Ellipsoid & ellip;
+    Ellipsoid ellip;
     Vector3D pos;
     double ground_speed;
     double track_angle;
