@@ -13,7 +13,7 @@ RawMagnView::RawMagnView(QCustomPlot * plot) : plot{ plot }
     plot->graph(1)->setName("y");
     plot->graph(2)->setName("z");
 
-    plot->xAxis->setRange(0, 200);
+    plot->xAxis->setRange(0, 100);
     plot->xAxis->setLabel("packet");
 
     plot->yAxis->setRange(-500, 500);

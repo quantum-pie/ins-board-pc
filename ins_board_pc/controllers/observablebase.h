@@ -8,7 +8,7 @@
 template<typename View>
 struct ObservableBase
 {
-    explicit ObservableBase(std::size_t decimation = 20)
+    explicit ObservableBase(std::size_t decimation = 2)
         : decimation{ decimation }, counter { 0 }
     {}
 

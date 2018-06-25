@@ -15,7 +15,7 @@ void setup_rpy_plot(QCustomPlot * plot)
     plot->graph(1)->setName("P");
     plot->graph(2)->setName("Y");
 
-    plot->xAxis->setRange(0, 200);
+    plot->xAxis->setRange(0, 100);
     plot->xAxis->setLabel("packet");
 
     plot->yAxis->setRange(-180, 180);
