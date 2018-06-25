@@ -26,5 +26,5 @@ Ellipsoid::Ellipsoid(double semi_major_axis, double flattening)
 	  a6{ 1 - epssq }
 {}
 
-Ellipsoid::Ellipsoid(double axis) : Ellipsoid{ axis, 1.0 }
+Ellipsoid::Ellipsoid(double axis) : Ellipsoid{ axis, 0.0 }
 {}
