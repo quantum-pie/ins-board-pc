@@ -16,7 +16,8 @@ struct PositionSim::Impl
           pos{ Vector3D::Zero() },
           vel{ Vector3D::Zero() },
           acc{ Vector3D::Zero() },
-          params{ default_params }
+          params{ default_params },
+          el{ Ellipsoid::sphere }
     {}
 
     void step_uninitialized(const FilterInput & z)
@@ -67,12 +68,11 @@ struct PositionSim::Impl
         double speed;               //!< Movement speed.
     } params;
 
-    static const Ellipsoid & el;
+    const Ellipsoid el;
     static const FilterParams default_params;
 };
 
 const PositionSim::Impl::FilterParams PositionSim::Impl::default_params { 0, 30 };
-const Ellipsoid & PositionSim::Impl::el { Ellipsoid::sphere };
 
 PositionSim::PositionSim()
     : pimpl{ std::make_unique<Impl>() }
