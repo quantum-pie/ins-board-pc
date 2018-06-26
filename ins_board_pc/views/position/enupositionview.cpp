@@ -36,7 +36,7 @@ void ENUPositionView::update(const IRawView::ViewModel & vm)
     else
     {
         is_initialized = true;
-        start_geo = vm.gps_data.geo;
+        start_geo = vm.gps_data.geo.unaryExpr(&utils::degrees_to_radians);
         start_ecef = vm.gps_data.pos;
     }
 }
