@@ -24,6 +24,22 @@ struct Timestamp
     uint8_t minute;		//!< Minute (0-59).
     uint8_t second;		//!< Second (0-59).
     uint8_t ssecond;	//!< Sentisecond (0-99).
+
+    bool operator == (const Timestamp & other) const
+    {
+        return year == other.year &&
+                month == other.month &&
+                day == other.day &&
+                hour == other.hour &&
+                minute == other.minute &&
+                second == other.second &&
+                ssecond == other.ssecond;
+    }
+
+    bool operator != (const Timestamp & other) const
+    {
+        return !(*this == other);
+    }
 };
 
 /*!
@@ -37,7 +53,6 @@ struct Nav
     Vector3D vel;			//!< ECEF velocity.
     double msl_altitude;	//!< Altitude above mean sea level.
     bool fix;				//!< True if position fix os ok.
-    bool isnew;				//!< True if data updated since last refresh.
 };
 
 /*!
