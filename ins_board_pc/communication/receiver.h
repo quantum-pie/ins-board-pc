@@ -2,6 +2,7 @@
 #define RECEIVER_H
 
 #include "communication/udpreceiver.h"
+#include "packets.h"
 
 #include <QObject>
 #include <QString>
@@ -9,8 +10,6 @@
 #include <cstdint>
 
 class FilterInput;
-class RawPacket;
-class FilteredPacket;
 class MagnCalibrator;
 
 class Receiver : public QObject
@@ -42,6 +41,8 @@ signals:
 private:
     UDPReceiver raw_recv;
     UDPReceiver flt_recv;
+
+    Timestamp old_timestamp;
 
     const MagnCalibrator & calibrator;
 };
