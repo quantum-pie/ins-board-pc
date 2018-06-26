@@ -28,14 +28,14 @@ struct FilteringController : FilteringControllerCommon, ControllerBase<Model>,
 
     void handle_start(bool en) override
     {
-        if(filtering_is_enabled())
+        set_running(en);
+        if(en)
         {
-            set_running(en);
-            if(en && this->model_is_set())
+            if(filtering_is_enabled() && this->model_is_set())
             {
                 this->get_model()->reset();
-                this->clear_views();
             }
+            this->clear_views();
         }
     }
 
