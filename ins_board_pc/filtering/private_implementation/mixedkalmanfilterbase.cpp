@@ -165,7 +165,8 @@ MixedKalmanFilterBase::do_create_meas_proj_mtx(const Vector3D & geo, const boost
 
     // Cross filler
     StaticMatrix<ori_meas_size, pos_state_size> UR_filler;
-    UR_filler << Dac_Dpos, Matrix3D::Zero(), Dac_Da;
+    UR_filler << Dac_Dpos, Matrix3D::Zero(), Dac_Da,
+            StaticMatrix<3, pos_state_size>::Zero();
 
     // Merge
     H_type H;
