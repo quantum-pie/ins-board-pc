@@ -301,7 +301,7 @@ Vector3D align(const Vector3D & vec, const Horizon & hor)
 
 quat::Quaternion align(const quat::Quaternion & q, const Horizon & hor)
 {
-	return q * quat::y_rotator(hor.get_roll()) * quat::x_rotator(hor.get_pitch());
+    return q * quat::y_rotator(-hor.get_roll()) * quat::x_rotator(-hor.get_pitch());
 }
 
 Vector3D predict_accelerometer(const quat::Quaternion & q, double gravity_magn, const Vector3D & enu_accel)
