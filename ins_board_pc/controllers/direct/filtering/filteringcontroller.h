@@ -15,10 +15,11 @@ template<typename Model, typename View>
 struct FilteringController : FilteringControllerCommon, ControllerBase<Model>,
                              ObservableBase<View>
 {
-    FilteringController(const QPushButton * start_button, const QLineEdit * accum_le)
+    FilteringController(const QPushButton * start_button, const QPushButton * clear_button, const QLineEdit * accum_le)
         : FilteringControllerCommon{ start_button->isChecked() }
     {
         connect(start_button, SIGNAL(toggled(bool)), this, SLOT(handle_start(bool)));
+        connect(clear_button, SIGNAL(released()), this, SLOT(clear_plots()));
         connect(accum_le, SIGNAL(textEdited(QString)), this, SLOT(set_accum_capacity(QString)));
         mvm_adapter.set_accumulator_capacity(accum_le->text().toUInt());
     }
@@ -58,6 +59,11 @@ struct FilteringController : FilteringControllerCommon, ControllerBase<Model>,
         {
             mvm_adapter.set_accumulator_capacity(new_capacity);
         }
+    }
+
+    void clear_plots() override
+    {
+        this->clear_views();
     }
 
 private:

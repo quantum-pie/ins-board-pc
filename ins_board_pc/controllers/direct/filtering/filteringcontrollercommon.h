@@ -26,6 +26,7 @@ public slots:
     virtual void handle_start(bool) = 0;
     virtual void handle_input(const FilterInput &) = 0;
     virtual void set_accum_capacity(const QString & cap) = 0;
+    virtual void clear_plots() = 0;
 
 private:
     bool filtering_enabled;
