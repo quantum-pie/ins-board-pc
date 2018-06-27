@@ -4,7 +4,9 @@
 #include <QPushButton>
 
 MagnCalibrationController::MagnCalibrationController(MagnCalibrator & calibrator, const QPushButton *calibrate_btn, const QPushButton *save_btn)
-    : RunningFlag{ calibrate_btn->isChecked() }, calibration_model{ calibrator }
+    : ObservableBase<ICalibrationView>{ 1 },
+      RunningFlag{ calibrate_btn->isChecked() },
+      calibration_model{ calibrator }
 {
     connect(calibrate_btn, SIGNAL(toggled(bool)), this, SLOT(handle_calibrate(bool)));
     connect(save_btn, SIGNAL(clicked(bool)), this, SLOT(save_calibration()));
