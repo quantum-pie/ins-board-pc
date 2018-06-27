@@ -15,14 +15,6 @@ struct OrientationCF::Impl
     using V_type = quat::skew_type;
     using D_type = quat::delta_type;
 
-    struct FInput
-    {
-        Vector3D w;
-        Vector3D a;
-        Vector3D m;
-        double dt;
-    };
-
     Impl()
         : is_initialized { false },
           bias_ctrl{ accum_size },
@@ -30,18 +22,13 @@ struct OrientationCF::Impl
           params{ default_params }
     {}
 
-    FInput adopt_input(const FilterInput & z)
-    {
-        Vector3D m_corr = z_rotator(earth_model.magnetic_declination(z.geo, z.day)).dcm() * z.m;
-        return {z.w, z.a, m_corr, z.dt};
-    }
 
-    void step_uninitialized(const FInput & z)
+    void step_uninitialized(const FilterInput & z)
     {
         bias_ctrl.update(z.w);
     }
 
-    void initialize(const FInput & z)
+    void initialize(const FilterInput & z)
     {
         state_quat = accel_magn_quat(z.a, z.m).conjugate();
         state_bias = bias_ctrl.get_mean();
@@ -50,7 +37,7 @@ struct OrientationCF::Impl
         bias_ctrl.set_sampling(0); // free memory
     }
 
-    void step_initialized(const FInput & z)
+    void step_initialized(const FilterInput & z)
     {
         const double dt_2 = z.dt / 2;
 
@@ -89,12 +76,30 @@ struct OrientationCF::Impl
         Quaternion qmag_delta = magnetometer_quat(mag_pred).conjugate();
         Quaternion qmag_corr = lerp(Quaternion::identity, qmag_delta, params.static_magn_gain);
         state_quat = qmag_corr * state_quat;
+
+        de_declinator = z_rotator(earth_model.magnetic_declination(z.geo, z.day)).conjugate();
     }
 
-    double calculate_gain(const Vector3D &) const
+    double calculate_gain(const Vector3D & accel) const
     {
-        // TODO
-        return params.static_accel_gain;
+        double error_metric = std::fabs(accel.norm() - Gravity::gf) / Gravity::gf;
+        return params.static_accel_gain * gain_factor(error_metric);
+    }
+
+    double gain_factor(double error_metric) const
+    {
+        if(error_metric < 0.1)
+        {
+            return 1.0;
+        }
+        else if(error_metric < 0.2)
+        {
+            return 2.0 - 10.0 * error_metric;
+        }
+        else
+        {
+            return 0.0;
+        }
     }
 
     bool is_initialized;
@@ -102,6 +107,7 @@ struct OrientationCF::Impl
     const Earth earth_model;
 
     Quaternion state_quat;
+    Quaternion de_declinator;
     Vector3D state_bias;
 
     struct FilterParams
@@ -132,25 +138,23 @@ void OrientationCF::do_reset()
 
 void OrientationCF::do_step(const FilterInput & z)
 {
-    auto zc = pimpl->adopt_input(z);
-
     if(pimpl->is_initialized)
     {
-        pimpl->step_initialized(zc);
+        pimpl->step_initialized(z);
     }
     else if(pimpl->bias_ctrl.is_saturated())
     {
-        pimpl->initialize(zc);
+        pimpl->initialize(z);
     }
     else
     {
-        pimpl->step_uninitialized(zc);
+        pimpl->step_uninitialized(z);
     }
 }
 
 Quaternion OrientationCF::do_get_orientation_quaternion() const
 {
-    return pimpl->state_quat;
+    return pimpl->de_declinator * pimpl->state_quat;
 }
 
 Vector3D OrientationCF::do_get_gyro_bias() const
