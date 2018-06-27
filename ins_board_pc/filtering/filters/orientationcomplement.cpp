@@ -115,7 +115,7 @@ struct OrientationCF::Impl
     static const FilterParams default_params;
 };
 
-const std::size_t OrientationCF::Impl::accum_size { 2000 };
+const std::size_t OrientationCF::Impl::accum_size { 500 };
 const OrientationCF::Impl::FilterParams OrientationCF::Impl::default_params { 0.005, 0.00005, 0.00001 };
 
 OrientationCF::OrientationCF()
