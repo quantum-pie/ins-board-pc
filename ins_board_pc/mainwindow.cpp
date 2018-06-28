@@ -122,8 +122,8 @@ MainWindow::MainWindow(QWidget *parent) :
     remote_raw_controller = std::make_unique<RawController>();
     remote_raw_controller->attach_view(enu_pos_view3);
 
-    compl_oriattr_remote_controlller = std::make_unique<RemoteComplOriAttr>(terminal_base, ui->a_gain_le_2, ui->m_gain_le_2, ui->b_gain_le_2);
-    kalman_posattr_remote_controller = std::make_unique<RemoteKalmanPosAttr>(terminal_base, ui->accel_process_le_2, ui->pos_meas_le_2, ui->vel_meas_le_2,
+    compl_oriattr_remote_controlller = std::make_unique<RemoteComplOriAttr>(terminal_base, ui->pushButton_8, ui->a_gain_le_2, ui->m_gain_le_2, ui->b_gain_le_2);
+    kalman_posattr_remote_controller = std::make_unique<RemoteKalmanPosAttr>(terminal_base, ui->pushButton_8, ui->accel_process_le_2, ui->pos_meas_le_2, ui->vel_meas_le_2,
                                                                              ui->pos_init_le_2, ui->vel_init_le_2, ui->accel_init_le_2);
 
 
