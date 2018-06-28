@@ -18,6 +18,8 @@ struct OrientationCF::Impl
     Impl()
         : is_initialized { false },
           bias_ctrl{ accum_size },
+          accel_ctrl{ accum_size },
+          magn_ctrl{ accum_size },
           state_bias { Vector3D::Zero() },
           params{ default_params }
     {}
@@ -26,15 +28,19 @@ struct OrientationCF::Impl
     void step_uninitialized(const FilterInput & z)
     {
         bias_ctrl.update(z.w);
+        accel_ctrl.update(z.a);
+        magn_ctrl.update(z.m);
     }
 
-    void initialize(const FilterInput & z)
+    void initialize()
     {
-        state_quat = accel_magn_quat(z.a, z.m).conjugate();
+        state_quat = accel_magn_quat(accel_ctrl.get_mean(), magn_ctrl.get_mean()).conjugate();
         state_bias = bias_ctrl.get_mean();
 
         is_initialized = true;
         bias_ctrl.set_sampling(0); // free memory
+        accel_ctrl.set_sampling(0);
+        magn_ctrl.set_sampling(0);
     }
 
     void step_initialized(const FilterInput & z)
@@ -104,6 +110,8 @@ struct OrientationCF::Impl
 
     bool is_initialized;
     QualityControl<Vector3D> bias_ctrl;
+    QualityControl<Vector3D> accel_ctrl;
+    QualityControl<Vector3D> magn_ctrl;
     const Earth earth_model;
 
     Quaternion state_quat;
@@ -134,6 +142,8 @@ void OrientationCF::do_reset()
 {
     pimpl->is_initialized = false;
     pimpl->bias_ctrl.set_sampling(Impl::accum_size);
+    pimpl->accel_ctrl.set_sampling(Impl::accum_size);
+    pimpl->magn_ctrl.set_sampling(Impl::accum_size);
 }
 
 void OrientationCF::do_step(const FilterInput & z)
@@ -144,7 +154,7 @@ void OrientationCF::do_step(const FilterInput & z)
     }
     else if(pimpl->bias_ctrl.is_saturated())
     {
-        pimpl->initialize(z);
+        pimpl->initialize();
     }
     else
     {
