@@ -7,16 +7,18 @@
 
 class QLineEdit;
 class TerminalBase;
+class QPushButton;
 
 struct RemoteComplOriAttr : public QObject
 {
     Q_OBJECT
 
 public:
-    RemoteComplOriAttr(TerminalBase & tbase, QLineEdit * static_accel_le, QLineEdit * static_magn_le, QLineEdit * bias_gain_le);
+    RemoteComplOriAttr(TerminalBase & tbase, QPushButton * save_btn, QLineEdit * static_accel_le, QLineEdit * static_magn_le, QLineEdit * bias_gain_le);
     void borrow_attributes();
 
 public slots:
+    void on_save_bnt();
     void on_static_accel_gain(const QString & str);
     void on_static_magn_gain(const QString & str);
     void on_bias_gain(const QString & str);

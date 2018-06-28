@@ -7,18 +7,20 @@
 
 class QLineEdit;
 class TerminalBase;
+class QPushButton;
 
 class RemoteKalmanPosAttr : public QObject
 {
     Q_OBJECT
 
 public:
-    RemoteKalmanPosAttr(TerminalBase & tbase,
+    RemoteKalmanPosAttr(TerminalBase & tbase, QPushButton * save_btn,
                         QLineEdit * proc_accel_std_le, QLineEdit * meas_pos_std_le, QLineEdit * meas_vel_std_le,
                         QLineEdit * init_pos_std_le, QLineEdit * init_vel_std_le, QLineEdit * init_accel_std_le);
     void borrow_attributes();
 
 public slots:
+    void on_save_bnt();
     void on_proc_accel_std(const QString & str);
     void on_meas_pos_std(const QString & str);
     void on_meas_vel_std(const QString & str);
