@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>4</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -685,9 +685,6 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QWidget" name="dwidget2" native="true"/>
-        </item>
         <item row="2" column="3">
          <widget class="QGroupBox" name="groupBox_6">
           <property name="title">
@@ -873,6 +870,9 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item row="2" column="0" colspan="3">
+         <widget class="QWidget" name="dwidget2" native="true"/>
         </item>
        </layout>
       </widget>
