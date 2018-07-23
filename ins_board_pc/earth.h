@@ -70,7 +70,7 @@ public:
 
     /*!
      * @brief Get reference ellipsoid.
-     * @return  reference ellipsoid.
+     * @return reference ellipsoid.
      */
     Ellipsoid get_ellipsoid() const;
 

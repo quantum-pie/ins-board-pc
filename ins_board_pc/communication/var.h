@@ -11,18 +11,38 @@
 
 #include <QObject>
 
+/*!
+ * @brief The Var class
+ * This class is designed to encaplsulate terminal variable.
+ */
 class Var
 {
 public:
+    /*!
+     * @brief Var constructor.
+     * @param tbase TerminalBase reference.
+     */
     Var(TerminalBase & tbase) : tbase{ tbase }
     {}
 
+    /*!
+     * @brief Set variable.
+     * @tparam T type of variable value.
+     * @param name Variable name.
+     * @param val Variable value.
+     */
     template<typename T>
     void set(const std::string & name, const T & val)
     {
         tbase.send_text(name + ' ' + boost::lexical_cast<std::string>(val) + '\n');
     }
 
+    /*!
+     * @brief Get variable value.
+     * @tparam T type of variable value.
+     * @param name Variable name.
+     * @return variable value.
+     */
     template<typename T>
     T get(const std::string & name)
     {

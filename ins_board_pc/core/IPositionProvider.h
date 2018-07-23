@@ -4,15 +4,18 @@
 #include "eigenaux.h"
 #include "ellipsoid.h"
 
+/*!
+ * @brief Position provider interface.
+ */
 struct IPositionProvider
 {
     /*!
      * @brief Get ECEF coordinates vector.
      * @return position vector.
      */
-    Vector3D get_cartesian() const
+    Vector3D get_position() const
     {
-        return do_get_cartesian();
+        return do_get_position();
     }
 
     /*!
@@ -48,7 +51,7 @@ struct IPositionProvider
     virtual ~IPositionProvider() = default;
 
 private:
-    virtual Vector3D do_get_cartesian() const = 0;
+    virtual Vector3D do_get_position() const = 0;
     virtual Ellipsoid do_get_ellipsoid() const = 0;
     virtual Vector3D do_get_velocity() const = 0;
     virtual Vector3D do_get_acceleration() const = 0;

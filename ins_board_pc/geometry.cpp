@@ -33,7 +33,7 @@ Vector3D great_circle_destination(const Vector3D & geo, double start_bearing, do
 	return geo_dest;
 }
 
-Vector3D cartesian_to_geodetic(const Vector3D & pos, const Ellipsoid & e)
+Vector3D ecef_to_geodetic(const Vector3D & pos, const Ellipsoid & e)
 {
 	Vector3D geo;
 
@@ -92,7 +92,7 @@ Vector3D cartesian_to_geodetic(const Vector3D & pos, const Ellipsoid & e)
     return geo;
 }
 
-Vector3D geodetic_to_cartesian(const Vector3D & geo, const Ellipsoid & e)
+Vector3D geodetic_to_ecef(const Vector3D & geo, const Ellipsoid & e)
 {
 	Vector3D pos;
 

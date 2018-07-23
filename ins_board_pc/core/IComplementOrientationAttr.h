@@ -1,6 +1,9 @@
 #ifndef ICOMPLEMENTORIENTATIONATTR_H
 #define ICOMPLEMENTORIENTATIONATTR_H
 
+/*!
+ * @brief Complementary orientation filter attributes interface.
+ */
 struct IComplementOrientationAttr
 {
     /*!
@@ -56,6 +59,7 @@ struct IComplementOrientationAttr
     {
         return do_get_bias_gain();
     }
+
     /*!
      * @brief Class destructor.
      */

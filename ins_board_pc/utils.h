@@ -68,7 +68,18 @@ int32_t double_to_fixed(double val);
  */
 int32_t angle_to_fixed(double radians);
 
+/*!
+ * @brief Convert fixed-point to double precision floating-point representation.
+ * @param fixed fixed-point value.
+ * @return double precision floating-point value.
+ */
 double fixed_to_double(int32_t fixed);
+
+/*!
+ * @brief Convert fixed-point to floating-point angle in radians representation.
+ * @param fixed fixed-point angle.
+ * @return floating-point angle in radians.
+ */
 double fixed_to_angle(int32_t fixed);
 
 /*!
@@ -78,8 +89,19 @@ double fixed_to_angle(int32_t fixed);
  */
 double ms_to_knots(double ms);
 
+/*!
+ * @brief Convert double to string.
+ * @param val double value.
+ * @param digits number of decimal places.
+ * @return string representation.
+ */
 QString double_view(double val, std::size_t digits = 2);
 
+/*!
+ * @brief Convert GPS time to string.
+ * @param ts GPS timestamp.
+ * @return GPS time string.
+ */
 QString gps_time_string(const Timestamp & ts);
 
 }

@@ -7,9 +7,17 @@
 
 class QCustomPlot;
 
+/*!
+ * @brief The Euler angles plot orientation view.
+ */
 struct RPYOrientationView : IOrientationView
 {
+    /*!
+     * @brief RPYOrientationView constructor.
+     * @param plot plot pointer.
+     */
     RPYOrientationView(QCustomPlot * plot);
+
     ~RPYOrientationView() override = default;
 
     void update(const ViewModel & pvd) override;

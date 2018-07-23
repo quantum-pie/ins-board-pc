@@ -5,10 +5,23 @@
 
 #include <QString>
 
+/*!
+ * @brief Attributes controller base.
+ * This is base implementation of filtering attributes controllers.
+ *
+ * @tparam Model type of controlled model.
+ */
 template<typename Model>
 struct AttrControllerBase : ControllerBase<Model>
 {
+    //! Pointer to model attribute setter method alias.
     using model_setter = void (Model::*)(double);
+
+    /*!
+     * @brief Call model attribute setter.
+     * @param str attribute value string.
+     * @param f attribute setter.
+     */
     void call_setter(const QString & str, model_setter f)
     {
         if(this->model_is_set())

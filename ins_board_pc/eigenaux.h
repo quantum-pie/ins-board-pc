@@ -35,6 +35,12 @@ using Vector3D = Eigen::Vector3d;
 namespace eaux
 {
 
+/*!
+ * @brief Debug vector.
+ * @tparam V vector type.
+ * @param vec vector.
+ * @param name vector name.
+ */
 template<typename V>
 void debug_vector(const V & vec, const std::string & name)
 {
@@ -46,6 +52,12 @@ void debug_vector(const V & vec, const std::string & name)
     std::cout << std::endl;
 }
 
+/*!
+ * @brief Debug matrix.
+ * @tparam M matrix type.
+ * @param mtx matrix.
+ * @param name matrix name.
+ */
 template<typename M>
 void debug_matrix(const M & mtx, const std::string & name)
 {

@@ -20,7 +20,7 @@ void PositionBypass::do_step(const FilterInput & z)
 
 void PositionBypass::do_reset() {}
 
-Vector3D PositionBypass::do_get_cartesian() const
+Vector3D PositionBypass::do_get_position() const
 {
     return pos;
 }

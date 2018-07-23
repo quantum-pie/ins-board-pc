@@ -15,9 +15,6 @@
  */
 struct IPositionFilter : virtual IFilter, IPositionProvider
 {
-	/*!
-	 * @brief Class destructor.
-	 */
 	~IPositionFilter() override = default;
 };
 

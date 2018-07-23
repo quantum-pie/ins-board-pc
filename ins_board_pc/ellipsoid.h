@@ -32,7 +32,12 @@ struct Ellipsoid
 	const double eps; 					//!< First eccentricity
 	const double re; 					//!< Mean radius of  ellipsoid
 
-	const double a1, a2, a3, a4, a5, a6; //!< Derived ellipsoid parameters.
+    const double a1;                    //!< Derived a1.
+    const double a2;                    //!< Derived a2.
+    const double a3;                    //!< Derived a3.
+    const double a4;                    //!< Derived a4.
+    const double a5;                    //!< Derived a5.
+    const double a6;                    //!< Derived a6.
 
     static const Ellipsoid WGS84;		 //!< Predefined WGS84 ellipsoid.
     static const Ellipsoid sphere;		 //!< Predefined standard spherical Earth model.

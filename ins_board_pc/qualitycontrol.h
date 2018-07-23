@@ -11,18 +11,6 @@
 #include <numeric>
 #include <type_traits>
 
-/* dirty hack to make code in this file valid for c++14 compiler */
-namespace std
-{
-
-template<class Base, class Derived>
-constexpr bool is_base_of_v = is_base_of<Base, Derived>::value;
-
-template<class T>
-constexpr bool is_arithmetic_v = is_arithmetic<T>::value;
-
-}
-
 /*!
  * @brief Estimate quality control class.
  *
@@ -36,7 +24,6 @@ public:
     /*!
      * @brief Class constructor.
      * @param buf_size size of buffer.
-     * @param zero estimate value zero.
      */
     explicit QualityControl(std::size_t buf_size = 200)
     	: buf_size{buf_size}, buf{buf_size} {}
@@ -56,8 +43,8 @@ public:
      * @return estimate bias (mean).
      */
     template<typename U = T>
-    std::enable_if_t<std::is_base_of_v<Eigen::MatrixBase<U>, T> &&
-                     std::is_arithmetic_v<typename U::value_type>, T>
+    std::enable_if_t<std::is_base_of<Eigen::MatrixBase<U>, T>::value &&
+                     std::is_arithmetic<typename U::value_type>::value, T>
     get_mean() const
     {
     	T s { T::Zero() };
@@ -70,7 +57,7 @@ public:
      * @return estimate bias (mean).
      */
     template<typename U = T>
-    std::enable_if_t<std::is_arithmetic_v<U>, T>
+    std::enable_if_t<std::is_arithmetic<U>::value, T>
     get_mean() const
     {
     	return std::accumulate(buf.begin(), buf.end(), 0) / buf.size();
@@ -82,8 +69,8 @@ public:
      * @return estimate standard deviation.
      */
     template<typename U = T>
-    std::enable_if_t<std::is_base_of_v<Eigen::MatrixBase<U>, T> &&
-                     std::is_arithmetic_v<typename U::value_type>, T>
+    std::enable_if_t<std::is_base_of<Eigen::MatrixBase<U>, T>::value &&
+                     std::is_arithmetic<typename U::value_type>::value, T>
     get_std() const
     {
         T s1 { T::Zero() }, s2 { T::Zero() };
@@ -103,7 +90,7 @@ public:
      * @return estimate standard deviation.
      */
     template<typename U = T>
-    std::enable_if_t<std::is_arithmetic_v<U>, T>
+    std::enable_if_t<std::is_arithmetic<U>::value, T>
     get_std() const
     {
         T s1 { 0 }, s2 { 0 };

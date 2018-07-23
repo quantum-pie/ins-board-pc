@@ -26,7 +26,7 @@ KalmanPositionFilterBase::meas_type
 KalmanPositionFilterBase::do_get_predicted_measurement(const Vector3D&, const boost::gregorian::date&) const
 {
     meas_type pred;
-    pred << get_cartesian(), get_velocity();
+    pred << get_position(), get_velocity();
     return pred;
 }
 
@@ -54,7 +54,7 @@ void KalmanPositionFilterBase::do_set_cov(const P_type & cov)
 
 Vector3D KalmanPositionFilterBase::do_get_geodetic(const FilterInput&) const
 {
-    return geom::cartesian_to_geodetic(get_cartesian(), get_ellipsoid());
+    return geom::ecef_to_geodetic(get_position(), get_ellipsoid());
 }
 
 bool KalmanPositionFilterBase::do_is_initialized() const
@@ -176,7 +176,7 @@ Ellipsoid KalmanPositionFilterBase::do_get_ellipsoid() const
     return ellip;
 }
 
-Vector3D KalmanPositionFilterBase::do_get_cartesian() const
+Vector3D KalmanPositionFilterBase::do_get_position() const
 {
     return x.segment<3>(0);
 }

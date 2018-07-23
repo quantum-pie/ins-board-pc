@@ -16,9 +16,6 @@
 struct IKalmanOrientationFilter : IOrientationFilter,
                                   IKalmanOrientationAttr
 {
-    /*!
-     * @brief Class destructor.
-     */
     ~IKalmanOrientationFilter() override = default;
 };
 

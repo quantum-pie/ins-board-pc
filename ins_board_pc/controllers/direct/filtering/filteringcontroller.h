@@ -11,10 +11,23 @@
 #include <QPushButton>
 #include <QLineEdit>
 
+/*!
+ * @brief Generic filtering controller class.
+ * This class is designed to manage filtering model, accept model input and update model views.
+ *
+ * @tparam Model model type.
+ * @tparam View view type.
+ */
 template<typename Model, typename View>
 struct FilteringController : FilteringControllerCommon, ControllerBase<Model>,
                              ObservableBase<View>
 {
+    /*!
+     * @brief FilteringController constructor.
+     * @param start_button Start filtering widget.
+     * @param clear_button Clear views widget.
+     * @param accum_le Adapter's accumulator capacity widget.
+     */
     FilteringController(const QPushButton * start_button, const QPushButton * clear_button, const QLineEdit * accum_le)
         : FilteringControllerCommon{ start_button->isChecked() }
     {

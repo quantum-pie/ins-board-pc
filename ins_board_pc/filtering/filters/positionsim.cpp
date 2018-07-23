@@ -22,7 +22,7 @@ struct PositionSim::Impl
 
     void step_uninitialized(const FilterInput & z)
     {
-        pos = geom::geodetic_to_cartesian(z.geo, el);
+        pos = geom::geodetic_to_ecef(z.geo, el);
 
         double vn = std::cos(params.initial_track);
         double ve = std::sin(params.initial_track);
@@ -39,7 +39,7 @@ struct PositionSim::Impl
 
     void step_initialized(const FilterInput & z)
     {
-        Vector3D geo = geom::cartesian_to_geodetic(pos, el);
+        Vector3D geo = geom::ecef_to_geodetic(pos, el);
 
         double distance = params.speed * z.dt;
 
@@ -48,7 +48,7 @@ struct PositionSim::Impl
 
         geo = geom::great_circle_destination(geo, bearing, distance, el);
 
-        Vector3D new_pos = geom::geodetic_to_cartesian(geo, el);
+        Vector3D new_pos = geom::geodetic_to_ecef(geo, el);
         Vector3D new_speed = (new_pos - pos) / z.dt;
 
         acc = (new_speed - vel) / z.dt;
@@ -97,7 +97,7 @@ void PositionSim::do_reset()
     pimpl->is_initialized = false;
 }
 
-Vector3D PositionSim::do_get_cartesian() const
+Vector3D PositionSim::do_get_position() const
 {
     return pimpl->pos;
 }

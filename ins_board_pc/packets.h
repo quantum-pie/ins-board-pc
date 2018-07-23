@@ -25,6 +25,11 @@ struct Timestamp
     uint8_t second;		//!< Second (0-59).
     uint8_t ssecond;	//!< Sentisecond (0-99).
 
+    /*!
+     * @brief Equality operator.
+     * @param other another timestamp for comparison.
+     * @return true if timestamps are equal.
+     */
     bool operator == (const Timestamp & other) const
     {
         return year == other.year &&
@@ -36,6 +41,11 @@ struct Timestamp
                 ssecond == other.ssecond;
     }
 
+    /*!
+     * @brief Inequality operator.
+     * @param other another timestamp for comparison.
+     * @return true if timestamps are not equal.
+     */
     bool operator != (const Timestamp & other) const
     {
         return !(*this == other);
@@ -84,6 +94,9 @@ struct RawPacket
 	double et;					//!< Elapsed time.
 };
 
+/*!
+ * @brief Filtered data packet.
+ */
 struct FilteredPacket
 {
     uint32_t status;                            //!< Status word.
@@ -100,6 +113,5 @@ struct FilteredPacket
     int32_t track;                              //!< Track angle.
     uint32_t pkt_number;                        //!< Packet number.
 };
-
 
 #endif /* INCLUDE_PACKETS_H_ */

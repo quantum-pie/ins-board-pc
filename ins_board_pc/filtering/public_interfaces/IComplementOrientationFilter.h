@@ -16,9 +16,6 @@
 struct IComplementOrientationFilter : IOrientationFilter,
                                       IComplementOrientationAttr
 {
-    /*!
-     * @brief Class destructor.
-     */
     ~IComplementOrientationFilter() override = default;
 };
 

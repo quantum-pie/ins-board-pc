@@ -40,9 +40,6 @@ struct KalmanPositionFilterBase : virtual IKalmanPositionFilter,
      */
     explicit KalmanPositionFilterBase(const Ellipsoid & ellip = Ellipsoid::WGS84);
 
-    /*!
-     * @brief Class destructor.
-     */
     ~KalmanPositionFilterBase() override = default;
 
     //! Traits of this implementation alias.
@@ -91,7 +88,7 @@ private:
     Ellipsoid do_get_ellipsoid() const override;
     Vector3D do_get_acceleration() const override;
     Vector3D do_get_velocity() const override;
-    Vector3D do_get_cartesian() const override;
+    Vector3D do_get_position() const override;
 
     void do_set_proc_accel_std(double std) override;
     void do_set_meas_pos_std(double std) override;

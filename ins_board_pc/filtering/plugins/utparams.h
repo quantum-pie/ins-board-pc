@@ -10,7 +10,7 @@ struct UnscentedTransformParams
     double beta;        //!< Beta.
     double alpha;       //!< Alpha.
 
-    static const UnscentedTransformParams default_params;
+    static const UnscentedTransformParams default_params;   //!< Default UT params.
 };
 
 #endif // UTPARAMS_H

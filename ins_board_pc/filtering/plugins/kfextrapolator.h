@@ -7,7 +7,7 @@
 #include "packets.h"
 
 /*!
- * @brief Extended Kalman filter extrapolation prccedure mixin.
+ * @brief Extended Kalman filter extrapolation procedure mixin.
  * @tparam Base base filter implementation.
  */
 template<typename Base>
@@ -17,6 +17,10 @@ struct KFExtrapolator : IExtrapolator<KFExtrapolator<Base>>, Base
     static_assert(std::is_base_of<IFilterBase<typename Base::impl_type>, Base>::value,
                   "Base class do not inherit IFilterBase CRTP");
 
+    /*!
+     * @brief Extrapolate EKF state.
+     * @param z filter input sample.
+     */
     void do_extrapolate(const FilterInput & z)
     {
         auto x = this->get_state();

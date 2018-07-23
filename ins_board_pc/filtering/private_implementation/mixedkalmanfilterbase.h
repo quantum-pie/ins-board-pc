@@ -51,9 +51,6 @@ public:
      */
     explicit MixedKalmanFilterBase(const Ellipsoid & ellip = Ellipsoid::WGS84);
 
-    /*!
-     * @brief Class destructor.
-     */
     ~MixedKalmanFilterBase() override = default;
 
     //! Traits of this implementation alias.

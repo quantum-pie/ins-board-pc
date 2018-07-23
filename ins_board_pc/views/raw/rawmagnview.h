@@ -6,9 +6,17 @@
 
 class QCustomPlot;
 
+/*!
+ * @brief The raw magnetic field plot view.
+ */
 struct RawMagnView : IRawView
 {
+    /*!
+     * @brief RawMagnView constructor.
+     * @param plot plot pointer.
+     */
     RawMagnView(QCustomPlot * plot);
+
     ~RawMagnView() override = default;
 
     void update(const ViewModel & pvd) override;

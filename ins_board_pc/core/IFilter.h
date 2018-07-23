@@ -3,6 +3,9 @@
 
 class FilterInput;
 
+/*!
+ * @brief The Filter interface.
+ */
 struct IFilter
 {
     /*!
@@ -28,6 +31,9 @@ struct IFilter
     virtual ~IFilter() = default;
 
 protected:
+    /*!
+     * @brief Filter reset implementation.
+     */
     virtual void do_reset() = 0;
 
 private:

@@ -1,6 +1,9 @@
 #ifndef ISIMPOSITIONATTR_H
 #define ISIMPOSITIONATTR_H
 
+/*!
+ * @brief Position filtering simulator interface.
+ */
 struct ISimPositionAttr
 {
     /*!
@@ -39,6 +42,9 @@ struct ISimPositionAttr
         return do_get_speed();
     }
 
+    /*!
+     * @brief Class destructor.
+     */
     virtual ~ISimPositionAttr() = default;
 
 private:

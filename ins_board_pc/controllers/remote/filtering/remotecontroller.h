@@ -9,9 +9,20 @@
 #include <QPushButton>
 #include <QLineEdit>
 
+/*!
+ * @brief Generic remote filtering controller class.
+ * This class is designed to manage remote filters, accept filtered input and update views.
+ *
+ * @tparam View view type.
+ */
 template<typename View>
 struct RemoteController : RemoteBase, ObservableBase<View>
 {
+    /*!
+     * @brief RemoteController constructor.
+     * @param clear_btn Clear views widget.
+     * @param accum_le Adapter's accumulator capacity widget.
+     */
     RemoteController(QPushButton * clear_btn, QLineEdit * accum_le)
     {
         connect(clear_btn, SIGNAL(released()), this, SLOT(clear_plots()));

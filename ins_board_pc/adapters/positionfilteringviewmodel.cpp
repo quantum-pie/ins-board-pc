@@ -5,11 +5,11 @@
 PositionFilteringViewModel
 Adapter<IPositionFilter, PositionFilteringViewModel>::operator()(const IPositionFilter & filter)
 {
-    PositionFilteringViewModel out {filter.get_ellipsoid(), filter.get_cartesian(), 0, 0};
+    PositionFilteringViewModel out {filter.get_ellipsoid(), filter.get_position(), 0, 0};
     speed_accum.update(filter.get_velocity());
     if(speed_accum.is_saturated())
     {
-        Vector3D geo = geom::cartesian_to_geodetic(filter.get_cartesian(), filter.get_ellipsoid());
+        Vector3D geo = geom::ecef_to_geodetic(filter.get_position(), filter.get_ellipsoid());
         out.track_angle = geom::track_angle(speed_accum.get_mean(), geo);
         out.ground_speed = utils::ms_to_knots(geom::ground_speed(speed_accum.get_mean(), geo));
     }

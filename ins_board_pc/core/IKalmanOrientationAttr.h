@@ -1,6 +1,9 @@
 #ifndef IKALMANORIENTATIONATTR_H
 #define IKALMANORIENTATIONATTR_H
 
+/*!
+ * @brief Kalman orientation filter interface.
+ */
 struct IKalmanOrientationAttr
 {
     /*!

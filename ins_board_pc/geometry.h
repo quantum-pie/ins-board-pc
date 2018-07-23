@@ -38,7 +38,7 @@ Vector3D great_circle_destination(const Vector3D & geo, double start_bearing, do
  * @param e reference ellipsoid model.
  * @return geodetic coordinates.
  */
-Vector3D cartesian_to_geodetic(const Vector3D & pos, const Ellipsoid & e);
+Vector3D ecef_to_geodetic(const Vector3D & pos, const Ellipsoid & e);
 
 /*!
  * @brief Convert geodetic coordinates to ECEF.
@@ -46,7 +46,7 @@ Vector3D cartesian_to_geodetic(const Vector3D & pos, const Ellipsoid & e);
  * @param e reference ellipsoid model.
  * @return ECEF point.
  */
-Vector3D geodetic_to_cartesian(const Vector3D & pos, const Ellipsoid & e);
+Vector3D geodetic_to_ecef(const Vector3D & pos, const Ellipsoid & e);
 
 /*!
  * @brief Convert vector from ECEF to ENU coordinates.

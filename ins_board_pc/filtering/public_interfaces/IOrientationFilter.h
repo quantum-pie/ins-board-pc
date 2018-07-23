@@ -15,9 +15,6 @@
  */
 struct IOrientationFilter : virtual IFilter, IOrientationProvider
 {
-    /*!
-     * @brief Class desctructor.
-     */
 	~IOrientationFilter() override = default;
 };
 

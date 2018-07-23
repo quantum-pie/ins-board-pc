@@ -11,9 +11,18 @@ class QWidget;
 class QGridLayout;
 class QQuaternion;
 
+/*!
+ * @brief The 3D rigid body orientation view.
+ */
 struct XDOrientationView : IOrientationView
 {
+    /*!
+     * @brief XDOrientationView constructor.
+     * @param dummy_plot preconstructed empty plot.
+     * @param container_layout layout containing empty plot.
+     */
     XDOrientationView(QWidget * dummy_plot, QGridLayout * container_layout);
+
     ~XDOrientationView() override = default;
 
     void update(const ViewModel & pvd) override;

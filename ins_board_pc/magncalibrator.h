@@ -15,6 +15,7 @@
 class MagnCalibrator
 {
 public:
+    //! Measurements iterator alias.
     using meas_iter = std::vector<Vector3D>::const_iterator;
 
     /*!
@@ -67,8 +68,21 @@ public:
      */
     Matrix3D get_scale() const;
 
+    /*!
+     * @brief Get iterator to the first measurement.
+     * @return first measurement iterator.
+     */
     meas_iter meas_begin() const;
+
+    /*!
+     * @brief Get iterator to the last measurement.
+     * @return last measurement iterator.
+     */
     meas_iter meas_end() const;
+
+    /*!
+     * @brief Clear measurements array.
+     */
     void clear_meas();
 
     MagnCalibrator(MagnCalibrator const&) = delete;

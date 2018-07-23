@@ -9,6 +9,9 @@
 
 #include "quatfwd.h"
 
+/*!
+ * @brief This namespace holds various quaternion-related utilities.
+ */
 namespace quat
 {
 

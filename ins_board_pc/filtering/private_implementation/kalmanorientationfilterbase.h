@@ -46,9 +46,6 @@ struct KalmanOrientationFilterBase : virtual IKalmanOrientationFilter,
      */
     explicit KalmanOrientationFilterBase(const Ellipsoid & ellip = Ellipsoid::WGS84);
 
-    /*!
-     * @brief Class destructor.
-     */
     ~KalmanOrientationFilterBase() override = default;
 
     //! Traits of this implementation alias.

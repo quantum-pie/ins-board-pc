@@ -21,7 +21,7 @@ void ENUPositionView::update(const IPositionView::ViewModel & vm)
     else
     {
         is_initialized = true;
-        start_geo = geom::cartesian_to_geodetic(vm.pos, vm.ellip);
+        start_geo = geom::ecef_to_geodetic(vm.pos, vm.ellip);
         start_ecef = vm.pos;
     }
 }

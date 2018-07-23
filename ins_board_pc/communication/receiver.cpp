@@ -13,12 +13,6 @@ Receiver::Receiver(const QString &raw_pvd_ip, uint16_t raw_pvd_port,
       calibrator{ calibrator }
 {}
 
-Receiver::~Receiver()
-{
-    raw_recv.set_processor(nullptr);
-    flt_recv.set_processor(nullptr);
-}
-
 void Receiver::process_raw_data(const QByteArray & data)
 {
     QDataStream ds(data);

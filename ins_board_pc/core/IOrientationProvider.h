@@ -4,11 +4,14 @@
 #include "eigenaux.h"
 #include "quaternion.h"
 
+/*!
+ * @brief Orientation provider interface.
+ */
 struct IOrientationProvider
 {
     /*!
      * @brief Get current orientation quaternion.
-     * @return vector representing quaternion.
+     * @return orientation quaternion.
      */
     quat::Quaternion get_orientation_quaternion() const
     {

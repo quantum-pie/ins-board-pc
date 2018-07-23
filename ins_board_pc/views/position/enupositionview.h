@@ -6,16 +6,22 @@
 
 #include "qcustomplot.h"
 
+/*!
+ * @brief The ENU plot position view.
+ */
 struct ENUPositionView : IPositionView, IRawView
 {
+    /*!
+     * @brief ENUPositionView constructor.
+     * @param plot plot pointer.
+     */
     ENUPositionView(QCustomPlot * plot);
+
     ~ENUPositionView() override = default;
 
     void update(const IPositionView::ViewModel & pvd) override;
     void update(const IRawView::ViewModel & pvd) override;
     void clear() override;
-
-    void update_track(QCPCurve * track, const Vector3D & point);
 
 private:
     bool is_initialized;

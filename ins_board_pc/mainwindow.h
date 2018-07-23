@@ -30,7 +30,7 @@
 #include <memory>
 
 /*!
- * \brief Main window class.
+ * @brief Main window class.
  */
 class MainWindow : public QMainWindow
 {
@@ -38,21 +38,30 @@ class MainWindow : public QMainWindow
 
 public:
     /*!
-     * \brief Main window constructor.
-     * \param parent parent widget.
+     * @brief Main window constructor.
+     * @param parent parent widget.
      */
     explicit MainWindow(QWidget *parent = 0);
 
     ~MainWindow() override = default;
 
 private slots:
+    /*!
+     * @brief Process raw packet.
+     * @param z raw packet.
+     */
     void got_raw_packet(const RawPacket & z);
+
+    /*!
+     * @brief Handle current tab change.
+     * @param index new tab index.
+     */
     void on_tabWidget_currentChanged(int index);
 
 private:
-    std::unique_ptr<Ui::MainWindow> ui;                                //!< Pointer to user interface instance.
+    std::unique_ptr<Ui::MainWindow> ui;
 
-    MagnCalibrator magn_cal;                            //!< Magnetometer calibrator instance.
+    MagnCalibrator magn_cal;
     Receiver receiver;
     TerminalBase terminal_base;
     Terminal terminal;

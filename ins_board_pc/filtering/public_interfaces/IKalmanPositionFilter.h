@@ -16,9 +16,6 @@
 struct IKalmanPositionFilter : IPositionFilter,
                                IKalmanPositionAttr
 {
-    /*!
-     * @brief Class destructor.
-     */
     ~IKalmanPositionFilter() override = default;
 };
 

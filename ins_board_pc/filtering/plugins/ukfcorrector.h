@@ -14,7 +14,7 @@
 #include <Eigen/Dense>
 
 /*!
- * @brief Unscented Kalman filter correction prccedure mixin.
+ * @brief Unscented Kalman filter correction procedure mixin.
  * @tparam Base base filter implementation.
  */
 template<typename Base>
@@ -42,6 +42,10 @@ struct UKFCorrector : ICorrector<UKFCorrector<Base>>, Base
         }
     }
 
+    /*!
+     * @brief Correct UKF state.
+     * @param z filter input sample.
+     */
     void do_correct(const FilterInput & z)
     {
         auto x = this->get_state();
@@ -91,15 +95,14 @@ struct UKFCorrector : ICorrector<UKFCorrector<Base>>, Base
     }
 
 private:
-    // Borrow aliases from Base.
     using state_type = typename Base::state_type;
     using meas_type = typename Base::meas_type;
     using P_type = typename Base::P_type;
     using R_type = typename Base::R_type;
     using K_type = typename Base::K_type;
 
-    static const int L { Base::thy_traits::state_size };    //!< Augmented state size.
-    double lambda;                                              //!< Unscented transform lambda parameter.
+    static const int L { Base::thy_traits::state_size };
+    double lambda;
 
     std::array<double, 2 * L + 1> Ws;
     std::array<double, 2 * L + 1> Wc;
