@@ -2,14 +2,24 @@
 #include "ellipsoid.h"
 #include "utils.h"
 
+#include <fstream>
+
 MAGtype_MagneticModel ** Magnetic::read_models()
 {
-    MAGtype_MagneticModel ** magnetic_models = new MAGtype_MagneticModel * [1];
+    std::ifstream infile("res/WMM.COF");
+    if(infile.good())
+    {
+        MAGtype_MagneticModel ** magnetic_models = new MAGtype_MagneticModel * [1];
 
-    MAG_robustReadMagModels(const_cast<char*>("res/WMM.COF"),
+        MAG_robustReadMagModels(const_cast<char*>("res/WMM.COF"),
                             &magnetic_models, 1);
 
-    return magnetic_models;
+        return magnetic_models;
+    }
+    else
+    {
+        std::exit(EXIT_FAILURE);
+    }
 }
 
 MAGtype_MagneticModel * Magnetic::initialize_current_model(MAGtype_MagneticModel const * const * magnetic_models)
