@@ -1,8 +1,2 @@
-# Build files
-debug/*
-release/*
-ins_board_pc/*.qm
-doxy/*
-
 # User settings
-ins_board_pc/*.user
+*.user

@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent) :
     terminal( terminal_base )
 {
     ui->setupUi(this);
+    setWindowTitle("INS Filters Testing Framework");
+    setWindowIcon(QIcon("res/main.png"));
 
     connect(ui->actionRun, SIGNAL(triggered(bool)), &terminal, SLOT(show()));
 
