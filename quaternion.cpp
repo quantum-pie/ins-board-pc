@@ -159,12 +159,12 @@ Vector3D Quaternion::vector_part() const
 
 bool Quaternion::is_real() const
 {
-	return qs == 0;
+    return vector_part() == Vector3D::Zero();
 }
 
 bool Quaternion::is_pure_imag() const
 {
-	return vector_part() == Vector3D::Zero();
+    return qs == 0 && vector_part() != Vector3D::Zero();
 }
 
 Matrix3D Quaternion::ddcm_dqs_tr() const
