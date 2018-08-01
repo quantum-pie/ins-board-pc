@@ -75,7 +75,7 @@ Magnetic::MagneticField Magnetic::measure(const Vector3D & geo, const boost::gre
     MAG_Geomag(ellip, spherical_coord, geodetic_coord, timed_magnetic_model, &result);
 
 	MagneticField out;
-    out.field << result.Y, result.X, -result.Z; // to ENU
+    out.field << result.Y, result.X, -result.Z; // NED to ENU
 	out.field *= 1e-3;
 	out.magn = result.F * 1e-3;
 	out.horizon_magn = result.H * 1e-3;
