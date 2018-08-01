@@ -88,7 +88,7 @@ struct OrientationCF::Impl
 
     double calculate_gain(const Vector3D & accel) const
     {
-        double error_metric = std::fabs(accel.norm() - Gravity::gf) / Gravity::gf;
+        double error_metric = std::fabs(accel.norm() - 1);
         return params.static_accel_gain * gain_factor(error_metric);
     }
 
@@ -130,7 +130,7 @@ struct OrientationCF::Impl
 };
 
 const std::size_t OrientationCF::Impl::accum_size { 500 };
-const OrientationCF::Impl::FilterParams OrientationCF::Impl::default_params { 0.005, 0.00005, 0.00001 };
+const OrientationCF::Impl::FilterParams OrientationCF::Impl::default_params { 0.05, 0.001, 0.00001 };
 
 OrientationCF::OrientationCF()
     : pimpl{ std::make_unique<Impl>() }
