@@ -58,8 +58,8 @@ MainWindow::MainWindow(QWidget *parent) :
     kalman_ori_controller = std::make_shared<OrientationFilteringController>(ui->pushButton_2, ui->pushButton_6, ui->samples_le);
     kalman_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot4));
     kalman_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget, ui->gridLayout_3));
-    kalman_ori_controller->attach_view(std::make_shared<StdOrientationView>(ui->roll_std_le,
-                                                                            ui->pitch_std_le, ui->yaw_std_le, ui->magnetic_heading_le));
+    kalman_ori_controller->attach_view(std::make_shared<StdOrientationView>(ui->roll_std_le, ui->pitch_std_le, ui->yaw_std_le,
+                                                                            ui->roll_le, ui->pitch_le, ui->magnetic_heading_le));
 
     kalman_pos_controller = std::make_shared<PositionFilteringController>(ui->pushButton_2, ui->pushButton_6, ui->samples_le);
 
@@ -87,8 +87,8 @@ MainWindow::MainWindow(QWidget *parent) :
     compl_ori_controller = std::make_unique<OrientationFilteringController>(ui->pushButton_4, ui->pushButton_7, ui->samples_le_2);
     compl_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot6));
     compl_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget2, ui->gridLayout_8));
-    compl_ori_controller->attach_view(std::make_shared<StdOrientationView>(ui->roll_std_le_2,
-                                                                           ui->pitch_std_le_2, ui->yaw_std_le_2, ui->magnetic_heading_le_2));
+    compl_ori_controller->attach_view(std::make_shared<StdOrientationView>(ui->roll_std_le_2, ui->pitch_std_le_2, ui->yaw_std_le_2,
+                                                                           ui->roll_le_2, ui->pitch_le_2, ui->magnetic_heading_le_2));
 
     sim_pos_controller = std::make_unique<PositionFilteringController>(ui->pushButton_4, ui->pushButton_7, ui->samples_le_2);
 
@@ -111,8 +111,8 @@ MainWindow::MainWindow(QWidget *parent) :
     remote_ori_controller = std::make_unique<OrientationRemoteController>(ui->pushButton_5, ui->samples_le_3);
     remote_ori_controller->attach_view(std::make_shared<RPYOrientationView>(ui->plot8));
     remote_ori_controller->attach_view(std::make_shared<XDOrientationView>(ui->dwidget3, ui->gridLayout_2));
-    remote_ori_controller->attach_view(std::make_shared<StdOrientationView>(ui->roll_std_le_3,
-                                                                           ui->pitch_std_le_3, ui->yaw_std_le_3, ui->magnetic_heading_le_3));
+    remote_ori_controller->attach_view(std::make_shared<StdOrientationView>(ui->roll_std_le_3, ui->pitch_std_le_3, ui->yaw_std_le_3,
+                                                                            ui->roll_le_3, ui->pitch_le_3, ui->magnetic_heading_le_3));
 
 
     remote_pos_controller = std::make_unique<PositionRemoteController>(ui->pushButton_5, ui->samples_le_3);

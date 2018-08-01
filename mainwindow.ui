@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -479,6 +479,13 @@
               <string>Feedback</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_7">
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_17">
+                <property name="text">
+                 <string>roll:</string>
+                </property>
+               </widget>
+              </item>
               <item row="3" column="0">
                <widget class="QLabel" name="_3">
                 <property name="text">
@@ -516,7 +523,7 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
+              <item row="6" column="1">
                <widget class="QLineEdit" name="magnetic_heading_le"/>
               </item>
               <item row="0" column="0">
@@ -526,32 +533,45 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
+              <item row="7" column="0">
                <widget class="QLabel" name="label_44">
                 <property name="text">
                  <string>ta:</string>
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
+              <item row="7" column="1">
                <widget class="QLineEdit" name="gps_heading_le"/>
               </item>
-              <item row="4" column="0">
+              <item row="6" column="0">
                <widget class="QLabel" name="label_43">
                 <property name="text">
                  <string>mh:</string>
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
+              <item row="8" column="1">
                <widget class="QLineEdit" name="ground_speed_le"/>
               </item>
-              <item row="6" column="0">
+              <item row="8" column="0">
                <widget class="QLabel" name="label_50">
                 <property name="text">
                  <string>gs:</string>
                 </property>
                </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_59">
+                <property name="text">
+                 <string>pitch:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="roll_le"/>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLineEdit" name="pitch_le"/>
               </item>
              </layout>
             </widget>
@@ -765,6 +785,16 @@
               <string>Feedback</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_9">
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>roll:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="roll_le_2"/>
+              </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_32">
                 <property name="text">
@@ -772,13 +802,13 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
+              <item row="8" column="1">
                <widget class="QLineEdit" name="ground_speed_le_2"/>
               </item>
               <item row="3" column="1">
                <widget class="QLineEdit" name="yaw_std_le_2"/>
               </item>
-              <item row="5" column="0">
+              <item row="7" column="0">
                <widget class="QLabel" name="label_45">
                 <property name="text">
                  <string>ta:</string>
@@ -812,7 +842,7 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
+              <item row="7" column="1">
                <widget class="QLineEdit" name="track_angle_le"/>
               </item>
               <item row="1" column="0">
@@ -822,22 +852,32 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
+              <item row="8" column="0">
                <widget class="QLabel" name="label_46">
                 <property name="text">
                  <string>gs:</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
+              <item row="6" column="1">
                <widget class="QLineEdit" name="magnetic_heading_le_2"/>
               </item>
-              <item row="4" column="0">
+              <item row="6" column="0">
                <widget class="QLabel" name="label_51">
                 <property name="text">
                  <string>mh:</string>
                 </property>
                </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_14">
+                <property name="text">
+                 <string>pitch:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLineEdit" name="pitch_le_2"/>
               </item>
              </layout>
             </widget>
@@ -1014,13 +1054,13 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
+              <item row="8" column="1">
                <widget class="QLineEdit" name="ground_speed_le_3"/>
               </item>
               <item row="3" column="1">
                <widget class="QLineEdit" name="yaw_std_le_3"/>
               </item>
-              <item row="5" column="0">
+              <item row="7" column="0">
                <widget class="QLabel" name="label_55">
                 <property name="text">
                  <string>ta:</string>
@@ -1054,7 +1094,7 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
+              <item row="7" column="1">
                <widget class="QLineEdit" name="track_angle_le_2"/>
               </item>
               <item row="1" column="0">
@@ -1064,22 +1104,42 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
+              <item row="8" column="0">
                <widget class="QLabel" name="label_57">
                 <property name="text">
                  <string>gs:</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
+              <item row="6" column="1">
                <widget class="QLineEdit" name="magnetic_heading_le_3"/>
               </item>
-              <item row="4" column="0">
+              <item row="6" column="0">
                <widget class="QLabel" name="label_58">
                 <property name="text">
                  <string>mh:</string>
                 </property>
                </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>roll:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_16">
+                <property name="text">
+                 <string>pitch:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="roll_le_3"/>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLineEdit" name="pitch_le_3"/>
               </item>
              </layout>
             </widget>
