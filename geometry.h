@@ -65,6 +65,20 @@ Vector3D ecef_to_enu(const Vector3D & ecef, const Vector3D & geo);
 Vector3D enu_to_ecef(const Vector3D & enu, const Vector3D & geo);
 
 /*!
+ * @brief Convert vector from NED to ENU coordinates.
+ * @param ned vector in NED.
+ * @return vector in ENU.
+ */
+Vector3D ned_to_enu(const Vector3D & ned);
+
+/*!
+ * @brief Convert vector from ENU to NED coordinates.
+ * @param enu vector in ENU.
+ * @return vector in NED.
+ */
+Vector3D enu_to_ned(const Vector3D & enu);
+
+/*!
  * @brief Get direction cosine matrix from geodetic coordinates.
  * @param geo geodetic coordinates.
  * @return direction cosine matrix.

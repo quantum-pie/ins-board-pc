@@ -124,6 +124,20 @@ Vector3D enu_to_ecef(const Vector3D & enu, const Vector3D & geo)
 	return geodetic_to_dcm(geo).transpose() * enu;
 }
 
+Vector3D ned_to_enu(const Vector3D & ned)
+{
+    Vector3D enu;
+    enu << ned(1), ned(0), -ned(2);
+    return enu;
+}
+
+Vector3D enu_to_ned(const Vector3D & enu)
+{
+    Vector3D ned;
+    ned << enu(1), enu(0), -enu(2);
+    return ned;
+}
+
 Matrix3D geodetic_to_dcm(const Vector3D & geo)
 {
     double lat, lon;
