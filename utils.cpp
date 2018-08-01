@@ -23,7 +23,7 @@ static const double ms2knots { 1.94384 };
 static const double degrees_per_pi { 180.0 };
 
 //! Multiplier to convert floating-point value into 16.16 fixed-point value.
-static const int16_t fixed16d16_mult { std::numeric_limits<int16_t>::max() };
+static const uint16_t fixed16d16_mult { std::numeric_limits<uint16_t>::max() };
 
 double radians_to_degrees(double radians)
 {
