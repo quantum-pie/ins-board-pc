@@ -94,4 +94,17 @@ QString gps_time_string(const Timestamp & ts)
     return dt.toString(Qt::DefaultLocaleShortDate);
 }
 
+std::string time_string(const Timestamp & ts)
+{
+    std::ostringstream oss;
+    oss << static_cast<unsigned>(ts.day) << "-" <<
+            static_cast<unsigned>(ts.month) << "-" <<
+            ts.year << "_" <<
+            static_cast<unsigned>(ts.hour) << "-" <<
+            static_cast<unsigned>(ts.minute) << "-" <<
+            static_cast<unsigned>(ts.second);
+
+    return oss.str();
+}
+
 }

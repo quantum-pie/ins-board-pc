@@ -104,6 +104,8 @@ QString double_view(double val, std::size_t digits = 2);
  */
 QString gps_time_string(const Timestamp & ts);
 
+std::string time_string(const Timestamp & ts);
+
 }
 
 #endif /* INCLUDE_UTILS_H_ */
