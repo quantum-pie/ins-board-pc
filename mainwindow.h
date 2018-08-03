@@ -25,6 +25,8 @@
 #include "controllers/remote/attributes//remotecomploriattr.h"
 #include "controllers/remote/attributes/remotekalmanposattr.h"
 
+#include "fileoutput.h"
+
 #include <QMainWindow>
 
 #include <memory>
@@ -60,6 +62,8 @@ private slots:
 
 private:
     std::unique_ptr<Ui::MainWindow> ui;
+
+    FileOutput file_out;
 
     MagnCalibrator magn_cal;
     Receiver receiver;

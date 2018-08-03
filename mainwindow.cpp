@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowIcon(QIcon("res/main.png"));
 
     connect(ui->actionRun, SIGNAL(triggered(bool)), &terminal, SLOT(show()));
+    connect(ui->actionWrite, SIGNAL(toggled(bool)), &file_out, SLOT(handle_enable(bool)));
 
     //tab1
     raw_tab_controller = std::make_unique<RawController>();
@@ -147,6 +148,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 {
     receiver.disconnect();
     connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), this, SLOT(got_raw_packet(RawPacket)));
+    connect(&receiver, SIGNAL(raw_packet_received(RawPacket)), &file_out, SLOT(handle_input(RawPacket)));
 
     switch(index)
     {
