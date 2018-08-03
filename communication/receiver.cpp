@@ -20,6 +20,7 @@ void Receiver::process_raw_data(const QByteArray & data)
 
     RawPacket raw_z;
     ds >> raw_z.pkt_number
+            >> raw_z.ref_pitch >> raw_z.ref_roll
             >> raw_z.gps_data.time.year >> raw_z.gps_data.time.month >> raw_z.gps_data.time.day
             >> raw_z.gps_data.time.hour >> raw_z.gps_data.time.minute
             >> raw_z.gps_data.time.second >> raw_z.gps_data.time.ssecond
