@@ -18,8 +18,8 @@ Quaternion::Quaternion(double qs, double qx, double qy, double qz)
 						: qs{qs}, qx{qx}, qy{qy}, qz{qz}
 {}
 
-Quaternion::Quaternion(const Vector3D & v)
-						: Quaternion{0.0, v[0], v[1], v[2]}
+Quaternion::Quaternion(const Vector3D & v, double scalar_part)
+                        : Quaternion{scalar_part, v[0], v[1], v[2]}
 {}
 
 Quaternion::Quaternion(const vector_form & v)
@@ -28,23 +28,16 @@ Quaternion::Quaternion(const vector_form & v)
 
 Vector3D Quaternion::rpy() const
 {
-    /*! ZXY rotation sequence implied.
-     * Explanation:
-     * Conventional aerospace rotation sequence is ZYX,
-     * but since our coordinate system has Y axis aligned with fuselage,
-     * we need to switch rotation order of X and Y.
-    */
-    double test = qy * qz + qs * qx;
-
+    /* ZYX rotation sequence implied. */
     double qss = qs * qs;
     double qxx = qx * qx;
     double qyy = qy * qy;
     double qzz = qz * qz;
 
     Vector3D res;
-    res[0] = std::atan2(2 * qs * qy - 2 * qx * qz, qss - qxx - qyy + qzz);
-    res[1] = std::asin(2 * test);
-    res[2] = -std::atan2(2 * qs * qz - 2 * qx * qy, qss - qxx + qyy - qzz);
+    res[0] = std::atan2(2 * (qy * qz + qs * qx), qss - qxx - qyy + qzz);
+    res[1] = std::asin(-2 * (qx * qz - qs * qy));
+    res[2] = std::atan2(2 * (qx * qy + qs * qz), qss + qxx - qyy - qzz);
 
     return res;
 }

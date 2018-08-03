@@ -33,10 +33,11 @@ public:
 	Quaternion(double qs, double qx, double qy, double qz);
 
 	/*!
-	 * @brief Pure imaginary rotation quaternion construction from vector.
-	 * @param v vector.
+     * @brief Quaternion construction from vector and scalar parts.
+     * @param v vector part.
+     * @param scalar_part scalar part.
 	 */
-	Quaternion(const Vector3D & v);
+    Quaternion(const Vector3D & v, double scalar_part = 0);
 
 	/*!
 	 * @brief Class constructor from vector of quaternion elements.
@@ -45,10 +46,10 @@ public:
 	Quaternion(const vector_form & v);
 
 	/*!
-	 * @brief Convert quaternion to Euler angles.
+     * @brief Convert quaternion to Euler angles.
 	 * @return Euler angles vector.
 	 */
-	Vector3D rpy() const;
+    Vector3D rpy() const;
 
 	/*!
 	 * @brief Convert quaternion to direction cosine matrix.
