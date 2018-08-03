@@ -1,5 +1,6 @@
 #include "magnetic.h"
 #include "ellipsoid.h"
+#include "geometry.h"
 #include "utils.h"
 
 #include <fstream>
@@ -74,13 +75,14 @@ Magnetic::MagneticField Magnetic::measure(const Vector3D & geo, const boost::gre
     MAG_TimelyModifyMagneticModel(date, magnetic_models[0], timed_magnetic_model);
     MAG_Geomag(ellip, spherical_coord, geodetic_coord, timed_magnetic_model, &result);
 
-	MagneticField out;
-    out.field << result.Y, result.X, -result.Z; // NED to ENU
-	out.field *= 1e-3;
-	out.magn = result.F * 1e-3;
-	out.horizon_magn = result.H * 1e-3;
-	out.decl = utils::degrees_to_radians(result.Decl);
-	out.incl = utils::degrees_to_radians(result.Incl);
+    Vector3D field;
+    field << result.X, result.Y, result.Z;
 
-	return out;
+    return {
+         geom::ned_to_enu(field) * 1e-3,
+         result.F * 1e-3,
+         result.H * 1e-3,
+         utils::degrees_to_radians(result.Decl),
+         utils::degrees_to_radians(result.Incl)
+    };
 }
