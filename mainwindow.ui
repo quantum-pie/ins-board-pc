@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1201,6 +1201,13 @@
     </property>
     <addaction name="actionRun"/>
    </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionWrite"/>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="menuTermina"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -1215,6 +1222,14 @@
   <action name="actionRun">
    <property name="text">
     <string>Run</string>
+   </property>
+  </action>
+  <action name="actionWrite">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Write</string>
    </property>
   </action>
  </widget>
