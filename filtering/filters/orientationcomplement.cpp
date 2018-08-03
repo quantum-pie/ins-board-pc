@@ -60,14 +60,11 @@ struct OrientationCF::Impl
 
         // residual quaternion
         Quaternion qerr = accel_magn_quat(z.a, z.m) * state_quat;
-
-        // error angles
-        Vector3D rpy_err = qerr.rpy();
+        auto bias_corr = qerr.vector_part();
+        bias_corr[2] /= 100;
 
         // update bias
-        state_bias[0] += params.bias_gain * rpy_err[1];
-        state_bias[1] += params.bias_gain * rpy_err[0];
-        state_bias[2] += -params.bias_gain * rpy_err[2];
+        state_bias += params.bias_gain * bias_corr;
 
         Vector3D a_norm = z.a / z.a.norm();
 
