@@ -138,6 +138,16 @@ Vector3D enu_to_ned(const Vector3D & enu)
     return ned;
 }
 
+quat::Quaternion ned_to_enu(const quat::Quaternion & qned)
+{
+    return {ned_to_enu(qned.vector_part()), qned.scalar_part()};
+}
+
+quat::Quaternion enu_to_ned(const quat::Quaternion & qenu)
+{
+    return {enu_to_ned(qenu.vector_part()), qenu.scalar_part()};
+}
+
 Matrix3D geodetic_to_dcm(const Vector3D & geo)
 {
     double lat, lon;

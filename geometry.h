@@ -79,6 +79,20 @@ Vector3D ned_to_enu(const Vector3D & ned);
 Vector3D enu_to_ned(const Vector3D & enu);
 
 /*!
+ * @brief Convert quaternion from NED to ENU coordinates.
+ * @param ned vector in NED.
+ * @return vector in ENU.
+ */
+quat::Quaternion ned_to_enu(const quat::Quaternion & qned);
+
+/*!
+ * @brief Convert quaternion from ENU to NED coordinates.
+ * @param enu vector in ENU.
+ * @return vector in NED.
+ */
+quat::Quaternion enu_to_ned(const quat::Quaternion & qenu);
+
+/*!
  * @brief Get direction cosine matrix from geodetic coordinates.
  * @param geo geodetic coordinates.
  * @return direction cosine matrix.
