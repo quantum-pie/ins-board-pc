@@ -87,7 +87,8 @@ SOURCES += filtering/filters/orientationcomplement.cpp \
     communication/udpreceiver.cpp \
     communication/udpsender.cpp \
     controllers/direct/magncalibrationcontroller.cpp \
-    controllers/direct/rawcontroller.cpp
+    controllers/direct/rawcontroller.cpp \
+    fileoutput.cpp
 
 HEADERS  += \
     filtering/filters/generickalman.h \
@@ -181,6 +182,7 @@ HEADERS  += \
     communication/udpreceiver.h \
     communication/udpsender.h \
     controllers/direct/rawcontroller.h \
-    communication/var.h
+    communication/var.h \
+    fileoutput.h
 
 FORMS    += mainwindow.ui
