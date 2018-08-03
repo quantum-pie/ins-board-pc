@@ -1,5 +1,6 @@
 #include "adapters/orientationfilteringviewmodel.h"
 #include "quatutils.h"
+#include "geometry.h"
 #include "utils.h"
 
 using namespace quat;
@@ -8,7 +9,7 @@ OrientationFilteringViewModel
 Adapter<IOrientationFilter, OrientationFilteringViewModel>::operator()(const IOrientationFilter & filter)
 {
     auto q = filter.get_orientation_quaternion();
-    auto rpy = q.rpy();
+    auto rpy = geom::ned_to_enu(q).rpy();
     auto qf = static_cast<vector_form>(q).cast<float>();
     QQuaternion qq{ qf[0], qf[1], qf[2], qf[3] };
 
