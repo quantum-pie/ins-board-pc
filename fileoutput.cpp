@@ -2,16 +2,13 @@
 #include "packets.h"
 #include "utils.h"
 
-FileOutput::FileOutput() : RunningFlag{ false }
-{
-
-}
+FileOutput::FileOutput() : RunningFlag{ false } {}
 
 void FileOutput::handle_input(const RawPacket & z)
 {
     if(is_running())
     {
-        if(output_file.is_open())
+        if(output_file.is_open() && output_file.tellp() < batch_size)
         {
             output_file.write(reinterpret_cast<const char*>(&z.ref_pitch), sizeof(z.ref_pitch));
             output_file.write(reinterpret_cast<const char*>(&z.ref_roll), sizeof(z.ref_roll));
@@ -46,7 +43,7 @@ void FileOutput::handle_input(const RawPacket & z)
         }
         else if(z.gps_data.fix)
         {
-            std::cout << utils::time_string(z.gps_data.time);
+            output_file.close();
             output_file.open("res/raw_" + utils::time_string(z.gps_data.time) + ".dat", std::ios::binary);
         }
     }

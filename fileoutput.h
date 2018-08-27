@@ -41,6 +41,8 @@ public slots:
 
 private:
     std::ofstream output_file;
+
+    static constexpr std::size_t batch_size { 10 * 1024 * 1024 };
 };
 
 #endif // FILEOUTPUT_H
