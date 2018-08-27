@@ -99,7 +99,10 @@ private:
     std::unique_ptr<RemoteComplOriAttr> compl_oriattr_remote_controlller;
     std::unique_ptr<RemoteKalmanPosAttr> kalman_posattr_remote_controller;
 
-    QLabel * current_time;
+    //statusbar
+    QLabel current_time;
+    QLabel analog_pitch;
+    QLabel analog_roll;
 };
 
 #endif // MAINWINDOW_H

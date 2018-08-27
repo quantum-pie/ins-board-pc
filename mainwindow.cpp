@@ -131,8 +131,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     //other
-    current_time = new QLabel;
-    ui->statusBar->addWidget(current_time);
+    ui->statusBar->addWidget(&current_time);
+    ui->statusBar->addWidget(&analog_pitch);
+    ui->statusBar->addWidget(&analog_roll);
 
     resize(1300, 800);
 
@@ -141,7 +142,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::got_raw_packet(const RawPacket &z)
 {
-    current_time->setText(utils::gps_time_string(z.gps_data.time));
+    current_time.setText("GPS time: " + utils::gps_time_string(z.gps_data.time));
+    analog_pitch.setText("Analog pitch: " + QString::number(utils::fixed_to_angle(z.ref_pitch)));
+    analog_roll.setText("Analog roll: " + QString::number(utils::fixed_to_angle(z.ref_roll)));
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)
