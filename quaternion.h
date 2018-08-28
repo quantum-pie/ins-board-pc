@@ -45,6 +45,15 @@ public:
 	 */
 	Quaternion(const vector_form & v);
 
+    /*!
+     * @brief Class constructor from Euler angles in aerospace sequence ZYX.
+     * @param r roll.
+     * @param p pitch.
+     * @param y yaw.
+     */
+    Quaternion(double r, double p, double y);
+
+
 	/*!
      * @brief Convert quaternion to Euler angles.
 	 * @return Euler angles vector.

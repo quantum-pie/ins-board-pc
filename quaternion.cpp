@@ -5,6 +5,7 @@
  */
 
 #include "quaternion.h"
+#include "quatutils.h"
 
 namespace quat
 {
@@ -25,6 +26,17 @@ Quaternion::Quaternion(const Vector3D & v, double scalar_part)
 Quaternion::Quaternion(const vector_form & v)
 						: Quaternion{v[0], v[1], v[2], v[3]}
 {}
+
+Quaternion::Quaternion(double r, double p, double y)
+{
+    auto q = z_rotator(y) * y_rotator(p) * x_rotator(r);
+    qs = q.scalar_part();
+
+    auto vp = q.vector_part();
+    qx = vp[0];
+    qy = vp[1];
+    qz = vp[2];
+}
 
 Vector3D Quaternion::rpy() const
 {
