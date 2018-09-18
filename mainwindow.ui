@@ -14,8 +14,8 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
+   <layout class="QGridLayout" name="gridLayout_13">
+    <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
        <number>0</number>
@@ -24,7 +24,7 @@
        <attribute name="title">
         <string>Raw</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_13" columnstretch="4,1">
+       <layout class="QGridLayout" name="gridLayout_18" columnstretch="4,1">
         <item row="0" column="0">
          <widget class="QCustomPlot" name="plot1" native="true">
           <property name="sizePolicy">
@@ -34,6 +34,180 @@
            </sizepolicy>
           </property>
          </widget>
+        </item>
+        <item row="0" column="1" rowspan="3">
+         <layout class="QVBoxLayout" name="verticalLayout" stretch="4,1">
+          <item>
+           <widget class="QGroupBox" name="groupBox_10">
+            <property name="title">
+             <string>GPS</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_27">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_107">
+               <property name="text">
+                <string>X:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="x_le"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_102">
+               <property name="text">
+                <string>Y:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="y_le"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_97">
+               <property name="text">
+                <string>Z:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="z_le"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_103">
+               <property name="text">
+                <string>VX:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="vx_le"/>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_98">
+               <property name="text">
+                <string>VY:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="vy_le"/>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="label_100">
+               <property name="text">
+                <string>VZ:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QLineEdit" name="vz_le"/>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label_104">
+               <property name="text">
+                <string>LAT:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QLineEdit" name="lat_le"/>
+             </item>
+             <item row="7" column="0">
+              <widget class="QLabel" name="label_99">
+               <property name="text">
+                <string>LON:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="1">
+              <widget class="QLineEdit" name="lon_le"/>
+             </item>
+             <item row="8" column="0">
+              <widget class="QLabel" name="label_101">
+               <property name="text">
+                <string>ALT:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="1">
+              <widget class="QLineEdit" name="alt_le"/>
+             </item>
+             <item row="9" column="0">
+              <widget class="QLabel" name="label_105">
+               <property name="text">
+                <string>MSL_ALT:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="1">
+              <widget class="QLineEdit" name="msl_alt_le"/>
+             </item>
+             <item row="10" column="0">
+              <widget class="QLabel" name="label_106">
+               <property name="text">
+                <string>TIME:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="10" column="1">
+              <widget class="QLineEdit" name="time_le"/>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_15">
+            <property name="title">
+             <string>Accelerometer</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_17">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_60">
+               <property name="text">
+                <string>X_avg:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="y_avg_le">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="x_avg_le">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_61">
+               <property name="text">
+                <string>Y_avg:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_62">
+               <property name="text">
+                <string>Z_avg:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="z_avg_le">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item row="1" column="0">
          <widget class="QCustomPlot" name="plot2" native="true">
@@ -53,125 +227,6 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-         </widget>
-        </item>
-        <item row="0" column="1" rowspan="3">
-         <widget class="QGroupBox" name="groupBox_10">
-          <property name="title">
-           <string>GPS</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_27">
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_107">
-             <property name="text">
-              <string>X:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="x_le"/>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_102">
-             <property name="text">
-              <string>Y:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="y_le"/>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_97">
-             <property name="text">
-              <string>Z:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLineEdit" name="z_le"/>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_103">
-             <property name="text">
-              <string>VX:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="vx_le"/>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_98">
-             <property name="text">
-              <string>VY:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QLineEdit" name="vy_le"/>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_100">
-             <property name="text">
-              <string>VZ:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <widget class="QLineEdit" name="vz_le"/>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_104">
-             <property name="text">
-              <string>LAT:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
-            <widget class="QLineEdit" name="lat_le"/>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="label_99">
-             <property name="text">
-              <string>LON:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="1">
-            <widget class="QLineEdit" name="lon_le"/>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label_101">
-             <property name="text">
-              <string>ALT:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="1">
-            <widget class="QLineEdit" name="alt_le"/>
-           </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="label_105">
-             <property name="text">
-              <string>MSL_ALT:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="1">
-            <widget class="QLineEdit" name="msl_alt_le"/>
-           </item>
-           <item row="10" column="0">
-            <widget class="QLabel" name="label_106">
-             <property name="text">
-              <string>TIME:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="1">
-            <widget class="QLineEdit" name="time_le"/>
-           </item>
-          </layout>
          </widget>
         </item>
        </layout>

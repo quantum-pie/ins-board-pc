@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //tab1
     raw_tab_controller = std::make_unique<RawController>();
-    raw_tab_controller->attach_view(std::make_shared<RawAccelView>(ui->plot1));
+    raw_tab_controller->attach_view(std::make_shared<RawAccelView>(ui->plot1, ui->x_avg_le, ui->y_avg_le, ui->z_avg_le));
     raw_tab_controller->attach_view(std::make_shared<RawMagnView>(ui->plot2));
     raw_tab_controller->attach_view(std::make_shared<RawGyroView>(ui->plot3));
     raw_tab_controller->attach_view(std::make_shared<RawGPSView>(ui->x_le, ui->y_le, ui->z_le, ui->vx_le, ui->vy_le,ui->vz_le,
@@ -134,6 +134,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->statusBar->addWidget(&current_time);
     ui->statusBar->addWidget(&analog_pitch);
     ui->statusBar->addWidget(&analog_roll);
+    ui->statusBar->addWidget(&azim);
+    ui->statusBar->addWidget(&tilt);
 
     resize(1300, 800);
 
@@ -143,8 +145,10 @@ MainWindow::MainWindow(QWidget *parent) :
 void MainWindow::got_raw_packet(const RawPacket &z)
 {
     current_time.setText("GPS time: " + utils::gps_time_string(z.gps_data.time));
-    analog_pitch.setText("Analog pitch: " + QString::number(utils::fixed_to_angle(z.ref_pitch)));
-    analog_roll.setText("Analog roll: " + QString::number(utils::fixed_to_angle(z.ref_roll)));
+    analog_pitch.setText("Analog pitch: " + QString::number(utils::radians_to_degrees(utils::fixed_to_angle(z.ref_pitch))));
+    analog_roll.setText("Analog roll: " + QString::number(utils::radians_to_degrees(utils::fixed_to_angle(z.ref_roll))));
+    azim.setText("Azimuth: " + QString::number(utils::radians_to_degrees(utils::fixed_to_angle(z.ref_azim))));
+    tilt.setText("Tilt: " + QString::number(utils::radians_to_degrees(utils::fixed_to_angle(z.ref_tilt))));
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)

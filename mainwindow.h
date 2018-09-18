@@ -103,6 +103,8 @@ private:
     QLabel current_time;
     QLabel analog_pitch;
     QLabel analog_roll;
+    QLabel azim;
+    QLabel tilt;
 };
 
 #endif // MAINWINDOW_H
