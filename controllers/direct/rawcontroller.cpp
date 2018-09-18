@@ -17,7 +17,7 @@ void RawController::handle_input(const RawPacket & z)
 {
     if(is_running())
     {
-        update_views(z);
+        update_views(mvm_adapter(z));
     }
 }
 

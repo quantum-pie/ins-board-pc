@@ -4,6 +4,7 @@
 #include "views/base/IBaseView.h"
 #include "controllers/observablebase.h"
 #include "controllers/runningflag.h"
+#include "adapters/rawviewmodel.h"
 
 #include <QObject>
 
@@ -45,6 +46,9 @@ public slots:
      * @param en enable boolean condition.
      */
     void handle_enable(bool en);
+
+private:
+    Adapter<RawPacket, RawViewModel> mvm_adapter;
 };
 
 #endif // RAWCONTROLLER_H
