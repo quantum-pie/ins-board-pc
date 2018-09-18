@@ -1,4 +1,5 @@
 #include "views/raw/xdrawmagnview.h"
+#include "adapters/rawviewmodel.h"
 
 #include <QWidget>
 #include <QGridLayout>
@@ -9,7 +10,7 @@ XDRawMagnView::XDRawMagnView(QWidget *dummy_plot, QGridLayout *container_layout)
 
 void XDRawMagnView::update(const ViewModel & vm)
 {
-    update_scatter(vm.m);
+    update_scatter(vm.packet.m);
 }
 
 void XDRawMagnView::clear()

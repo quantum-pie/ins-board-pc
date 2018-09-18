@@ -1,5 +1,6 @@
 #include "views/raw/rawgyroview.h"
 #include "views/base/plotsetup.h"
+#include "adapters/rawviewmodel.h"
 #include "qcustomplot.h"
 
 RawGyroView::RawGyroView(QCustomPlot * plot) : plot{ plot }
@@ -22,7 +23,7 @@ RawGyroView::RawGyroView(QCustomPlot * plot) : plot{ plot }
 
 void RawGyroView::update(const ViewModel & vm)
 {
-    plots::update_3axis_plot(plot, vm.w);
+    plots::update_3axis_plot(plot, vm.packet.w);
 }
 
 void RawGyroView::clear()

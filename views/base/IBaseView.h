@@ -32,7 +32,7 @@ struct IBaseView
 
 struct OrientationFilteringViewModel;
 struct PositionFilteringViewModel;
-struct RawPacket;
+struct RawViewModel;
 struct FilteredPacket;
 class MagnCalibrator;
 
@@ -43,7 +43,7 @@ using IPositionView = IBaseView<PositionFilteringViewModel>;
 using IOrientationView = IBaseView<OrientationFilteringViewModel>;
 
 //! Raw data view alias.
-using IRawView = IBaseView<RawPacket>;
+using IRawView = IBaseView<RawViewModel>;
 
 //! Calibration view alias.
 using ICalibrationView = IBaseView<MagnCalibrator>;

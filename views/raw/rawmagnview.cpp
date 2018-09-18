@@ -1,5 +1,6 @@
 #include "views/raw/rawmagnview.h"
 #include "views/base/plotsetup.h"
+#include "adapters/rawviewmodel.h"
 #include "qcustomplot.h"
 
 RawMagnView::RawMagnView(QCustomPlot * plot) : plot{ plot }
@@ -22,7 +23,7 @@ RawMagnView::RawMagnView(QCustomPlot * plot) : plot{ plot }
 
 void RawMagnView::update(const ViewModel & vm)
 {
-    plots::update_3axis_plot(plot, vm.m);
+    plots::update_3axis_plot(plot, vm.packet.m);
 }
 
 void RawMagnView::clear()

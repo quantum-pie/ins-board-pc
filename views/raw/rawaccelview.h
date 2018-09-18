@@ -5,6 +5,7 @@
 #include "packets.h"
 
 class QCustomPlot;
+class QLineEdit;
 
 /*!
  * @brief The raw acceleration plot view.
@@ -15,7 +16,10 @@ struct RawAccelView : IRawView
      * @brief RawAccelView constructor.
      * @param plot plot pointer.
      */
-    RawAccelView(QCustomPlot * plot);
+    RawAccelView(QCustomPlot * plot,
+                 QLineEdit * x_avg_le,
+                 QLineEdit * y_avg_le,
+                 QLineEdit * z_avg_le);
 
     ~RawAccelView() override = default;
 
@@ -24,6 +28,9 @@ struct RawAccelView : IRawView
 
 private:
     QCustomPlot * plot;
+    QLineEdit * x_avg_le;
+    QLineEdit * y_avg_le;
+    QLineEdit * z_avg_le;
 };
 
 #endif // RAWACCELVIEW_H

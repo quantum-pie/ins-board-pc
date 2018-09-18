@@ -1,6 +1,7 @@
 #include "views/position/enupositionview.h"
 #include "views/base/plotsetup.h"
 #include "adapters/positionfilteringviewmodel.h"
+#include "adapters/rawviewmodel.h"
 #include "packets.h"
 #include "geometry.h"
 #include "utils.h"
@@ -30,14 +31,14 @@ void ENUPositionView::update(const IRawView::ViewModel & vm)
 {
     if(is_initialized)
     {
-        Vector3D enu_raw = geom::ecef_to_enu(vm.gps_data.pos - start_ecef, start_geo);
+        Vector3D enu_raw = geom::ecef_to_enu(vm.packet.gps_data.pos - start_ecef, start_geo);
         plots::update_track(plot, raw_track, enu_raw);
     }
     else
     {
         is_initialized = true;
-        start_geo = vm.gps_data.geo.unaryExpr(&utils::degrees_to_radians);
-        start_ecef = vm.gps_data.pos;
+        start_geo = vm.packet.gps_data.geo.unaryExpr(&utils::degrees_to_radians);
+        start_ecef = vm.packet.gps_data.pos;
     }
 }
 

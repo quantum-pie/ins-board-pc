@@ -1,4 +1,5 @@
 #include "views/raw/rawgpsview.h"
+#include "adapters/rawviewmodel.h"
 #include "utils.h"
 
 #include <QLineEdit>
@@ -28,17 +29,17 @@ RawGPSView::RawGPSView(QLineEdit *x_le, QLineEdit *y_le, QLineEdit *z_le,
 
 void RawGPSView::update(const ViewModel & vm)
 {
-    x_le->setText(utils::double_view(vm.gps_data.pos[0]));
-    y_le->setText(utils::double_view(vm.gps_data.pos[1]));
-    z_le->setText(utils::double_view(vm.gps_data.pos[2]));
-    vx_le->setText(utils::double_view(vm.gps_data.vel[0]));
-    vy_le->setText(utils::double_view(vm.gps_data.vel[1]));
-    vz_le->setText(utils::double_view(vm.gps_data.vel[2]));
-    lat_le->setText(utils::double_view(vm.gps_data.geo[0], 7));
-    lon_le->setText(utils::double_view(vm.gps_data.geo[1], 7));
-    alt_le->setText(utils::double_view(vm.gps_data.geo[2]));
-    msl_alt_le->setText(utils::double_view(vm.gps_data.msl_altitude));
-    time_le->setText(utils::gps_time_string(vm.gps_data.time));
+    x_le->setText(utils::double_view(vm.packet.gps_data.pos[0]));
+    y_le->setText(utils::double_view(vm.packet.gps_data.pos[1]));
+    z_le->setText(utils::double_view(vm.packet.gps_data.pos[2]));
+    vx_le->setText(utils::double_view(vm.packet.gps_data.vel[0]));
+    vy_le->setText(utils::double_view(vm.packet.gps_data.vel[1]));
+    vz_le->setText(utils::double_view(vm.packet.gps_data.vel[2]));
+    lat_le->setText(utils::double_view(vm.packet.gps_data.geo[0], 7));
+    lon_le->setText(utils::double_view(vm.packet.gps_data.geo[1], 7));
+    alt_le->setText(utils::double_view(vm.packet.gps_data.geo[2]));
+    msl_alt_le->setText(utils::double_view(vm.packet.gps_data.msl_altitude));
+    time_le->setText(utils::gps_time_string(vm.packet.gps_data.time));
 }
 
 void RawGPSView::clear()
