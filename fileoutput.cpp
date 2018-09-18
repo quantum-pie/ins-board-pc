@@ -12,6 +12,8 @@ void FileOutput::handle_input(const RawPacket & z)
         {
             output_file.write(reinterpret_cast<const char*>(&z.ref_pitch), sizeof(z.ref_pitch));
             output_file.write(reinterpret_cast<const char*>(&z.ref_roll), sizeof(z.ref_roll));
+            output_file.write(reinterpret_cast<const char*>(&z.ref_azim), sizeof(z.ref_azim));
+            output_file.write(reinterpret_cast<const char*>(&z.ref_tilt), sizeof(z.ref_tilt));
             output_file.write(reinterpret_cast<const char*>(&z.gps_data.time.year), sizeof(z.gps_data.time.year));
             output_file.write(reinterpret_cast<const char*>(&z.gps_data.time.month), sizeof(z.gps_data.time.month));
             output_file.write(reinterpret_cast<const char*>(&z.gps_data.time.day), sizeof(z.gps_data.time.day));
