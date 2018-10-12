@@ -50,8 +50,9 @@ void clear_3axis_plot(QCustomPlot * plot);
  * @param plot plot pointer.
  * @param track track pointer.
  * @param point new point.
+ * @param track_len maximal length of the track.
  */
-void update_track(QCustomPlot * plot, QCPCurve * track, const Vector3D & point);
+void update_track(QCustomPlot * plot, QCPCurve * track, const Vector3D & point, int track_len = 500);
 
 }
 

@@ -93,9 +93,15 @@ void clear_3axis_plot(QCustomPlot * plot)
     plot->graph(2)->data().clear();
 }
 
-void update_track(QCustomPlot * plot, QCPCurve * track, const Vector3D & point)
+void update_track(QCustomPlot * plot, QCPCurve * track, const Vector3D & point, int track_len)
 {
     track->addData(point[0], point[1]);
+    auto track_data = track->data();
+
+    if(track_data->size() > track_len)
+    {
+        track_data->remove(track_data->begin()->sortKey());
+    }
 
     plot->rescaleAxes();
 
